@@ -3,7 +3,7 @@
 Internal production tools for the Kofy team.
 
 ## Live URLs
-- Calendar: https://kofyio.github.io/kofy-tools/kofy-calendario-mayo-v5.html
+- Calendar: https://app.kofy.io/calendar.html
 
 
 ## Infrastructure
