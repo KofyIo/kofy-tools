@@ -3,9 +3,8 @@
 Internal production tools for the Kofy team.
 
 ## Live URLs
-- Calendar: https://megaonish.github.io/kofy-tools/kofy-calendario-mayo-v5.html
-- Form: https://megaonish.github.io/kofy-tools/kofy-notion-form.html
-- Reader: https://megaonish.github.io/kofy-tools/kofy-notion-reader.html
+- Calendar: https://kofyio.github.io/kofy-tools/kofy-calendario-mayo-v5.html
+
 
 ## Infrastructure
 - **Cloudflare Worker (proxy):** https://kofy-notion-proxy.delicate-surf-529c.workers.dev
