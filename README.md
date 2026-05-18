@@ -4,7 +4,8 @@ Internal production tools for the Kofy team.
 
 ## Live URLs
 - Calendar: https://app.kofy.io/calendar.html
-- Footage registry: app.kofy.io/footage.html
+- Footage registry: https://app.kofy.io/footage.html
+- Talent app: https://app.kofy.io/footage.html
 
 
 ## Infrastructure
