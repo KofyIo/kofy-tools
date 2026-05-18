@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Kofy · Piso</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Mono:wght@400;500&family=Lato:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  /* ═══ Design tokens (Kofy Infrastructure Brief) ═══ */
+  :root {
+    --bg: #0A0A0F;
+    --surface: #111118;
+    --surface-2: #1A1A24;
+    --line: #25252F;
+    --line-2: #353545;
+    --accent: #D97757;        /* warm coffee — talent's color */
+    --accent-soft: rgba(217,119,87,0.12);
+    --gold: #D4960A;
+    --green: #1D9E75;
+    --yellow: #E8B94E;
+    --red: #D9534F;
+    --text: #E8E8F0;
+    --text2: #9898B0;
+    --text3: #5A5A70;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; }
+  html, body {
+    background: var(--bg); color: var(--text);
+    font-family: 'Lato', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    line-height: 1.45; min-height: 100vh; overscroll-behavior-y: contain;
+  }
+  body { padding-bottom: 80px; }
+
+  /* Typography from brief */
+  .serif { font-family: 'DM Serif Display', Georgia, serif; }
+  .mono  { font-family: 'DM Mono', ui-monospace, monospace; }
+  h1, h2, h3 { font-family: 'DM Serif Display', Georgia, serif; font-weight: 400; letter-spacing: -0.01em; }
+
+  /* ═══ Header ═══ */
+  header.top {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(10,10,15,0.96); backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--line);
+    padding: 14px 18px env(safe-area-inset-top) 18px;
+    padding-top: calc(14px + env(safe-area-inset-top));
+  }
+  .top-row { display: flex; align-items: center; gap: 12px; max-width: 600px; margin: 0 auto; }
+  .brand { display: flex; align-items: center; gap: 8px; flex: 1; }
+  .brand .logo { font-size: 22px; line-height: 1; }
+  .brand .name { font-family: 'DM Serif Display', serif; font-size: 18px; color: var(--text); }
+  .brand .sub { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text3); letter-spacing: 0.18em; text-transform: uppercase; margin-left: 6px; }
+
+  .persona-chip {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--accent-soft); border: 1px solid var(--accent);
+    padding: 8px 12px 8px 8px; border-radius: 22px;
+    cursor: pointer; font-family: 'Lato', sans-serif; font-weight: 700; font-size: 13px;
+    color: var(--text); transition: background 0.15s;
+  }
+  .persona-chip:active { background: rgba(217,119,87,0.22); }
+  .persona-chip .dot { width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: var(--bg); display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 12px; font-family: 'DM Mono', monospace; }
+  .persona-chip .swap { font-size: 10px; color: var(--text2); font-weight: 400; }
+
+  /* ═══ Main container ═══ */
+  main { max-width: 600px; margin: 0 auto; padding: 20px 18px; }
+
+  /* ═══ Section heading ═══ */
+  .sec-head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    margin: 28px 0 12px; padding-bottom: 8px;
+    border-bottom: 1px solid var(--line);
+  }
+  .sec-head:first-child { margin-top: 4px; }
+  .sec-title { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--text); }
+  .sec-count {
+    font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text2);
+    background: var(--surface-2); padding: 3px 10px; border-radius: 12px;
+    letter-spacing: 0.04em;
+  }
+
+  /* ═══ Task cards (Mis tareas) ═══ */
+  .task-card {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 10px; padding: 16px; margin-bottom: 10px;
+    transition: border-color 0.15s, transform 0.1s;
+  }
+  .task-card:active { transform: scale(0.99); }
+  .task-row { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
+  .task-stage-badge {
+    flex: 0 0 auto; width: 44px; height: 44px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; background: var(--surface-2); border: 1px solid var(--line-2);
+  }
+  .task-info { flex: 1; min-width: 0; }
+  .task-id { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--accent); letter-spacing: 0.04em; font-weight: 500; margin-bottom: 2px; }
+  .task-client { font-family: 'DM Serif Display', serif; font-size: 18px; color: var(--text); line-height: 1.2; word-break: break-word; }
+  .task-meta { display: flex; gap: 10px; margin-top: 4px; font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; letter-spacing: 0.04em; }
+  .task-eta.late { color: var(--red); font-weight: 700; }
+  .task-stage-now {
+    font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text2);
+    letter-spacing: 0.1em; text-transform: uppercase; margin: 8px 0;
+  }
+  .task-stage-now strong { color: var(--text); font-weight: 700; }
+  .task-items {
+    background: var(--surface-2); border-radius: 6px; padding: 8px 12px;
+    font-size: 12px; color: var(--text2); margin: 8px 0 14px;
+    border-left: 2px solid var(--line-2);
+  }
+  .task-items .item { padding: 2px 0; }
+  .task-items .item .qty { color: var(--text); font-weight: 700; font-family: 'DM Mono', monospace; }
+  .task-actions { display: flex; gap: 8px; }
+  .task-actions .btn-primary { flex: 1; }
+
+  /* ═══ Buttons ═══ */
+  .btn {
+    background: var(--surface-2); border: 1px solid var(--line-2); color: var(--text);
+    padding: 12px 16px; border-radius: 8px; font-family: 'Lato', sans-serif;
+    font-size: 14px; font-weight: 700; letter-spacing: 0.02em;
+    cursor: pointer; transition: background 0.15s, border-color 0.15s, transform 0.1s;
+    min-height: 44px; -webkit-appearance: none;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn-primary {
+    background: var(--accent); border-color: var(--accent); color: #1a0c06;
+  }
+  .btn-primary:active { background: #c46645; }
+  .btn-ghost { background: transparent; color: var(--text2); }
+  .btn-ghost:active { color: var(--text); border-color: var(--accent); }
+  .btn-block { width: 100%; }
+  .btn-lg { padding: 16px; font-size: 16px; min-height: 56px; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* ═══ Big actions ═══ */
+  .big-action {
+    background: linear-gradient(135deg, var(--surface) 0%, var(--surface-2) 100%);
+    border: 1px solid var(--line-2); border-radius: 12px;
+    padding: 22px; margin-bottom: 14px;
+    display: flex; align-items: center; gap: 16px;
+    cursor: pointer; transition: border-color 0.15s, transform 0.1s;
+    position: relative; overflow: hidden;
+  }
+  .big-action:active { transform: scale(0.99); border-color: var(--accent); }
+  .big-action::before {
+    content: ""; position: absolute; top: -60px; right: -60px;
+    width: 180px; height: 180px;
+    background: radial-gradient(circle, var(--accent-soft), transparent 70%);
+    pointer-events: none;
+  }
+  .ba-icon { font-size: 32px; flex: 0 0 auto; position: relative; }
+  .ba-text { flex: 1; position: relative; }
+  .ba-title { font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--text); line-height: 1.2; }
+  .ba-sub { font-size: 12px; color: var(--text2); margin-top: 3px; }
+  .ba-arrow { color: var(--accent); font-size: 22px; position: relative; }
+
+  /* ═══ Inventory snapshot ═══ */
+  .inv-toggle {
+    width: 100%; display: flex; align-items: center; justify-content: space-between;
+    background: var(--surface); border: 1px solid var(--line); padding: 14px 16px;
+    border-radius: 10px; color: var(--text); cursor: pointer; font-family: 'Lato', sans-serif;
+    font-size: 14px; font-weight: 700;
+  }
+  .inv-toggle .toggle-arrow { color: var(--text3); transition: transform 0.2s; }
+  .inv-toggle.open .toggle-arrow { transform: rotate(90deg); }
+  .inv-body { display: none; margin-top: 8px; }
+  .inv-toggle.open + .inv-body { display: block; }
+  .inv-row {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--surface); border: 1px solid var(--line);
+    padding: 12px 14px; border-radius: 8px; margin-bottom: 6px;
+  }
+  .inv-id { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--accent); font-weight: 700; flex: 0 0 110px; }
+  .inv-name { font-size: 13px; color: var(--text); flex: 1; }
+  .inv-kg { font-family: 'DM Mono', monospace; font-size: 14px; color: var(--text); font-weight: 700; }
+  .inv-tag { font-size: 10px; padding: 2px 8px; border-radius: 10px; letter-spacing: 0.08em; font-weight: 700; }
+  .inv-tag.ok    { background: rgba(29,158,117,0.15); color: var(--green); }
+  .inv-tag.warn  { background: rgba(232,185,78,0.18); color: var(--yellow); }
+  .inv-tag.alert { background: rgba(217,83,79,0.18); color: var(--red); }
+
+  /* ═══ Persona picker (full-screen overlay) ═══ */
+  .picker-bg {
+    position: fixed; inset: 0; z-index: 200;
+    background: var(--bg);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 28px; gap: 28px;
+  }
+  .picker-bg.hidden { display: none; }
+  .picker-title { font-family: 'DM Serif Display', serif; font-size: 32px; color: var(--text); text-align: center; }
+  .picker-sub { color: var(--text2); font-size: 14px; text-align: center; max-width: 320px; line-height: 1.5; }
+  .picker-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px;
+    width: 100%; max-width: 360px;
+  }
+  .pchip {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    padding: 22px 14px; text-align: center; cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, transform 0.1s;
+    min-height: 110px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+  }
+  .pchip:active { transform: scale(0.97); border-color: var(--accent); background: var(--accent-soft); }
+  .pchip .avatar {
+    width: 48px; height: 48px; border-radius: 50%; background: var(--surface-2);
+    border: 2px solid var(--line-2); display: flex; align-items: center; justify-content: center;
+    font-family: 'DM Mono', monospace; font-weight: 700; font-size: 16px; color: var(--accent);
+  }
+  .pchip .nm { font-family: 'DM Serif Display', serif; font-size: 18px; color: var(--text); }
+  .pchip .role { font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; letter-spacing: 0.08em; text-transform: uppercase; }
+
+  /* ═══ Modal (uso + stage) ═══ */
+  .modal-bg {
+    position: fixed; inset: 0; z-index: 150;
+    background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);
+    display: none; align-items: flex-end; justify-content: center;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  @media (min-width: 600px) {
+    .modal-bg { align-items: center; padding: 20px; }
+  }
+  .modal-bg.open { display: flex; }
+  .modal {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 16px 16px 0 0;
+    padding: 22px 20px 28px; width: 100%; max-width: 540px;
+    max-height: 92vh; overflow-y: auto;
+    animation: slide-up 0.2s ease-out;
+  }
+  @media (min-width: 600px) {
+    .modal { border-radius: 14px; }
+  }
+  @keyframes slide-up { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .modal-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+  .modal-title { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--text); line-height: 1.2; }
+  .modal-sub { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--accent); margin-top: 4px; letter-spacing: 0.06em; }
+  .close-btn { background: transparent; border: none; color: var(--text2); font-size: 26px; cursor: pointer; padding: 4px 10px; }
+  .close-btn:active { color: var(--text); }
+
+  /* ═══ Form fields ═══ */
+  .field { margin-bottom: 14px; }
+  .field label {
+    display: block; font-family: 'DM Mono', monospace; font-size: 11px;
+    color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase;
+    margin-bottom: 6px; font-weight: 500;
+  }
+  .field input, .field select {
+    width: 100%; background: var(--surface-2); color: var(--text);
+    border: 1px solid var(--line-2); padding: 14px 14px; border-radius: 8px;
+    font-size: 16px; font-family: 'Lato', sans-serif; -webkit-appearance: none;
+    min-height: 50px;
+  }
+  .field input:focus, .field select:focus { border-color: var(--accent); outline: none; }
+  .qty-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 8px;
+  }
+  .qty-grid button {
+    background: var(--surface-2); border: 1px solid var(--line); color: var(--text);
+    padding: 12px 4px; border-radius: 6px; font-family: 'DM Mono', monospace;
+    font-size: 14px; font-weight: 500; cursor: pointer; min-height: 44px;
+  }
+  .qty-grid button:active { background: var(--accent-soft); border-color: var(--accent); }
+
+  /* ═══ Stage ladder in modal ═══ */
+  .ladder { margin: 14px 0; }
+  .ladder-step {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--surface-2); border: 1px solid var(--line);
+    border-radius: 10px; padding: 14px; margin-bottom: 8px;
+    cursor: pointer; transition: border-color 0.15s, background 0.15s;
+    min-height: 60px;
+  }
+  .ladder-step:active { background: var(--accent-soft); }
+  .ladder-step.done { border-color: var(--green); background: rgba(29,158,117,0.06); }
+  .ladder-step.current { border-color: var(--accent); border-left-width: 4px; padding-left: 11px; }
+  .ladder-step.disabled { opacity: 0.55; pointer-events: none; }
+  .ladder-icon { font-size: 22px; flex: 0 0 auto; }
+  .ladder-check {
+    width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--line-2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; flex: 0 0 auto;
+  }
+  .ladder-step.done .ladder-check { background: var(--green); border-color: var(--green); color: var(--bg); font-weight: 900; }
+  .ladder-info { flex: 1; min-width: 0; }
+  .ladder-name { font-size: 14px; color: var(--text); font-weight: 700; }
+  .ladder-sub { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text2); margin-top: 2px; letter-spacing: 0.04em; }
+
+  /* ═══ Toast ═══ */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: var(--surface); border: 1px solid var(--green);
+    padding: 14px 22px; border-radius: 30px; color: var(--text);
+    font-size: 14px; font-weight: 700; z-index: 300;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    opacity: 0; transition: opacity 0.2s, transform 0.2s;
+    pointer-events: none; max-width: 90%; text-align: center;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.error { border-color: var(--red); }
+
+  /* ═══ Empty + loading ═══ */
+  .empty {
+    text-align: center; padding: 40px 20px; color: var(--text2);
+  }
+  .empty .ic { font-size: 36px; margin-bottom: 10px; opacity: 0.5; }
+  .empty .msg { font-family: 'DM Serif Display', serif; font-size: 16px; color: var(--text2); }
+  .empty .sub { font-size: 12px; color: var(--text3); margin-top: 4px; }
+
+  .loading-state { color: var(--text3); font-size: 12px; font-family: 'DM Mono', monospace; text-align: center; padding: 24px; }
+  .loading-state::before { content: "◌ "; color: var(--accent); }
+
+  /* ═══ Footer (link to full app) ═══ */
+  .foot {
+    max-width: 600px; margin: 40px auto 0; padding: 20px 18px;
+    text-align: center; color: var(--text3); font-size: 11px;
+    font-family: 'DM Mono', monospace; letter-spacing: 0.08em;
+  }
+  .foot a { color: var(--text2); text-decoration: none; border-bottom: 1px solid var(--line-2); padding-bottom: 1px; }
+
+  /* ═══ Cascade banner (when jumping stages) ═══ */
+  .cascade-banner {
+    background: rgba(217,119,87,0.1); border: 1px solid var(--accent);
+    border-radius: 8px; padding: 12px 14px; margin: 8px 0 14px;
+    font-size: 12px; color: var(--text); line-height: 1.5;
+  }
+  .cascade-banner strong { color: var(--accent); font-family: 'DM Mono', monospace; font-weight: 500; }
+
+  .config-warn { background: rgba(217,83,79,0.1); border: 1px solid var(--red); padding: 16px; border-radius: 8px; margin: 20px; color: var(--text); font-size: 14px; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════
+     CONFIG · usa los mismos DB IDs que el resto del sistema
+     ═══════════════════════════════════════════════════════ -->
+<script>
+const CONFIG = {
+  PROXY_URL: "https://kofy-notion-proxy.delicate-surf-529c.workers.dev",
+  DB_MIEMBROS:  "3649b62600a080308dc6cf556b0d8c4b",
+  DB_CLIENTES:  "3649b62600a08020ae9ed625e57044bb",
+  DB_ORIGENES:  "3649b62600a080b5a056c4a03d3fbc2b",
+  DB_QUINTALES: "3649b62600a080df9a7ac6c932fa9d5b",
+  DB_ORDENES:   "3649b62600a0800ea228d8d8dcf2ada4",
+  DB_ITEMS:     "3649b62600a0806db145c919a7927ac2",
+  DB_USOS:      "3649b62600a080108754c2eaadac2455",
+  REFRESH_MS: 25000,
+  UMBRAL_BAJO: 10,
+  UMBRAL_MEDIO: 25,
+  PERSONA_KEY: "kofy_warehouse_persona_v1",
+};
+
+const STAGES = [
+  { code: "CV", icon: "🌱", name: "Café Verde",       sub: "apartado" },
+  { code: "T",  icon: "🔥", name: "Tostado",          sub: "tostado por Leo" },
+  { code: "E",  icon: "📦", name: "Empaquetado",      sub: "bolsas + sellos" },
+  { code: "L",  icon: "🏷️", name: "Listo p/ envío",   sub: "QR · etiquetas · caja" },
+  { code: "EN", icon: "✅", name: "Entregado",         sub: "al cliente" },
+];
+</script>
+
+<!-- ═══ Persona picker (modal de boot) ═══ -->
+<div class="picker-bg" id="picker">
+  <div class="picker-title">¿Quién sos?</div>
+  <div class="picker-sub">Tu firma queda registrada en cada acción durante esta sesión.</div>
+  <div class="picker-grid" id="picker-grid">
+    <div class="loading-state">cargando equipo…</div>
+  </div>
+</div>
+
+<!-- ═══ Header ═══ -->
+<header class="top" id="header-top" style="display:none;">
+  <div class="top-row">
+    <div class="brand">
+      <span class="logo">☕</span>
+      <div>
+        <div class="name">Kofy <span class="sub">· Piso</span></div>
+      </div>
+    </div>
+    <button class="persona-chip" id="persona-chip" onclick="changePersona()">
+      <span class="dot" id="persona-dot">—</span>
+      <span>
+        <span id="persona-name">—</span>
+        <span class="swap">cambiar</span>
+      </span>
+    </button>
+  </div>
+</header>
+
+<main id="main" style="display:none;">
+
+  <!-- ═══ MIS TAREAS ═══ -->
+  <div class="sec-head">
+    <h2 class="sec-title">Mis tareas</h2>
+    <span class="sec-count" id="tasks-count">—</span>
+  </div>
+  <div id="tasks-list"><div class="loading-state">cargando órdenes…</div></div>
+
+  <!-- ═══ APARTAR CAFÉ VERDE ═══ -->
+  <div class="sec-head">
+    <h2 class="sec-title">Apartar verde</h2>
+  </div>
+  <div class="big-action" onclick="openUso()">
+    <div class="ba-icon">⚖️</div>
+    <div class="ba-text">
+      <div class="ba-title">Registrar uso</div>
+      <div class="ba-sub">apartar café verde para una orden</div>
+    </div>
+    <div class="ba-arrow">›</div>
+  </div>
+
+  <!-- ═══ INVENTARIO ═══ -->
+  <div class="sec-head">
+    <h2 class="sec-title">Inventario</h2>
+  </div>
+  <button class="inv-toggle" id="inv-toggle" onclick="toggleInv()">
+    <span>Ver orígenes y stock</span>
+    <span class="toggle-arrow">›</span>
+  </button>
+  <div class="inv-body" id="inv-body"></div>
+
+  <div class="foot">
+    <a href="warehouse-ordenes.html">vista management →</a>
+  </div>
+</main>
+
+<!-- ═══ Modal · Stage ladder ═══ -->
+<div class="modal-bg" id="modal-stage">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title" id="stage-modal-client">—</div>
+        <div class="modal-sub" id="stage-modal-id">—</div>
+      </div>
+      <button class="close-btn" onclick="closeModal('modal-stage')">✕</button>
+    </div>
+    <div id="stage-cascade-warn"></div>
+    <div class="ladder" id="stage-ladder"></div>
+  </div>
+</div>
+
+<!-- ═══ Modal · Registrar Uso ═══ -->
+<div class="modal-bg" id="modal-uso">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">Registrar uso</div>
+        <div class="modal-sub" id="uso-firma-display">firma: —</div>
+      </div>
+      <button class="close-btn" onclick="closeModal('modal-uso')">✕</button>
+    </div>
+    <div class="field">
+      <label>Quintal</label>
+      <select id="uso-quintal"></select>
+    </div>
+    <div class="field">
+      <label>KG usados</label>
+      <input type="number" id="uso-kg" step="0.1" min="0.1" inputmode="decimal" placeholder="Ej: 15">
+      <div class="qty-grid">
+        <button onclick="setKg(0.5)">0.5</button>
+        <button onclick="setKg(1)">1</button>
+        <button onclick="setKg(2.5)">2.5</button>
+        <button onclick="setKg(5)">5</button>
+        <button onclick="setKg(10)">10</button>
+        <button onclick="setKg(15)">15</button>
+        <button onclick="setKg(25)">25</button>
+        <button onclick="setKg(46)">46</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>Orden</label>
+      <select id="uso-orden"></select>
+    </div>
+    <button class="btn btn-primary btn-block btn-lg" id="btn-uso-submit" onclick="submitUso()">Registrar →</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// Estado
+// ═══════════════════════════════════════════════════════
+let STATE = {
+  persona: null,        // {id, name, ini}
+  ordenes: [],
+  items: [],
+  clientes: [],
+  origenes: [],
+  quintales: [],
+  usos: [],
+  miembros: [],
+  currentOrder: null,
+  hidden: false,
+  lastAction: 0,
+};
+
+// ═══════════════════════════════════════════════════════
+// API · rutas del worker
+// ═══════════════════════════════════════════════════════
+async function notion(endpoint, body, method) {
+  method = method || (body ? "POST" : "GET");
+  const res = await fetch(`${CONFIG.PROXY_URL}${endpoint}`, {
+    method, headers: { "Content-Type": "application/json" },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (!res.ok) throw new Error(`${method} ${endpoint} → ${res.status}`);
+  return res.json();
+}
+async function queryDb(id) { return notion(`/query`, { database_id: id }); }
+async function createPage(id, props) { return notion(`/pages`, { parent: { database_id: id }, properties: props }); }
+async function updatePage(pageId, props) { return notion(`/pages/${pageId}`, { properties: props }, "PATCH"); }
+
+function readProp(page, name) {
+  const p = page?.properties?.[name];
+  if (!p) return null;
+  switch (p.type) {
+    case "title":     return p.title.map(t => t.plain_text).join("");
+    case "rich_text": return p.rich_text.map(t => t.plain_text).join("");
+    case "number":    return p.number;
+    case "select":    return p.select?.name || null;
+    case "date":      return p.date?.start || null;
+    case "checkbox":  return p.checkbox;
+    case "relation":  return p.relation.map(r => r.id);
+    default: return null;
+  }
+}
+function pageTitle(page) {
+  for (const v of Object.values(page?.properties || {})) {
+    if (v.type === "title") return v.title.map(t => t.plain_text).join("");
+  }
+  return "";
+}
+function getStageCode(o) {
+  for (let i = STAGES.length - 1; i >= 0; i--) {
+    if (readProp(o, `${STAGES[i].code} ✓`)) return STAGES[i].code;
+  }
+  return null;  // "Recibida"
+}
+
+// ═══════════════════════════════════════════════════════
+// Persona
+// ═══════════════════════════════════════════════════════
+function loadPersona() {
+  const raw = localStorage.getItem(CONFIG.PERSONA_KEY);
+  if (!raw) return null;
+  try { return JSON.parse(raw); } catch { return null; }
+}
+function savePersona(p) {
+  localStorage.setItem(CONFIG.PERSONA_KEY, JSON.stringify(p));
+  STATE.persona = p;
+}
+
+function renderPersonaPicker() {
+  const grid = document.getElementById("picker-grid");
+  if (!STATE.miembros.length) {
+    grid.innerHTML = `<div class="loading-state">no se encontraron miembros<br>creá las 4 filas en Notion primero</div>`;
+    return;
+  }
+  grid.innerHTML = "";
+  STATE.miembros.forEach(m => {
+    const name = pageTitle(m) || "—";
+    const ini = readProp(m, "Iniciales") || name.substring(0,2).toUpperCase();
+    const rol = readProp(m, "Rol") || "";
+    const chip = document.createElement("button");
+    chip.className = "pchip";
+    chip.innerHTML = `
+      <div class="avatar">${ini}</div>
+      <div class="nm">${name}</div>
+      <div class="role">${rol}</div>
+    `;
+    chip.onclick = () => {
+      savePersona({ id: m.id, name, ini });
+      showApp();
+    };
+    grid.appendChild(chip);
+  });
+}
+
+function showApp() {
+  document.getElementById("picker").classList.add("hidden");
+  document.getElementById("header-top").style.display = "block";
+  document.getElementById("main").style.display = "block";
+  updatePersonaChip();
+  renderAll();
+}
+function changePersona() {
+  document.getElementById("picker").classList.remove("hidden");
+  renderPersonaPicker();
+}
+function updatePersonaChip() {
+  const p = STATE.persona;
+  if (!p) return;
+  document.getElementById("persona-dot").textContent = p.ini;
+  document.getElementById("persona-name").textContent = p.name;
+}
+
+// ═══════════════════════════════════════════════════════
+// Carga
+// ═══════════════════════════════════════════════════════
+async function loadAll() {
+  try {
+    const [ord, it, cli, ori, qu, us, mi] = await Promise.all([
+      queryDb(CONFIG.DB_ORDENES),
+      queryDb(CONFIG.DB_ITEMS),
+      queryDb(CONFIG.DB_CLIENTES),
+      queryDb(CONFIG.DB_ORIGENES),
+      queryDb(CONFIG.DB_QUINTALES),
+      queryDb(CONFIG.DB_USOS),
+      queryDb(CONFIG.DB_MIEMBROS),
+    ]);
+    STATE.ordenes   = ord.results;
+    STATE.items     = it.results;
+    STATE.clientes  = cli.results;
+    STATE.origenes  = ori.results;
+    STATE.quintales = qu.results;
+    STATE.usos      = us.results;
+    STATE.miembros  = mi.results;
+  } catch (e) {
+    console.error(e);
+    toast("Error de conexión", "error");
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// Render principal
+// ═══════════════════════════════════════════════════════
+function renderAll() {
+  renderTasks();
+  renderInventory();
+}
+
+function renderTasks() {
+  // Tareas = órdenes que NO están entregadas (EN ✓ falso o no marcado)
+  const pending = STATE.ordenes.filter(o => !readProp(o, "EN ✓"));
+  document.getElementById("tasks-count").textContent = pending.length;
+  const cont = document.getElementById("tasks-list");
+  cont.innerHTML = "";
+  if (pending.length === 0) {
+    cont.innerHTML = `<div class="empty"><div class="ic">🎉</div><div class="msg">No hay tareas pendientes</div><div class="sub">todas las órdenes están entregadas</div></div>`;
+    return;
+  }
+  // Ordenar por etapa (las más avanzadas primero) y fecha
+  const sorted = pending.slice().sort((a,b) => {
+    const sa = getStageCode(a) || "";
+    const sb = getStageCode(b) || "";
+    const ia = STAGES.findIndex(s => s.code === sa);
+    const ib = STAGES.findIndex(s => s.code === sb);
+    return ib - ia; // más avanzadas primero
+  });
+  sorted.forEach(o => cont.appendChild(renderTaskCard(o)));
+}
+
+function renderTaskCard(o) {
+  const orderId = pageTitle(o) || "—";
+  const clientIds = readProp(o, "Cliente") || [];
+  const client = STATE.clientes.find(c => c.id === clientIds[0]);
+  const clientName = client ? pageTitle(client) : "—";
+  const fecha = readProp(o, "Fecha de pedido");
+  const eta = readProp(o, "Fecha de entrega estimada");
+
+  const stageCode = getStageCode(o);
+  const stageIdx = STAGES.findIndex(s => s.code === stageCode);
+  const currentStage = stageCode ? STAGES[stageIdx] : null;
+  const nextStage = STAGES[stageIdx + 1];
+
+  // Items de esta orden
+  const myItems = STATE.items.filter(it => (readProp(it, "Orden") || []).includes(o.id));
+
+  const card = document.createElement("div");
+  card.className = "task-card";
+
+  const stageBadge = currentStage
+    ? `<div class="task-stage-badge" title="${currentStage.name}">${currentStage.icon}</div>`
+    : `<div class="task-stage-badge" title="Recibida">📥</div>`;
+
+  const isLate = eta && new Date(eta) < new Date();
+
+  const itemsHtml = myItems.length
+    ? myItems.map(it => {
+        const qty = readProp(it, "Cantidad") || 0;
+        const pres = readProp(it, "Presentación") || "—";
+        const tos = readProp(it, "Tostado") || "—";
+        const gm = readProp(it, "Grano / Molido") || "—";
+        return `<div class="item"><span class="qty">${qty} ×</span> ${pres} · ${tos} · ${gm}</div>`;
+      }).join("")
+    : `<div class="item" style="color: var(--text3); font-style: italic;">sin items</div>`;
+
+  const stageNowText = currentStage
+    ? `Etapa actual · <strong>${currentStage.icon} ${currentStage.name}</strong>`
+    : `<strong>📥 Recibida</strong> · sin etapas firmadas`;
+  const nextStageText = nextStage
+    ? `Avanzar a ${nextStage.icon} ${nextStage.name}`
+    : `Marcar entregada`;
+
+  card.innerHTML = `
+    <div class="task-row">
+      ${stageBadge}
+      <div class="task-info">
+        <div class="task-id">${orderId}</div>
+        <div class="task-client">${clientName}</div>
+        <div class="task-meta">
+          <span>${fecha ? new Date(fecha).toLocaleDateString("es-VE",{day:"2-digit",month:"2-digit"}) : "—"}</span>
+          ${eta ? `<span class="task-eta ${isLate?"late":""}">ETA ${new Date(eta).toLocaleDateString("es-VE",{day:"2-digit",month:"2-digit"})}</span>` : ""}
+        </div>
+      </div>
+    </div>
+    <div class="task-stage-now">${stageNowText}</div>
+    <div class="task-items">${itemsHtml}</div>
+    <div class="task-actions">
+      <button class="btn btn-primary btn-block">${nextStageText} →</button>
+      <button class="btn btn-ghost" title="Otras etapas">⋯</button>
+    </div>
+  `;
+
+  const btns = card.querySelectorAll(".task-actions .btn");
+  btns[0].onclick = (e) => { e.stopPropagation(); quickAdvance(o); };
+  btns[1].onclick = (e) => { e.stopPropagation(); openStageModal(o); };
+  card.onclick = () => openStageModal(o);
+
+  return card;
+}
+
+// ═══════════════════════════════════════════════════════
+// Avanzar 1 etapa (quick action)
+// ═══════════════════════════════════════════════════════
+async function quickAdvance(o) {
+  const stageCode = getStageCode(o);
+  const idx = STAGES.findIndex(s => s.code === stageCode);
+  const next = STAGES[idx + 1] || STAGES[0]; // si no hay etapa, empieza por CV
+  await markStageCascade(o, next.code);
+}
+
+// Avanza a `targetCode` y firma TODAS las etapas previas no firmadas
+// con la persona actual (cascade).
+async function markStageCascade(o, targetCode) {
+  if (!STATE.persona) { toast("Selecciona persona primero", "error"); return; }
+  const targetIdx = STAGES.findIndex(s => s.code === targetCode);
+  if (targetIdx < 0) return;
+  const today = new Date().toISOString().substring(0,10);
+  // Listar etapas a marcar: desde 0 hasta target, las que no estén firmadas
+  const toMark = [];
+  for (let i = 0; i <= targetIdx; i++) {
+    const s = STAGES[i];
+    if (!readProp(o, `${s.code} ✓`)) toMark.push(s);
+  }
+  if (toMark.length === 0) {
+    toast("Esa etapa ya estaba firmada");
+    return;
+  }
+  // Build patch payload
+  const props = {};
+  toMark.forEach(s => {
+    props[`${s.code} ✓`]    = { checkbox: true };
+    props[`${s.code} firma`]= { relation: [{ id: STATE.persona.id }] };
+    props[`${s.code} fecha`]= { date: { start: today } };
+  });
+  try {
+    await updatePage(o.id, props);
+    if (toMark.length === 1) {
+      toast(`✓ ${toMark[0].icon} ${toMark[0].name} firmado por ${STATE.persona.name}`);
+    } else {
+      const labels = toMark.map(s => s.icon).join(" ");
+      toast(`✓ ${labels} firmados por ${STATE.persona.name} (${toMark.length} etapas)`);
+    }
+    STATE.lastAction = Date.now();
+    await loadAll();
+    renderAll();
+    // si el modal estaba abierto, refrescarlo
+    if (document.getElementById("modal-stage").classList.contains("open")) {
+      const refreshed = STATE.ordenes.find(x => x.id === o.id);
+      if (refreshed) openStageModal(refreshed);
+    }
+  } catch (e) {
+    toast("Error: " + e.message, "error");
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// Modal · stage ladder con cascade preview
+// ═══════════════════════════════════════════════════════
+function openStageModal(o) {
+  STATE.currentOrder = o;
+  const orderId = pageTitle(o) || "—";
+  const clientIds = readProp(o, "Cliente") || [];
+  const client = STATE.clientes.find(c => c.id === clientIds[0]);
+  document.getElementById("stage-modal-client").textContent = client ? pageTitle(client) : "—";
+  document.getElementById("stage-modal-id").textContent = orderId;
+  document.getElementById("stage-cascade-warn").innerHTML = "";
+
+  const cont = document.getElementById("stage-ladder");
+  cont.innerHTML = "";
+  const stageCode = getStageCode(o);
+  const stageIdx = STAGES.findIndex(s => s.code === stageCode);
+
+  STAGES.forEach((s, i) => {
+    const done = readProp(o, `${s.code} ✓`);
+    const firmaIds = readProp(o, `${s.code} firma`) || [];
+    const firma = firmaIds.length ? STATE.miembros.find(m => m.id === firmaIds[0]) : null;
+    const firmaName = firma ? pageTitle(firma) : null;
+    const fechaS = readProp(o, `${s.code} fecha`);
+
+    const div = document.createElement("div");
+    div.className = "ladder-step" + (done ? " done" : "") + (i === stageIdx + 1 ? " current" : "");
+    div.innerHTML = `
+      <div class="ladder-check">${done ? "✓" : ""}</div>
+      <div class="ladder-icon">${s.icon}</div>
+      <div class="ladder-info">
+        <div class="ladder-name">${s.name}</div>
+        <div class="ladder-sub">${done ? `firmó ${firmaName || "—"} · ${fechaS || ""}` : (i === stageIdx + 1 ? "→ siguiente · tap para firmar" : "pendiente · tap para saltar acá")}</div>
+      </div>
+    `;
+    if (!done) {
+      // Calcular cuántas etapas se cascadearían si tap acá
+      let cascadeCount = 0;
+      for (let j = 0; j <= i; j++) {
+        if (!readProp(o, `${STAGES[j].code} ✓`)) cascadeCount++;
+      }
+      div.onclick = () => {
+        if (cascadeCount > 1) {
+          // Mostrar warning + confirm
+          const names = STAGES.slice(0, i+1).filter(s => !readProp(o, `${s.code} ✓`)).map(s => `${s.icon} ${s.name}`).join(", ");
+          if (!confirm(`Vas a firmar ${cascadeCount} etapas en cascada:\n\n${names}\n\nTodas quedarán a tu nombre (${STATE.persona.name}) con la fecha de hoy. ¿Seguro?`)) return;
+        }
+        markStageCascade(o, s.code);
+      };
+    } else {
+      div.classList.add("disabled");
+    }
+    cont.appendChild(div);
+  });
+
+  // Si la próxima etapa pendiente no es la #0, mostrar el banner cascade
+  const firstPending = STAGES.findIndex(s => !readProp(o, `${s.code} ✓`));
+  if (firstPending > 0 && firstPending < 5) {
+    document.getElementById("stage-cascade-warn").innerHTML = `
+      <div class="cascade-banner">
+        Etapa actual: <strong>${STAGES[firstPending-1].icon} ${STAGES[firstPending-1].name}</strong>.
+        Si saltás a una etapa más adelante, las intermedias se firman automáticamente a tu nombre.
+      </div>`;
+  }
+
+  document.getElementById("modal-stage").classList.add("open");
+}
+
+// ═══════════════════════════════════════════════════════
+// Modal · Registrar Uso
+// ═══════════════════════════════════════════════════════
+function openUso() {
+  if (!STATE.persona) { toast("Selecciona persona primero", "error"); return; }
+  document.getElementById("uso-firma-display").textContent = `firma: ${STATE.persona.name}`;
+  document.getElementById("uso-kg").value = "";
+  populateUsoDropdowns();
+  document.getElementById("modal-uso").classList.add("open");
+}
+function setKg(n) { document.getElementById("uso-kg").value = n; }
+
+function quintalRemanente(qId) {
+  const q = STATE.quintales.find(x => x.id === qId);
+  if (!q) return 0;
+  const ki = readProp(q, "KG iniciales") || 0;
+  const used = STATE.usos.filter(u => (readProp(u,"Quintal")||[]).includes(qId))
+                 .reduce((s,u) => s + (readProp(u,"KG usados")||0), 0);
+  return Math.round((ki - used) * 10) / 10;
+}
+
+function populateUsoDropdowns() {
+  // Quintales con remanente > 0.5
+  const qSel = document.getElementById("uso-quintal");
+  const items = STATE.quintales
+    .filter(q => quintalRemanente(q.id) > 0.5)
+    .sort((a,b) => pageTitle(a).localeCompare(pageTitle(b)))
+    .map(q => `<option value="${q.id}">${pageTitle(q)} (${quintalRemanente(q.id).toFixed(1)} kg)</option>`)
+    .join("");
+  qSel.innerHTML = `<option value="">— Seleccionar —</option>` + items;
+
+  // Órdenes no entregadas
+  const oSel = document.getElementById("uso-orden");
+  const open = STATE.ordenes.filter(o => !readProp(o,"EN ✓"));
+  oSel.innerHTML = `<option value="">— Seleccionar —</option>` +
+    open.map(o => `<option value="${o.id}">${pageTitle(o)}</option>`).join("");
+}
+
+async function submitUso() {
+  const btn = document.getElementById("btn-uso-submit");
+  btn.disabled = true;
+  try {
+    const quintalId = document.getElementById("uso-quintal").value;
+    const kg = parseFloat(document.getElementById("uso-kg").value);
+    const ordenId = document.getElementById("uso-orden").value;
+    if (!quintalId) throw new Error("Falta quintal");
+    if (!kg || kg <= 0) throw new Error("KG inválido");
+    if (!ordenId) throw new Error("Falta orden");
+    const rem = quintalRemanente(quintalId);
+    if (kg > rem + 0.01) {
+      if (!confirm(`Estás registrando ${kg} kg pero el quintal solo tiene ${rem.toFixed(1)} kg. ¿Seguro?`)) {
+        btn.disabled = false; return;
+      }
+    }
+    const orden = STATE.ordenes.find(o => o.id === ordenId);
+    const oidStr = orden ? pageTitle(orden) : "ORDEN";
+    const seq = STATE.usos.filter(u => (readProp(u,"Orden")||[]).includes(ordenId)).length + 1;
+    const usoId = `USO-${oidStr}-${String(seq).padStart(3,"0")}`;
+
+    await createPage(CONFIG.DB_USOS, {
+      [Object.entries((STATE.usos[0]||{properties:{}}).properties).find(([_,p])=>p.type==="title")?.[0] || "Uso ID"]:
+        { title: [{ text: { content: usoId } }] },
+      "Quintal": { relation: [{ id: quintalId }] },
+      "KG usados": { number: kg },
+      "Orden": { relation: [{ id: ordenId }] },
+      "Firma": { relation: [{ id: STATE.persona.id }] },
+      "Fecha": { date: { start: new Date().toISOString().substring(0,10) } },
+    });
+    toast(`✓ ${kg} kg apartados`);
+    closeModal("modal-uso");
+    STATE.lastAction = Date.now();
+    await loadAll(); renderAll();
+  } catch (e) {
+    toast("Error: " + e.message, "error");
+  } finally { btn.disabled = false; }
+}
+
+// ═══════════════════════════════════════════════════════
+// Inventario read-only
+// ═══════════════════════════════════════════════════════
+function toggleInv() {
+  document.getElementById("inv-toggle").classList.toggle("open");
+}
+function origenStock(origenId) {
+  const qs = STATE.quintales.filter(q => (readProp(q,"Origen")||[]).includes(origenId));
+  let rem = 0;
+  qs.forEach(q => rem += Math.max(0, quintalRemanente(q.id)));
+  return Math.round(rem*10)/10;
+}
+function stockTag(rem) {
+  if (rem < CONFIG.UMBRAL_BAJO) return { cls: "alert", txt: "🔴 Bajo" };
+  if (rem < CONFIG.UMBRAL_MEDIO) return { cls: "warn", txt: "🟡 Medio" };
+  return { cls: "ok", txt: "🟢 OK" };
+}
+function renderInventory() {
+  const cont = document.getElementById("inv-body");
+  const activos = STATE.origenes.filter(o => readProp(o,"Activo") !== false);
+  if (activos.length === 0) {
+    cont.innerHTML = `<div class="empty"><div class="msg">Sin orígenes</div></div>`; return;
+  }
+  cont.innerHTML = activos
+    .map(o => ({ o, rem: origenStock(o.id) }))
+    .sort((a,b) => a.rem - b.rem)
+    .map(({o, rem}) => {
+      const id = pageTitle(o) || "—";
+      const caf = readProp(o, "Caficultor") || "—";
+      const tag = stockTag(rem);
+      return `<div class="inv-row">
+        <span class="inv-id">${id}</span>
+        <span class="inv-name">${caf}</span>
+        <span class="inv-kg">${rem.toFixed(1)} kg</span>
+        <span class="inv-tag ${tag.cls}">${tag.txt}</span>
+      </div>`;
+    }).join("");
+}
+
+// ═══════════════════════════════════════════════════════
+// Modal helpers + toast
+// ═══════════════════════════════════════════════════════
+function closeModal(id) { document.getElementById(id).classList.remove("open"); }
+let toastTimer = null;
+function toast(msg, type = "") {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.className = "toast show " + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 2800);
+}
+
+// ═══════════════════════════════════════════════════════
+// Refresh adaptativo
+// ═══════════════════════════════════════════════════════
+document.addEventListener("visibilitychange", async () => {
+  STATE.hidden = document.hidden;
+  if (!document.hidden && STATE.persona) {
+    await loadAll(); renderAll();
+  }
+});
+setInterval(async () => {
+  if (STATE.hidden || !STATE.persona) return;
+  if (Date.now() - STATE.lastAction < 30000) return;
+  await loadAll(); renderAll();
+}, CONFIG.REFRESH_MS);
+
+// ═══════════════════════════════════════════════════════
+// Boot
+// ═══════════════════════════════════════════════════════
+async function boot() {
+  if (CONFIG.DB_ORDENES.startsWith("PEGAR_")) {
+    document.body.innerHTML = `<div class="config-warn">Config incompleta. Edita el bloque CONFIG.</div>`;
+    return;
+  }
+  await loadAll();
+  const stored = loadPersona();
+  if (stored && STATE.miembros.find(m => m.id === stored.id)) {
+    STATE.persona = stored;
+    showApp();
+  } else {
+    renderPersonaPicker();
+  }
+}
+
+window.addEventListener("DOMContentLoaded", boot);
+</script>
+
+</body>
+</html>
