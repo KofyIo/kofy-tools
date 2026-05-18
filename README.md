@@ -6,7 +6,7 @@ Internal production tools for the Kofy team.
 - Calendar: https://app.kofy.io/calendar.html
 - Footage registry: https://app.kofy.io/footage.html
 - Talent app: https://app.kofy.io/talentapp.html
-
+- Talent app: https://app.kofy.io/warehouse-ordenes.html
 
 ## Infrastructure
 - **Cloudflare Worker (proxy):** https://kofy-notion-proxy.delicate-surf-529c.workers.dev
