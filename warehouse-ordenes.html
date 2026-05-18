@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Kofy · Órdenes</title>
+<style>
+  :root {
+    --bg: #0a0610;
+    --surface: #15101f;
+    --surface-2: #1f1830;
+    --surface-3: #2a2138;
+    --line: #2a2138;
+    --ink: #f3e8d4;
+    --ink-mute: #9e8db8;
+    --gold: #f5c842;
+    --plum: #5b3a8f;
+    --plum-soft: #7a52b8;
+    --green: #7fb069;
+    --red: #d9534f;
+    --cream: #f5e6d3;
+    --shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { background: var(--bg); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif; line-height: 1.5; min-height: 100vh; }
+  body { padding-bottom: 100px; }
+
+  /* Header */
+  header.top { position: sticky; top: 0; z-index: 50; background: rgba(10,6,16,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); padding: 14px 20px; }
+  .top-row { display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin: 0 auto; }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand .logo { font-size: 18px; }
+  .brand .name { font-size: 14px; font-weight: 600; color: var(--cream); letter-spacing: 0.04em; }
+  .brand .name .sub { color: var(--ink-mute); font-weight: 400; margin-left: 6px; }
+  .nav { display: flex; gap: 4px; }
+  .nav a { color: var(--ink-mute); text-decoration: none; padding: 6px 10px; font-size: 12px; border-radius: 4px; font-weight: 500; letter-spacing: 0.04em; }
+  .nav a.active { color: var(--gold); background: rgba(245,200,66,0.08); }
+  .nav a:hover { color: var(--cream); }
+
+  /* Container */
+  main { max-width: 1400px; margin: 0 auto; padding: 20px; }
+
+  /* Filter bar */
+  .filterbar { display: flex; gap: 8px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
+  .filterbar .label { font-size: 11px; color: var(--ink-mute); letter-spacing: 0.1em; text-transform: uppercase; }
+  .filterbar select, .filterbar input { background: var(--surface); color: var(--ink); border: 1px solid var(--line); padding: 6px 10px; border-radius: 4px; font-size: 12px; font-family: inherit; }
+  .refresh-state { color: var(--ink-mute); font-size: 11px; margin-left: auto; }
+  .refresh-state.live::before { content: "● "; color: var(--green); }
+  .refresh-state.loading::before { content: "◌ "; color: var(--gold); }
+  .refresh-state.error::before { content: "● "; color: var(--red); }
+
+  /* Kanban */
+  .kanban { display: grid; grid-template-columns: repeat(6, minmax(220px, 1fr)); gap: 12px; overflow-x: auto; padding-bottom: 16px; }
+  .col { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 12px; min-height: 400px; }
+  .col-head { display: flex; align-items: center; gap: 8px; padding-bottom: 12px; border-bottom: 1px solid var(--line); margin-bottom: 12px; }
+  .col-icon { font-size: 18px; }
+  .col-title { font-size: 12px; color: var(--cream); font-weight: 600; letter-spacing: 0.04em; flex: 1; }
+  .col-count { font-size: 11px; color: var(--ink-mute); background: var(--surface-2); padding: 2px 8px; border-radius: 10px; font-family: ui-monospace, monospace; }
+  .cards { display: flex; flex-direction: column; gap: 8px; }
+  .card { background: var(--surface-2); border: 1px solid var(--line); border-radius: 6px; padding: 12px; cursor: pointer; transition: transform 0.1s, border-color 0.1s; }
+  .card:hover { border-color: var(--plum-soft); transform: translateY(-1px); }
+  .card-id { font-family: ui-monospace, monospace; font-size: 11px; color: var(--gold); margin-bottom: 4px; font-weight: 600; }
+  .card-client { font-size: 13px; color: var(--cream); margin-bottom: 6px; font-weight: 500; }
+  .card-meta { font-size: 10px; color: var(--ink-mute); display: flex; justify-content: space-between; }
+  .card-eta.late { color: var(--red); font-weight: 600; }
+  .empty { color: var(--ink-mute); font-size: 12px; text-align: center; padding: 20px 0; font-style: italic; }
+
+  @media (max-width: 900px) {
+    .kanban { grid-template-columns: 1fr; }
+    main { padding: 16px; }
+  }
+
+  /* FAB */
+  .fab { position: fixed; bottom: 24px; right: 24px; width: 56px; height: 56px; border-radius: 50%; background: var(--gold); color: var(--bg); border: none; font-size: 28px; cursor: pointer; box-shadow: var(--shadow); z-index: 40; font-weight: 300; }
+  .fab:hover { transform: scale(1.05); }
+
+  /* Modal */
+  .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); z-index: 100; display: none; align-items: center; justify-content: center; padding: 20px; }
+  .modal-bg.open { display: flex; }
+  .modal { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 24px; max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow); }
+  .modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+  .modal-title { font-size: 18px; color: var(--cream); font-weight: 700; }
+  .modal-id { font-family: ui-monospace, monospace; font-size: 11px; color: var(--gold); margin-top: 4px; }
+  .close { background: transparent; border: none; color: var(--ink-mute); font-size: 22px; cursor: pointer; padding: 4px 8px; }
+  .close:hover { color: var(--cream); }
+
+  /* Form */
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 11px; color: var(--gold); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px; font-weight: 600; }
+  .field input, .field select, .field textarea { width: 100%; background: var(--surface-2); color: var(--ink); border: 1px solid var(--line); padding: 10px 12px; border-radius: 4px; font-size: 14px; font-family: inherit; }
+  .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--plum-soft); outline: none; }
+  .field textarea { resize: vertical; min-height: 60px; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 600px) { .field-row { grid-template-columns: 1fr; } }
+
+  /* Items grid */
+  .items-block { margin: 16px 0; }
+  .items-block h4 { font-size: 11px; color: var(--gold); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; font-weight: 600; }
+  .item-row { display: grid; grid-template-columns: 1fr 1fr 80px 1fr 1fr auto; gap: 6px; margin-bottom: 6px; align-items: center; }
+  .item-row select, .item-row input { background: var(--surface-2); color: var(--ink); border: 1px solid var(--line); padding: 8px; border-radius: 4px; font-size: 12px; font-family: inherit; }
+  .item-row .rm { background: transparent; border: none; color: var(--red); font-size: 18px; cursor: pointer; padding: 4px; }
+  .add-item { background: var(--surface-2); border: 1px dashed var(--plum-soft); color: var(--plum-soft); padding: 8px; border-radius: 4px; cursor: pointer; font-size: 12px; width: 100%; margin-top: 4px; font-family: inherit; }
+  @media (max-width: 600px) { .item-row { grid-template-columns: 1fr 1fr; } .item-row .rm { grid-column: span 2; } }
+
+  /* Status ladder in detail view */
+  .stages { margin: 16px 0; }
+  .stage-item { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 6px; margin-bottom: 8px; cursor: pointer; transition: border-color 0.1s; }
+  .stage-item:hover { border-color: var(--plum-soft); }
+  .stage-item.done { border-color: var(--green); background: rgba(127,176,105,0.06); }
+  .stage-check { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--line); display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+  .stage-item.done .stage-check { background: var(--green); border-color: var(--green); color: var(--bg); }
+  .stage-info { flex: 1; }
+  .stage-name { font-size: 13px; color: var(--cream); font-weight: 600; }
+  .stage-meta { font-size: 11px; color: var(--ink-mute); margin-top: 2px; }
+  .stage-icon { font-size: 18px; }
+
+  /* Buttons */
+  .btn-row { display: flex; gap: 8px; margin-top: 20px; justify-content: flex-end; }
+  .btn { background: var(--plum); color: var(--cream); border: none; padding: 10px 18px; border-radius: 4px; font-size: 13px; cursor: pointer; font-weight: 600; font-family: inherit; letter-spacing: 0.04em; }
+  .btn:hover { background: var(--plum-soft); }
+  .btn.primary { background: var(--gold); color: var(--bg); }
+  .btn.primary:hover { background: #ffd863; }
+  .btn.ghost { background: transparent; color: var(--ink-mute); }
+  .btn.ghost:hover { color: var(--cream); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* Toast */
+  .toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: var(--surface); border: 1px solid var(--line); padding: 12px 20px; border-radius: 6px; box-shadow: var(--shadow); color: var(--ink); font-size: 13px; z-index: 200; opacity: 0; transition: opacity 0.2s; }
+  .toast.show { opacity: 1; }
+  .toast.success { border-color: var(--green); }
+  .toast.error { border-color: var(--red); }
+
+  /* Config warning */
+  .config-warn { background: rgba(217,83,79,0.1); border: 1px solid var(--red); padding: 16px; border-radius: 6px; margin: 20px; color: var(--cream); font-size: 14px; }
+  .config-warn code { background: var(--surface); padding: 2px 6px; border-radius: 3px; color: var(--gold); font-family: ui-monospace, monospace; font-size: 12px; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════
+     CONFIG · pegar DB IDs aquí después de crear los DBs en Notion
+     ═══════════════════════════════════════════════════════ -->
+<script>
+const CONFIG = {
+  PROXY_URL: "https://kofy-notion-proxy.delicate-surf-529c.workers.dev",
+  DB_ORDENES:   "3649b62600a0800ea228d8d8dcf2ada4",
+  DB_ITEMS:     "3649b62600a0806db145c919a7927ac2",
+  DB_CLIENTES:  "3649b62600a08020ae9ed625e57044bb",
+  DB_ORIGENES:  "3649b62600a080b5a056c4a03d3fbc2b",
+  DB_MIEMBROS:  "3649b62600a080308dc6cf556b0d8c4b",
+  REFRESH_MS: 15000,
+};
+</script>
+
+<header class="top">
+  <div class="top-row">
+    <div class="brand">
+      <span class="logo">☕</span>
+      <span class="name">Kofy <span class="sub">· Órdenes</span></span>
+    </div>
+    <nav class="nav">
+      <a href="warehouse-ordenes.html" class="active">Órdenes</a>
+      <a href="warehouse-inventario.html">Inventario</a>
+      <a href="warehouse-yo.html">Yo</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="filterbar">
+    <span class="label">Filtrar</span>
+    <select id="filter-client"><option value="">Todos los clientes</option></select>
+    <input type="text" id="filter-search" placeholder="Buscar Order ID…" style="flex: 0 0 180px;">
+    <span class="refresh-state" id="refresh-state">conectando…</span>
+  </div>
+
+  <div class="kanban" id="kanban">
+    <div class="col" data-stage="recibida">
+      <div class="col-head"><span class="col-icon">📥</span><span class="col-title">Recibida</span><span class="col-count" id="count-recibida">0</span></div>
+      <div class="cards" id="cards-recibida"></div>
+    </div>
+    <div class="col" data-stage="cv">
+      <div class="col-head"><span class="col-icon">🌱</span><span class="col-title">Café Verde</span><span class="col-count" id="count-cv">0</span></div>
+      <div class="cards" id="cards-cv"></div>
+    </div>
+    <div class="col" data-stage="t">
+      <div class="col-head"><span class="col-icon">🔥</span><span class="col-title">Tostado</span><span class="col-count" id="count-t">0</span></div>
+      <div class="cards" id="cards-t"></div>
+    </div>
+    <div class="col" data-stage="e">
+      <div class="col-head"><span class="col-icon">📦</span><span class="col-title">Empaquetado</span><span class="col-count" id="count-e">0</span></div>
+      <div class="cards" id="cards-e"></div>
+    </div>
+    <div class="col" data-stage="l">
+      <div class="col-head"><span class="col-icon">🏷️</span><span class="col-title">Listo p/ envío</span><span class="col-count" id="count-l">0</span></div>
+      <div class="cards" id="cards-l"></div>
+    </div>
+    <div class="col" data-stage="en">
+      <div class="col-head"><span class="col-icon">✅</span><span class="col-title">Entregado</span><span class="col-count" id="count-en">0</span></div>
+      <div class="cards" id="cards-en"></div>
+    </div>
+  </div>
+</main>
+
+<button class="fab" id="fab" title="Nueva orden">+</button>
+
+<!-- ═══════════ Modal · Nueva Orden ═══════════ -->
+<div class="modal-bg" id="modal-new">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">Nueva Orden</div>
+        <div class="modal-id" id="preview-order-id">—</div>
+      </div>
+      <button class="close" onclick="closeModal('modal-new')">✕</button>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Cliente</label>
+        <select id="new-client"><option value="">— Seleccionar —</option><option value="__new__">+ Crear nuevo cliente</option></select>
+      </div>
+      <div class="field">
+        <label>Fecha de pedido</label>
+        <input type="date" id="new-date">
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Fecha entrega est.</label>
+        <input type="date" id="new-eta">
+      </div>
+      <div class="field">
+        <label>Nº de tostados</label>
+        <input type="number" id="new-numtost" min="1" value="1">
+      </div>
+    </div>
+    <div id="new-client-extra" style="display:none;">
+      <div class="field-row">
+        <div class="field"><label>Nuevo cliente · nombre</label><input type="text" id="new-client-name" placeholder="Ej: PETIT"></div>
+        <div class="field"><label>Cédula / RIF</label><input type="text" id="new-client-rif" placeholder="J-12345678"></div>
+      </div>
+    </div>
+    <div class="items-block">
+      <h4>Items</h4>
+      <div id="items-container"></div>
+      <button class="add-item" onclick="addItemRow()">+ Agregar item</button>
+    </div>
+    <div class="field">
+      <label>Notas tostador</label>
+      <textarea id="new-notes-tost" placeholder="Cup notes, curva, reposo…"></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn ghost" onclick="closeModal('modal-new')">Cancelar</button>
+      <button class="btn primary" id="btn-create" onclick="createOrder()">Crear orden</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ Modal · Detalle de Orden ═══════════ -->
+<div class="modal-bg" id="modal-detail">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title" id="detail-client">—</div>
+        <div class="modal-id" id="detail-id">—</div>
+      </div>
+      <button class="close" onclick="closeModal('modal-detail')">✕</button>
+    </div>
+    <div id="detail-body"></div>
+    <div class="stages" id="detail-stages"></div>
+    <div class="btn-row">
+      <button class="btn ghost" onclick="closeModal('modal-detail')">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// Estado global
+// ═══════════════════════════════════════════════════════
+let STATE = {
+  ordenes: [],
+  clientes: [],
+  miembros: [],
+  origenes: [],
+  selectedOrder: null,
+  lastAction: 0,
+  hidden: false,
+};
+
+// ═══════════════════════════════════════════════════════
+// Notion API (vía Cloudflare Worker)
+// ═══════════════════════════════════════════════════════
+async function notion(endpoint, body, method) {
+  method = method || (body ? "POST" : "GET");
+  const res = await fetch(`${CONFIG.PROXY_URL}${endpoint}`, {
+    method,
+    headers: { "Content-Type": "application/json" },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (!res.ok) throw new Error(`Notion ${res.status}: ${await res.text()}`);
+  return res.json();
+}
+
+async function queryDb(dbId, filter = undefined) {
+  const body = { database_id: dbId };
+  if (filter) body.filter = filter;
+  return notion(`/query`, body);
+}
+
+async function createPage(dbId, properties) {
+  return notion(`/pages`, { parent: { database_id: dbId }, properties });
+}
+
+async function updatePage(pageId, properties) {
+  return notion(`/pages/${pageId}`, { properties }, "PATCH");
+}
+
+// ═══════════════════════════════════════════════════════
+// Helpers · leer propiedades de páginas Notion
+// ═══════════════════════════════════════════════════════
+function readProp(page, name) {
+  const p = page.properties[name];
+  if (!p) return null;
+  switch (p.type) {
+    case "title":      return p.title.map(t => t.plain_text).join("");
+    case "rich_text":  return p.rich_text.map(t => t.plain_text).join("");
+    case "number":     return p.number;
+    case "select":     return p.select?.name || null;
+    case "date":       return p.date?.start || null;
+    case "checkbox":   return p.checkbox;
+    case "relation":   return p.relation.map(r => r.id);
+    case "formula":
+      return p.formula.string ?? p.formula.number ?? p.formula.boolean ?? null;
+    case "rollup":
+      return p.rollup.number ?? p.rollup.array ?? null;
+    default: return null;
+  }
+}
+
+function getStage(o) {
+  if (readProp(o, "EN ✓")) return "en";
+  if (readProp(o, "L ✓"))  return "l";
+  if (readProp(o, "E ✓"))  return "e";
+  if (readProp(o, "T ✓"))  return "t";
+  if (readProp(o, "CV ✓")) return "cv";
+  return "recibida";
+}
+
+// ═══════════════════════════════════════════════════════
+// Carga inicial
+// ═══════════════════════════════════════════════════════
+async function loadAll() {
+  setState("loading");
+  try {
+    const [ordenesRes, clientesRes, miembrosRes, origenesRes] = await Promise.all([
+      queryDb(CONFIG.DB_ORDENES),
+      queryDb(CONFIG.DB_CLIENTES),
+      queryDb(CONFIG.DB_MIEMBROS),
+      queryDb(CONFIG.DB_ORIGENES),
+    ]);
+    STATE.ordenes  = ordenesRes.results;
+    STATE.clientes = clientesRes.results;
+    STATE.miembros = miembrosRes.results;
+    STATE.origenes = origenesRes.results;
+    renderKanban();
+    populateDropdowns();
+    setState("live");
+  } catch (e) {
+    console.error(e);
+    setState("error");
+    toast("Error de conexión con Notion. Revisa los DB IDs en CONFIG.", "error");
+  }
+}
+
+function setState(s) {
+  const el = document.getElementById("refresh-state");
+  el.className = "refresh-state " + s;
+  el.textContent = s === "live" ? `sincronizado · ${new Date().toLocaleTimeString("es-VE",{hour:"2-digit",minute:"2-digit"})}` :
+                    s === "loading" ? "actualizando…" :
+                    s === "error" ? "error · revisar config" : "—";
+}
+
+// ═══════════════════════════════════════════════════════
+// Render Kanban
+// ═══════════════════════════════════════════════════════
+function renderKanban() {
+  const buckets = { recibida: [], cv: [], t: [], e: [], l: [], en: [] };
+  const filterClient = document.getElementById("filter-client").value;
+  const filterSearch = document.getElementById("filter-search").value.toLowerCase();
+
+  STATE.ordenes.forEach(o => {
+    const orderId = readProp(o, "Order ID") || "";
+    const clientIds = readProp(o, "Cliente") || [];
+    if (filterClient && !clientIds.includes(filterClient)) return;
+    if (filterSearch && !orderId.toLowerCase().includes(filterSearch)) return;
+    buckets[getStage(o)].push(o);
+  });
+
+  for (const [stage, list] of Object.entries(buckets)) {
+    const container = document.getElementById(`cards-${stage}`);
+    const count = document.getElementById(`count-${stage}`);
+    container.innerHTML = "";
+    count.textContent = list.length;
+    if (list.length === 0) {
+      container.innerHTML = `<div class="empty">—</div>`;
+      continue;
+    }
+    list.forEach(o => container.appendChild(renderCard(o)));
+  }
+}
+
+function renderCard(o) {
+  const orderId = readProp(o, "Order ID") || "—";
+  const clientIds = readProp(o, "Cliente") || [];
+  const client = STATE.clientes.find(c => c.id === clientIds[0]);
+  const clientName = client ? readProp(client, "Nombre / Razón Social") : "—";
+  const eta = readProp(o, "Fecha de entrega estimada");
+  const fecha = readProp(o, "Fecha de pedido");
+
+  const card = document.createElement("div");
+  card.className = "card";
+  const isLate = eta && new Date(eta) < new Date() && !readProp(o, "EN ✓");
+  card.innerHTML = `
+    <div class="card-id">${orderId}</div>
+    <div class="card-client">${clientName}</div>
+    <div class="card-meta">
+      <span>${fecha ? new Date(fecha).toLocaleDateString("es-VE", {day:"2-digit", month:"2-digit"}) : "—"}</span>
+      <span class="card-eta ${isLate ? "late" : ""}">${eta ? "ETA " + new Date(eta).toLocaleDateString("es-VE",{day:"2-digit",month:"2-digit"}) : ""}</span>
+    </div>`;
+  card.onclick = () => openDetail(o);
+  return card;
+}
+
+// ═══════════════════════════════════════════════════════
+// Dropdowns
+// ═══════════════════════════════════════════════════════
+function populateDropdowns() {
+  // Filter
+  const fc = document.getElementById("filter-client");
+  fc.innerHTML = `<option value="">Todos los clientes</option>` +
+    STATE.clientes.map(c => `<option value="${c.id}">${readProp(c,"Nombre / Razón Social") || "—"}</option>`).join("");
+
+  // New order client
+  const nc = document.getElementById("new-client");
+  nc.innerHTML = `<option value="">— Seleccionar —</option>
+    <option value="__new__">+ Crear nuevo cliente</option>` +
+    STATE.clientes.map(c => `<option value="${c.id}">${readProp(c,"Nombre / Razón Social") || "—"}</option>`).join("");
+}
+
+// ═══════════════════════════════════════════════════════
+// Nueva Orden
+// ═══════════════════════════════════════════════════════
+let itemRowCount = 0;
+function addItemRow() {
+  const c = document.getElementById("items-container");
+  const idx = itemRowCount++;
+  const origOpts = STATE.origenes.map(o => `<option value="${o.id}">${readProp(o,"ID Origen")}</option>`).join("");
+  const row = document.createElement("div");
+  row.className = "item-row";
+  row.innerHTML = `
+    <select data-field="presentacion">
+      <option>1 KG</option><option>500g</option><option>250g</option><option>BOX</option><option>SACHET</option>
+    </select>
+    <select data-field="tostado">
+      <option>AN</option><option>CM</option><option>MT</option><option>Grado A</option><option>Single O</option>
+    </select>
+    <input type="number" data-field="cantidad" placeholder="Qty" min="1" value="1">
+    <select data-field="grano">
+      <option>Grano</option><option>Molido</option>
+    </select>
+    <select data-field="origen">
+      <option value="">— Origen —</option>${origOpts}
+    </select>
+    <button class="rm" onclick="this.parentElement.remove()" title="Quitar">×</button>`;
+  c.appendChild(row);
+}
+
+document.getElementById("new-client").addEventListener("change", e => {
+  document.getElementById("new-client-extra").style.display = e.target.value === "__new__" ? "block" : "none";
+  updatePreviewId();
+});
+document.getElementById("new-client-name").addEventListener("input", updatePreviewId);
+document.getElementById("new-date").addEventListener("change", updatePreviewId);
+
+function updatePreviewId() {
+  const sel = document.getElementById("new-client").value;
+  const date = document.getElementById("new-date").value;
+  let name = "—";
+  if (sel === "__new__") {
+    name = document.getElementById("new-client-name").value.toUpperCase().trim() || "—";
+  } else if (sel) {
+    const c = STATE.clientes.find(x => x.id === sel);
+    name = c ? (readProp(c,"Nombre / Razón Social") || "—").toUpperCase() : "—";
+  }
+  const dm = date ? date.substring(8,10) + date.substring(5,7) : "DDMM";
+  document.getElementById("preview-order-id").textContent = `${name}-${dm}`;
+}
+
+async function createOrder() {
+  const btn = document.getElementById("btn-create");
+  btn.disabled = true;
+  try {
+    let clientId = document.getElementById("new-client").value;
+
+    // Crear cliente nuevo si hace falta
+    if (clientId === "__new__") {
+      const cname = document.getElementById("new-client-name").value.trim();
+      const rif = document.getElementById("new-client-rif").value.trim();
+      if (!cname) throw new Error("Falta nombre del cliente nuevo");
+      const newClient = await createPage(CONFIG.DB_CLIENTES, {
+        "Nombre / Razón Social": { title: [{ text: { content: cname } }] },
+        ...(rif ? { "Cédula / RIF": { rich_text: [{ text: { content: rif } }] } } : {}),
+      });
+      clientId = newClient.id;
+      STATE.clientes.push(newClient);
+    }
+    if (!clientId) throw new Error("Selecciona o crea un cliente");
+
+    const date = document.getElementById("new-date").value;
+    const eta  = document.getElementById("new-eta").value;
+    const num  = parseInt(document.getElementById("new-numtost").value) || 1;
+    const notes = document.getElementById("new-notes-tost").value;
+    const orderId = document.getElementById("preview-order-id").textContent;
+
+    if (!date) throw new Error("Falta fecha de pedido");
+
+    // Crear orden
+    const order = await createPage(CONFIG.DB_ORDENES, {
+      "Order ID": { title: [{ text: { content: orderId } }] },
+      "Cliente": { relation: [{ id: clientId }] },
+      "Fecha de pedido": { date: { start: date } },
+      ...(eta ? { "Fecha de entrega estimada": { date: { start: eta } } } : {}),
+      "Número de tostados": { number: num },
+      ...(notes ? { "Notas tostador": { rich_text: [{ text: { content: notes } }] } } : {}),
+    });
+
+    // Crear items
+    const itemRows = document.querySelectorAll("#items-container .item-row");
+    let idx = 1;
+    for (const row of itemRows) {
+      const presentacion = row.querySelector('[data-field="presentacion"]').value;
+      const tostado = row.querySelector('[data-field="tostado"]').value;
+      const cantidad = parseInt(row.querySelector('[data-field="cantidad"]').value) || 0;
+      const grano = row.querySelector('[data-field="grano"]').value;
+      const origenId = row.querySelector('[data-field="origen"]').value;
+      if (!cantidad) continue;
+      await createPage(CONFIG.DB_ITEMS, {
+        "Item ID": { title: [{ text: { content: `${orderId}-ITEM-${idx}` } }] },
+        "Orden": { relation: [{ id: order.id }] },
+        "Presentación": { select: { name: presentacion } },
+        "Tostado": { select: { name: tostado } },
+        "Cantidad": { number: cantidad },
+        "Grano / Molido": { select: { name: grano } },
+        ...(origenId ? { "Origen": { relation: [{ id: origenId }] } } : {}),
+      });
+      idx++;
+    }
+
+    toast(`Orden ${orderId} creada`, "success");
+    closeModal("modal-new");
+    STATE.lastAction = Date.now();
+    await loadAll();
+  } catch (e) {
+    toast(e.message, "error");
+    console.error(e);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// Detalle + avanzar etapa
+// ═══════════════════════════════════════════════════════
+function openDetail(o) {
+  STATE.selectedOrder = o;
+  const orderId = readProp(o, "Order ID") || "—";
+  const clientIds = readProp(o, "Cliente") || [];
+  const client = STATE.clientes.find(c => c.id === clientIds[0]);
+  document.getElementById("detail-client").textContent = client ? readProp(client,"Nombre / Razón Social") : "—";
+  document.getElementById("detail-id").textContent = orderId;
+
+  const fecha = readProp(o,"Fecha de pedido");
+  const eta = readProp(o,"Fecha de entrega estimada");
+  const numTost = readProp(o,"Número de tostados");
+  const notes = readProp(o,"Notas tostador");
+
+  document.getElementById("detail-body").innerHTML = `
+    <div style="font-size:13px; color:var(--ink-mute); margin-bottom: 12px;">
+      Pedido: ${fecha || "—"} · ETA: ${eta || "—"} · Tostados: ${numTost || "—"}
+    </div>
+    ${notes ? `<div style="background:var(--surface-2); padding:12px; border-radius:4px; font-size:13px; color:var(--ink); margin-bottom: 12px; border-left: 3px solid var(--gold);">${notes}</div>` : ""}
+  `;
+
+  const stages = [
+    { code: "CV", icon: "🌱", name: "Café Verde apartado" },
+    { code: "T",  icon: "🔥", name: "Tostado" },
+    { code: "E",  icon: "📦", name: "Empaquetado" },
+    { code: "L",  icon: "🏷️", name: "Listo p/ envío" },
+    { code: "EN", icon: "✅", name: "Entregado" },
+  ];
+  const container = document.getElementById("detail-stages");
+  container.innerHTML = "";
+  stages.forEach(s => {
+    const done = readProp(o, `${s.code} ✓`);
+    const fechaS = readProp(o, `${s.code} fecha`);
+    const firmaIds = readProp(o, `${s.code} firma`) || [];
+    const firma = firmaIds.length ? (STATE.miembros.find(m => m.id === firmaIds[0])) : null;
+    const firmaName = firma ? readProp(firma,"Nombre") : null;
+
+    const div = document.createElement("div");
+    div.className = "stage-item" + (done ? " done" : "");
+    div.innerHTML = `
+      <div class="stage-check">${done ? "✓" : ""}</div>
+      <div class="stage-icon">${s.icon}</div>
+      <div class="stage-info">
+        <div class="stage-name">${s.name}</div>
+        <div class="stage-meta">${done ? `Firmó ${firmaName || "—"} · ${fechaS || ""}` : "Pendiente — toca para marcar"}</div>
+      </div>`;
+    if (!done) {
+      div.onclick = () => advanceStage(s.code);
+    }
+    container.appendChild(div);
+  });
+}
+
+async function advanceStage(code) {
+  const firma = prompt(`¿Quién firma "${code}"? (KL=Kafay, P=Partner, L=Leo, J=Primo)`);
+  if (!firma) return;
+  const initialMap = { KL: "Kafay", P: "Partner", L: "Leo", J: "Primo" };
+  const memberName = initialMap[firma.toUpperCase()] || firma;
+  const member = STATE.miembros.find(m => (readProp(m,"Nombre") || "").toLowerCase() === memberName.toLowerCase());
+  if (!member) { toast("Miembro no encontrado", "error"); return; }
+
+  try {
+    const today = new Date().toISOString().substring(0,10);
+    await updatePage(STATE.selectedOrder.id, {
+      [`${code} ✓`]:    { checkbox: true },
+      [`${code} firma`]: { relation: [{ id: member.id }] },
+      [`${code} fecha`]: { date: { start: today } },
+    });
+    toast(`${code} firmado por ${memberName}`, "success");
+    STATE.lastAction = Date.now();
+    await loadAll();
+    // re-abrir detalle con datos frescos
+    const refreshed = STATE.ordenes.find(o => o.id === STATE.selectedOrder.id);
+    if (refreshed) openDetail(refreshed);
+  } catch (e) {
+    toast(e.message, "error");
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// Modales · helpers
+// ═══════════════════════════════════════════════════════
+function openModal(id) { document.getElementById(id).classList.add("open"); }
+function closeModal(id) { document.getElementById(id).classList.remove("open"); }
+
+document.getElementById("fab").onclick = () => {
+  itemRowCount = 0;
+  document.getElementById("items-container").innerHTML = "";
+  addItemRow();
+  document.getElementById("new-date").value = new Date().toISOString().substring(0,10);
+  document.getElementById("new-client").value = "";
+  document.getElementById("new-client-extra").style.display = "none";
+  updatePreviewId();
+  openModal("modal-new");
+};
+
+document.getElementById("filter-client").onchange = renderKanban;
+document.getElementById("filter-search").oninput = renderKanban;
+
+// ═══════════════════════════════════════════════════════
+// Toast
+// ═══════════════════════════════════════════════════════
+function toast(msg, type = "") {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.className = "toast show " + type;
+  setTimeout(() => t.classList.remove("show"), 3000);
+}
+
+// ═══════════════════════════════════════════════════════
+// Auto-refresh adaptativo (mismo patrón que el calendario)
+// ═══════════════════════════════════════════════════════
+document.addEventListener("visibilitychange", () => {
+  STATE.hidden = document.hidden;
+  if (!document.hidden) loadAll();
+});
+
+setInterval(() => {
+  if (STATE.hidden) return;
+  if (Date.now() - STATE.lastAction < 30000) return;
+  loadAll();
+}, CONFIG.REFRESH_MS);
+
+// ═══════════════════════════════════════════════════════
+// Boot
+// ═══════════════════════════════════════════════════════
+window.addEventListener("DOMContentLoaded", () => {
+  if (CONFIG.DB_ORDENES.startsWith("PEGAR_")) {
+    document.querySelector("main").innerHTML = `
+      <div class="config-warn">
+        <strong>⚠ Config incompleta.</strong> Edita el bloque <code>CONFIG</code> al inicio de este archivo y pega los DB IDs de Notion. Guía: <code>warehouse-notion-schema.html</code>.
+      </div>`;
+    return;
+  }
+  loadAll();
+});
+</script>
+
+</body>
+</html>
