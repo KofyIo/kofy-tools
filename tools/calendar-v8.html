@@ -1503,6 +1503,8 @@ async function dpSave(){
   }
 
   // Push to Notion
+  const dpFilesAll={};LINK_CAT_IDS.forEach(catKey=>{dpFilesAll[catKey]=getFileCat(post.id,catKey);});
+  dpFilesAll.__meta={vis:post.vis||[],nar:post.nar||[],sub:post.sub||'',temas:post.temas||[],warn:post.warn||false,warnText:post.warnText||''};
   const payload={parent:{database_id:DATABASE_ID},properties:{
     'Name':{title:[{text:{content:post.name}}]},
     'Date':{date:{start:post.iso}},
@@ -1512,13 +1514,8 @@ async function dpSave(){
     'Track':{select:{name:post.track==='a'?'Track A':'Track B'}},
     'Format':{select:{name:post.fmt}},
     'Owner':{select:{name:post.owner||'KL'}},
-    'Notes':{rich_text:[{text:{content:[
-      post.sub?('Sub: '+post.sub):'',
-      post.vis&&post.vis.length?('Visual:\n- '+post.vis.join('\n- ')):'',
-      post.nar&&post.nar.length?('Narrativa:\n- '+post.nar.join('\n- ')):'',
-      post.temas&&post.temas.length?('Temas: '+post.temas.join(', ')):'',
-      post.warn?('⚠ '+(post.warnText||'')):''
-    ].filter(Boolean).join('\n\n')}}]}
+    'Notes':{rich_text:[{text:{content:getNote(post.id)||''}}]},
+    'FileLinks':{rich_text:[{text:{content:JSON.stringify(dpFilesAll)}}]}
   }};
   try{
     let res;
@@ -1547,6 +1544,13 @@ async function dpSave(){
 }
 
 function closeDayPanel(){
+  if(DAY_PANEL_MODE==='edit'){
+    if(!confirm('Tienes cambios sin guardar. ¿Cerrar sin guardar?'))return;
+  } else if(DAY_PANEL_MODE==='add'){
+    const n=document.getElementById('dfNAME'),v=document.getElementById('dfVIS'),r=document.getElementById('dfNAR');
+    const dirty=(n&&n.value.trim())||(v&&v.value.trim())||(r&&r.value.trim());
+    if(dirty&&!confirm('Tienes cambios sin guardar. ¿Cerrar sin guardar?'))return;
+  }
   const p=document.getElementById('day-panel');if(p){p.classList.remove('open');p.setAttribute('aria-hidden','true');}
   const b=document.getElementById('day-panel-backdrop');if(b)b.classList.remove('open');
   DAY_PANEL_ISO=null;DAY_PANEL_MODE='view';DAY_PANEL_EDIT_ID=null;
@@ -1577,6 +1581,7 @@ async function patchNotion(pid){
   const{t,d}=countC(post);const p=pct(d,t);
   const clData={};post.groups.forEach((g,gi)=>g.items.forEach((_,ii)=>{const k=ck(post.id,gi,ii);if(CS[k])clData[gi+'-'+ii]=true;}));
   const filesAll={};LINK_CAT_IDS.forEach(catKey=>{filesAll[catKey]=getFileCat(pid,catKey);});
+  filesAll.__meta={vis:post.vis||[],nar:post.nar||[],sub:post.sub||'',temas:post.temas||[],warn:post.warn||false,warnText:post.warnText||''};
   const payload={properties:{'Progress':{number:p},'Checklist':{rich_text:[{text:{content:JSON.stringify(clData)}}]},'FileLinks':{rich_text:[{text:{content:JSON.stringify(filesAll)}}]},'Notes':{rich_text:[{text:{content:getNote(pid)||''}}]}}};
   try{await fetch(PROXY_URL+'/pages/'+post.notionId,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});}catch(e){}
 }
@@ -1589,6 +1594,7 @@ async function pushAllToNotion(){
     const{t,d}=countC(post);const p=pct(d,t);
     const clData={};post.groups.forEach((g,gi)=>g.items.forEach((_,ii)=>{const k=ck(post.id,gi,ii);if(CS[k])clData[gi+'-'+ii]=true;}));
     const filesAll={};LINK_CAT_IDS.forEach(catKey=>{filesAll[catKey]=getFileCat(post.id,catKey);});
+    filesAll.__meta={vis:post.vis||[],nar:post.nar||[],sub:post.sub||'',temas:post.temas||[],warn:post.warn||false,warnText:post.warnText||''};
     const payload={parent:{database_id:DATABASE_ID},properties:{'Name':{title:[{text:{content:post.name}}]},'Date':{date:{start:post.iso}},'Status':{select:{name:post.stage}},'Layer':{select:{name:post.layer}},'Pillar':{select:{name:post.pillar}},'Track':{select:{name:post.track==='a'?'Track A':'Track B'}},'Format':{select:{name:post.fmt}},'Owner':{select:{name:post.owner||'KL'}},'Progress':{number:p},'Notes':{rich_text:[{text:{content:getNote(post.id)||''}}]},'Checklist':{rich_text:[{text:{content:JSON.stringify(clData)}}]},'FileLinks':{rich_text:[{text:{content:JSON.stringify(filesAll)}}]}}};
     try{
       let res;
@@ -1638,7 +1644,7 @@ async function loadFromNotion(isUserTriggered=false){
       const clRaw=page.properties?.Checklist?.rich_text?.[0]?.plain_text||'{}';
       try{const clData=JSON.parse(clRaw);post.groups.forEach((g,gi)=>g.items.forEach((_,ii)=>{const k=ck(post.id,gi,ii);const newVal=!!clData[gi+'-'+ii];if(CS[k]!==newVal){CS[k]=newVal;hasChanges=true;}}));}catch(e){}
       const flRaw=page.properties?.FileLinks?.rich_text?.[0]?.plain_text||'{}';
-      try{const flData=JSON.parse(flRaw);if(typeof flData==='object'&&!Array.isArray(flData)){if(!FS[post.id])FS[post.id]={};LINK_CAT_IDS.forEach(catKey=>{if(flData[catKey]){FS[post.id][catKey]=flData[catKey];hasChanges=true;}});}}catch(e){}
+      try{const flData=JSON.parse(flRaw);if(typeof flData==='object'&&!Array.isArray(flData)){if(!FS[post.id])FS[post.id]={};LINK_CAT_IDS.forEach(catKey=>{if(flData[catKey]){FS[post.id][catKey]=flData[catKey];hasChanges=true;}});if(flData.__meta){const m=flData.__meta;if(Array.isArray(m.vis))post.vis=m.vis;if(Array.isArray(m.nar))post.nar=m.nar;if(m.sub!==undefined)post.sub=m.sub;if(Array.isArray(m.temas))post.temas=m.temas;if(m.warn!==undefined)post.warn=m.warn;if(m.warnText!==undefined)post.warnText=m.warnText;hasChanges=true;}}}catch(e){}
       const newNote=page.properties?.Notes?.rich_text?.[0]?.plain_text||'';
       if(newNote!==NS[post.id]){NS[post.id]=newNote;hasChanges=true;}
     });
@@ -1720,6 +1726,7 @@ async function pushEntry(pid){
   const{t,d}=countC(post);const p=pct(d,t);
   const clData={};post.groups.forEach((g,gi)=>g.items.forEach((_,ii)=>{const k=ck(post.id,gi,ii);if(CS[k])clData[gi+'-'+ii]=true;}));
   const filesAll={};LINK_CAT_IDS.forEach(catKey=>{filesAll[catKey]=getFileCat(post.id,catKey);});
+  filesAll.__meta={vis:post.vis||[],nar:post.nar||[],sub:post.sub||'',temas:post.temas||[],warn:post.warn||false,warnText:post.warnText||''};
   const payload={parent:{database_id:DATABASE_ID},properties:{'Name':{title:[{text:{content:post.name}}]},'Date':{date:{start:post.iso}},'Status':{select:{name:stage}},'Layer':{select:{name:post.layer}},'Pillar':{select:{name:post.pillar}},'Track':{select:{name:post.track==='a'?'Track A':'Track B'}},'Format':{select:{name:post.fmt}},'Owner':{select:{name:post.owner||'KL'}},'Progress':{number:p},'Notes':{rich_text:[{text:{content:getNote(pid)||''}}]},'Checklist':{rich_text:[{text:{content:JSON.stringify(clData)}}]},'FileLinks':{rich_text:[{text:{content:JSON.stringify(filesAll)}}]}}};
   try{
     let res;if(post.notionId){const{parent,...pp}=payload;res=await fetch(PROXY_URL+'/pages/'+post.notionId,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(pp)});}else{res=await fetch(PROXY_URL+'/pages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});}
