@@ -1,4 +1,4 @@
-// kofy-worker-v4.js
+// kofy-worker-v4.js — auto-deploy via GitHub Actions enabled
 // Adds POST /notify — templates + send via Microsoft Graph (email) or Meta WhatsApp API,
 // logs every send to Notificaciones DB.
 //
