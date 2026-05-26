@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kofy · Footage Library</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital,wght@0,400;1,400&family=DM+Mono:wght@400;500&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0A0A0F;--surface:#111118;--surface2:#181820;--surface3:#1E1E28;
+  --border:rgba(99,102,241,0.18);--border2:rgba(99,102,241,0.35);
+  --accent:#6366F1;--gold:#D4960A;--gold-dim:rgba(212,150,10,0.12);
+  --green:#1D9E75;--red:#E05050;
+  --text:#E8E8F0;--text2:#9898B0;--text3:#5A5A70;
+  --cam-bm-bg:#1A1030;--cam-bm-c:#C8A8E8;
+  --cam-ph-bg:#0F2B1E;--cam-ph-c:#6DCBA0;
+  --ff-d:'DM Serif Display',serif;--ff-b:'Lato',sans-serif;--ff-m:'DM Mono',monospace;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--ff-b);font-weight:300;font-size:14px;line-height:1.6;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:0.5}
+.wrap{position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:0 24px 80px}
+
+/* HEADER */
+.hdr{padding:36px 0 24px;border-bottom:1px solid var(--border);margin-bottom:28px;display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.hdr-left{}
+.hdr-eyebrow{font-family:var(--ff-m);font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);margin-bottom:5px}
+.hdr-title{font-family:var(--ff-d);font-size:28px;color:var(--text);letter-spacing:-.01em}
+.hdr-title em{font-style:italic;color:var(--accent)}
+.hdr-sub{font-size:12px;color:var(--text3);margin-top:4px}
+.hdr-right{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+/* BUTTONS */
+.btn{font-family:var(--ff-m);font-size:9px;letter-spacing:.1em;text-transform:uppercase;border-radius:6px;padding:7px 14px;cursor:pointer;transition:background .15s,color .15s;border:1px solid var(--border2);background:var(--surface3);color:var(--text2);white-space:nowrap}
+.btn:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn-primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn-primary:hover{background:#5254CC}
+.btn-green{background:rgba(29,158,117,.2);color:var(--green);border-color:rgba(29,158,117,.3)}
+.btn-green:hover{background:var(--green);color:#fff}
+
+/* TABS */
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:24px}
+.tab-btn{font-family:var(--ff-m);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);background:none;border:none;border-bottom:2px solid transparent;padding:14px 18px 12px;cursor:pointer;transition:color .15s,border-color .15s;margin-bottom:-1px;white-space:nowrap}
+.tab-btn:hover{color:var(--text2)}
+.tab-btn.active{color:var(--gold);border-bottom-color:var(--gold)}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+/* STATS BAR */
+.stats-bar{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.stat-pill{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;display:flex;flex-direction:column;gap:2px}
+.stat-n{font-family:var(--ff-d);font-size:22px;color:var(--text);line-height:1}
+.stat-l{font-family:var(--ff-m);font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:var(--text3)}
+
+/* SEARCH + FILTER */
+.search-row{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.search-box{flex:1;min-width:200px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-family:var(--ff-b);font-size:14px;color:var(--text);outline:none;transition:border-color .15s}
+.search-box:focus{border-color:var(--accent)}
+.search-box::placeholder{color:var(--text3)}
+
+.filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:10px;align-items:flex-start}
+.filter-group{display:flex;flex-direction:column;gap:5px}
+.filter-group-lbl{font-family:var(--ff-m);font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:var(--text3)}
+.filter-chips{display:flex;gap:4px;flex-wrap:wrap}
+.chip{font-family:var(--ff-m);font-size:8px;letter-spacing:.06em;text-transform:uppercase;padding:3px 9px;border-radius:10px;cursor:pointer;border:1px solid var(--border);background:none;color:var(--text3);transition:all .15s;white-space:nowrap}
+.chip:hover{border-color:var(--accent);color:var(--text)}
+.chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.chip.on-gold{background:var(--gold-dim);border-color:var(--gold);color:var(--gold)}
+.filter-sep{width:1px;background:var(--border);align-self:stretch;margin:0 4px}
+
+/* RESULTS */
+.results-meta{font-family:var(--ff-m);font-size:10px;color:var(--text3);letter-spacing:.06em;margin-bottom:12px}
+.results-meta span{color:var(--text2)}
+
+/* CLIP GRID */
+.clip-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+
+/* CLIP CARD */
+.clip-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;transition:border-color .2s,transform .15s;cursor:pointer}
+.clip-card:hover{border-color:var(--border2);transform:translateY(-1px)}
+.clip-card.selected-card{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+
+.clip-thumb{
+  height:120px;background:var(--surface2);
+  display:flex;align-items:center;justify-content:center;
+  position:relative;overflow:hidden;
+  border-bottom:1px solid var(--border);
+}
+.clip-thumb-icon{font-size:32px;opacity:.3}
+.clip-thumb-overlay{position:absolute;bottom:0;left:0;right:0;padding:6px 10px;background:linear-gradient(transparent,rgba(0,0,0,.7));display:flex;align-items:center;justify-content:space-between}
+.clip-dur{font-family:var(--ff-m);font-size:9px;color:#fff;opacity:.8}
+.clip-orient{font-family:var(--ff-m);font-size:8px;padding:2px 6px;border-radius:3px;background:rgba(255,255,255,.15);color:#fff}
+.clip-qual{position:absolute;top:8px;right:8px;font-size:14px}
+
+.clip-body{padding:12px}
+.clip-name{font-family:var(--ff-m);font-size:9px;color:var(--text2);letter-spacing:.04em;margin-bottom:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.clip-date{font-size:11px;color:var(--text3);margin-bottom:8px}
+.clip-tags{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px}
+.clip-tag{font-family:var(--ff-m);font-size:7px;letter-spacing:.06em;text-transform:uppercase;padding:2px 6px;border-radius:3px}
+.ct-loc{background:rgba(99,102,241,.15);color:#A8AAFF}
+.ct-action{background:rgba(212,150,10,.12);color:#D4960A}
+.ct-people{background:rgba(29,158,117,.12);color:#6DCBA0}
+.ct-pillar{background:rgba(192,57,106,.12);color:#F08AAE}
+.ct-cam-bm{background:var(--cam-bm-bg);color:var(--cam-bm-c)}
+.ct-cam-ph{background:var(--cam-ph-bg);color:var(--cam-ph-c)}
+.clip-path{font-family:var(--ff-m);font-size:8px;color:var(--text3);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:text;transition:color .15s}
+.clip-path:hover{color:var(--accent)}
+
+.clip-footer{padding:8px 12px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.clip-status{font-family:var(--ff-m);font-size:8px;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:10px}
+.cs-raw{background:rgba(90,90,112,.3);color:var(--text3)}
+.cs-reviewed{background:rgba(212,150,10,.15);color:var(--gold)}
+.cs-usable{background:rgba(99,102,241,.15);color:#A8AAFF}
+.cs-used{background:rgba(29,158,117,.15);color:var(--green)}
+.cs-archived{background:rgba(224,80,80,.1);color:var(--red)}
+.clip-actions{display:flex;gap:6px}
+.clip-btn{font-family:var(--ff-m);font-size:8px;padding:3px 8px;border-radius:4px;cursor:pointer;border:1px solid var(--border);background:none;color:var(--text3);transition:all .15s}
+.clip-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:60px 20px;color:var(--text3)}
+.empty-icon{font-size:40px;margin-bottom:14px;opacity:.4}
+.empty-title{font-family:var(--ff-d);font-size:18px;color:var(--text2);margin-bottom:6px}
+.empty-sub{font-size:13px}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface2);border:1px solid var(--border2);border-radius:14px;width:100%;max-width:600px;max-height:90vh;overflow-y:auto}
+.modal-head{padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-family:var(--ff-d);font-size:18px;color:var(--text)}
+.modal-close{font-size:18px;color:var(--text3);cursor:pointer;background:none;border:none;padding:4px 8px;transition:color .15s}
+.modal-close:hover{color:var(--text)}
+.modal-body{padding:24px}
+.modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
+
+/* FORM ELEMENTS */
+.form-row{margin-bottom:16px}
+.form-row label{display:block;font-family:var(--ff-m);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);margin-bottom:5px}
+.form-row input,.form-row select,.form-row textarea{width:100%;background:var(--surface3);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:var(--ff-b);font-size:13px;padding:9px 12px;outline:none;transition:border-color .15s}
+.form-row input:focus,.form-row select:focus,.form-row textarea:focus{border-color:var(--accent)}
+.form-row input::placeholder,.form-row textarea::placeholder{color:var(--text3)}
+.form-row select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%235A5A70' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
+.form-row textarea{resize:vertical;min-height:60px;line-height:1.5}
+.form-2col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-notice{background:var(--gold-dim);border:1px solid rgba(212,150,10,.2);border-radius:7px;padding:10px 14px;font-size:12px;color:var(--gold);margin-bottom:16px;font-family:var(--ff-m)}
+
+/* TAG PICKER */
+.tag-picker{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+.tag-pick{font-family:var(--ff-m);font-size:8px;letter-spacing:.06em;text-transform:uppercase;padding:3px 9px;border-radius:10px;cursor:pointer;border:1px solid var(--border);background:none;color:var(--text3);transition:all .15s}
+.tag-pick:hover{border-color:var(--accent);color:var(--text)}
+.tag-pick.on{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* BATCH ENTRY */
+.batch-zone{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px 24px;margin-bottom:20px}
+.batch-header{font-family:var(--ff-d);font-size:16px;color:var(--text);margin-bottom:4px}
+.batch-sub{font-size:12px;color:var(--text3);margin-bottom:16px}
+.batch-common{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:16px}
+.batch-clips{display:flex;flex-direction:column;gap:8px}
+.batch-clip-row{display:flex;gap:8px;align-items:flex-start;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px}
+.batch-clip-row input{flex:1;background:none;border:none;color:var(--text);font-family:var(--ff-m);font-size:11px;outline:none}
+.batch-clip-row input::placeholder{color:var(--text3)}
+.batch-clip-remove{color:var(--text3);cursor:pointer;font-size:14px;flex-shrink:0;padding:0 4px;transition:color .15s}
+.batch-clip-remove:hover{color:var(--red)}
+
+/* SYNC */
+.sync-bar{display:flex;align-items:center;gap:10px;padding:10px 16px;margin-bottom:20px;background:var(--surface);border:1px solid var(--border);border-radius:8px;flex-wrap:wrap}
+.sync-lbl{font-family:var(--ff-m);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);flex:1}
+.sync-st{font-size:11px;color:var(--text3);font-family:var(--ff-m)}
+.sync-st.ok{color:var(--green)}.sync-st.err{color:var(--red)}
+
+/* LOADING */
+.loading{text-align:center;padding:40px;color:var(--text3)}
+.loading-dots{display:flex;justify-content:center;gap:6px;margin-bottom:12px}
+.loading-dot{width:7px;height:7px;background:var(--accent);border-radius:50%;animation:pulse 1.2s ease-in-out infinite}
+.loading-dot:nth-child(2){animation-delay:.2s}
+.loading-dot:nth-child(3){animation-delay:.4s}
+@keyframes pulse{0%,80%,100%{opacity:.2;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
+
+@media(max-width:768px){
+  .clip-grid{grid-template-columns:1fr}
+  .form-2col{grid-template-columns:1fr}
+  .batch-common{grid-template-columns:1fr 1fr}
+  .hdr{flex-direction:column;align-items:flex-start}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hdr">
+  <div class="hdr-left">
+    <div class="hdr-eyebrow">Kofy · Footage Library</div>
+    <div class="hdr-title">Stock <em>visual</em></div>
+    <div class="hdr-sub" id="hdr-sub">Cargando desde Notion...</div>
+  </div>
+  <div class="hdr-right">
+    <span class="sync-st" id="sync-st">&#9679; Sincronizando</span>
+    <button class="btn" onclick="loadClips()">&#8635; Actualizar</button>
+    <button class="btn btn-primary" onclick="openModal('add')">+ Agregar clip</button>
+  </div>
+</header>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="showTab('t-lib',this)">Biblioteca</button>
+  <button class="tab-btn" onclick="showTab('t-batch',this)">Carga masiva</button>
+  <button class="tab-btn" onclick="showTab('t-stats',this)">Stats</button>
+</div>
+
+<!-- TAB: LIBRARY -->
+<div id="t-lib" class="tab-panel active">
+  <div class="stats-bar" id="stats-bar">
+    <div class="stat-pill"><div class="stat-n" id="st-total">0</div><div class="stat-l">Total clips</div></div>
+    <div class="stat-pill"><div class="stat-n" id="st-bm">0</div><div class="stat-l">Blackmagic</div></div>
+    <div class="stat-pill"><div class="stat-n" id="st-ph">0</div><div class="stat-l">Phone</div></div>
+    <div class="stat-pill"><div class="stat-n" id="st-usable">0</div><div class="stat-l">Usables</div></div>
+    <div class="stat-pill"><div class="stat-n" id="st-used">0</div><div class="stat-l">Usados</div></div>
+  </div>
+
+  <div class="search-row">
+    <input class="search-box" id="search-inp" placeholder="Buscar por nombre, accion, locacion..." oninput="applyFilters()">
+    <button class="btn" onclick="clearFilters()">Limpiar</button>
+  </div>
+
+  <div class="filter-bar">
+    <div class="filter-group">
+      <div class="filter-group-lbl">Camara</div>
+      <div class="filter-chips" id="fc-cam"></div>
+    </div>
+    <div class="filter-sep"></div>
+    <div class="filter-group">
+      <div class="filter-group-lbl">Locacion</div>
+      <div class="filter-chips" id="fc-loc"></div>
+    </div>
+    <div class="filter-sep"></div>
+    <div class="filter-group">
+      <div class="filter-group-lbl">Personas</div>
+      <div class="filter-chips" id="fc-people"></div>
+    </div>
+    <div class="filter-sep"></div>
+    <div class="filter-group">
+      <div class="filter-group-lbl">Accion</div>
+      <div class="filter-chips" id="fc-action"></div>
+    </div>
+    <div class="filter-sep"></div>
+    <div class="filter-group">
+      <div class="filter-group-lbl">Pilar</div>
+      <div class="filter-chips" id="fc-pillar"></div>
+    </div>
+    <div class="filter-sep"></div>
+    <div class="filter-group">
+      <div class="filter-group-lbl">Orientacion</div>
+      <div class="filter-chips" id="fc-orient"></div>
+    </div>
+    <div class="filter-sep"></div>
+    <div class="filter-group">
+      <div class="filter-group-lbl">Estado</div>
+      <div class="filter-chips" id="fc-status"></div>
+    </div>
+  </div>
+
+  <div class="results-meta" id="results-meta"></div>
+  <div id="clip-grid" class="clip-grid"></div>
+</div>
+
+<!-- TAB: BATCH ENTRY -->
+<div id="t-batch" class="tab-panel">
+  <div class="batch-zone">
+    <div class="batch-header">Carga masiva de clips</div>
+    <div class="batch-sub">Define los datos comunes de la jornada y agrega todos los clips de una sola vez.</div>
+
+    <div class="form-notice">Datos de la jornada &mdash; se aplican a todos los clips de esta sesion.</div>
+
+    <div class="batch-common">
+      <div class="form-row">
+        <label>Fecha de rodaje</label>
+        <input type="date" id="b-date">
+      </div>
+      <div class="form-row">
+        <label>Camara</label>
+        <select id="b-cam">
+          <option value="">-- Seleccionar --</option>
+          <option value="Blackmagic 6K">Blackmagic 6K</option>
+          <option value="Phone">Phone</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>Locacion</label>
+        <select id="b-loc">
+          <option value="">-- Seleccionar --</option>
+          <option>Cafeteria</option><option>Roastery</option><option>Finca</option>
+          <option>Exterior urbano</option><option>Estudio</option><option>En movimiento</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>Drive</label>
+        <select id="b-drive">
+          <option value="">-- Seleccionar --</option>
+          <option>Drive A</option><option>Drive B</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label>Personas presentes</label>
+      <div class="tag-picker" id="b-people-picker"></div>
+    </div>
+    <div class="form-row">
+      <label>Pilar(es)</label>
+      <div class="tag-picker" id="b-pillar-picker"></div>
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;margin-top:16px">
+      <div style="font-family:var(--ff-m);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text3)">Clips de esta jornada</div>
+      <button class="btn" onclick="addBatchRow()">+ Agregar clip</button>
+    </div>
+    <div class="batch-clips" id="batch-rows"></div>
+
+    <div style="margin-top:16px;display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn" onclick="addBatchRow()">+ Otro clip</button>
+      <button class="btn btn-green" id="batch-submit-btn" onclick="submitBatch()">Guardar todos en Notion</button>
+    </div>
+    <div style="font-family:var(--ff-m);font-size:10px;color:var(--text3);margin-top:8px;text-align:right" id="batch-status"></div>
+  </div>
+</div>
+
+<!-- TAB: STATS -->
+<div id="t-stats" class="tab-panel">
+  <div id="stats-content" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px"></div>
+</div>
+
+</div><!-- wrap -->
+
+<!-- MODAL: ADD/EDIT CLIP -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="modal-title">Agregar clip</div>
+      <button class="modal-close" onclick="closeModal()">&#10005;</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" id="modal-save-btn" onclick="saveClip()">Guardar en Notion</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const PROXY_URL   = "https://kofy-notion-proxy.delicate-surf-529c.workers.dev";
+const DATABASE_ID = "3629b62600a0805bb94ec8329af00535";
+
+// ── TAXONOMY ──────────────────────────────────────────────────────────────
+const CAMERAS    = ['Blackmagic 6K','Phone'];
+const LOCATIONS  = ['Cafeteria','Roastery','Finca','Exterior urbano','Estudio','En movimiento'];
+const PEOPLE     = ['Kafay','Leo','Externo','Sin personas'];
+const ACTIONS    = ['Milk steaming','Tamping','Vertido','Tostado','Catacion','Empaque','Preparacion','Manos','Conversacion','B-roll ambiente','Cosecha','Producto'];
+const SHOTS      = ['Macro','Close-up','Medio','Wide','Vertical POV','Aereo'];
+const ORIENTATIONS = ['Vertical 9:16','Horizontal 16:9','Square 1:1'];
+const PILLARS    = ['Craft','Origen','Conocimiento','Ritual a la taza','Comunidad','Historia'];
+const TOPICS     = ['Barismo','Desarrollo sensorial','Equipo','Lifestyle','Educativo','Behind the scenes','Entrevista','Documental'];
+const QUALITIES  = ['5 &#9733;','4 &#9733;','3 &#9733;','2 &#9733;','1 &#9733;'];
+const STATUSES   = ['Raw','Reviewed','Usable','Used','Archived'];
+const DRIVES     = ['Drive A','Drive B'];
+
+// ── STATE ─────────────────────────────────────────────────────────────────
+let ALL_CLIPS = [];
+let FILTERS   = { cam:[], loc:[], people:[], action:[], pillar:[], orient:[], status:[] };
+let editingId = null;
+let batchRowCount = 0;
+
+// ── LOAD FROM NOTION ───────────────────────────────────────────────────────
+async function loadClips(){
+  const st = document.getElementById('sync-st');
+  if(st){ st.textContent='&#9679; Sincronizando'; st.className='sync-st'; }
+  document.getElementById('clip-grid').innerHTML = '<div class="loading"><div class="loading-dots"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div></div>Cargando biblioteca...</div>';
+
+  try{
+    const res  = await fetch(PROXY_URL+'/query', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ database_id: DATABASE_ID })
+    });
+    const data = await res.json();
+    if(!res.ok||!data.results){ throw new Error(data.message||'Error'); }
+
+    ALL_CLIPS = data.results.map(parseClip).filter(c=>c.name);
+    updateStats();
+    buildFilterChips();
+    applyFilters();
+    if(st){ st.textContent='&#9679; Sincronizado '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); st.className='sync-st ok'; }
+    document.getElementById('hdr-sub').textContent = ALL_CLIPS.length+' clips en la biblioteca';
+  }catch(e){
+    if(st){ st.textContent='&#9679; Error: '+e.message; st.className='sync-st err'; }
+    document.getElementById('clip-grid').innerHTML = '<div class="empty-state"><div class="empty-icon">&#9888;</div><div class="empty-title">No se pudo conectar</div><div class="empty-sub">'+e.message+'</div></div>';
+  }
+}
+
+function parseClip(page){
+  const p = page.properties;
+  const getTitle = k => p[k]?.title?.[0]?.plain_text||'';
+  const getText  = k => p[k]?.rich_text?.[0]?.plain_text||'';
+  const getSel   = k => p[k]?.select?.name||'';
+  const getMulti = k => (p[k]?.multi_select||[]).map(x=>x.name);
+  const getDate  = k => p[k]?.date?.start||'';
+  return {
+    id:        page.id,
+    name:      getTitle('Name'),
+    date:      getDate('Date'),
+    camera:    getSel('Camera'),
+    location:  getSel('Location'),
+    people:    getMulti('People'),
+    action:    getMulti('Action'),
+    shot:      getSel('Shot'),
+    orientation: getSel('Orientation'),
+    pillar:    getMulti('Pillar'),
+    topics:    getMulti('Topics'),
+    drive:     getSel('Drive'),
+    filePath:  getText('FilePath'),
+    duration:  getText('Duration'),
+    quality:   getSel('Quality'),
+    status:    getSel('Status'),
+    notes:     getText('Notes'),
+    usedIn:    getText('UsedIn'),
+  };
+}
+
+// ── STATS ─────────────────────────────────────────────────────────────────
+function updateStats(){
+  document.getElementById('st-total').textContent   = ALL_CLIPS.length;
+  document.getElementById('st-bm').textContent      = ALL_CLIPS.filter(c=>c.camera==='Blackmagic 6K').length;
+  document.getElementById('st-ph').textContent      = ALL_CLIPS.filter(c=>c.camera==='Phone').length;
+  document.getElementById('st-usable').textContent  = ALL_CLIPS.filter(c=>c.status==='Usable').length;
+  document.getElementById('st-used').textContent    = ALL_CLIPS.filter(c=>c.status==='Used').length;
+  renderStatsTab();
+}
+
+function renderStatsTab(){
+  const el = document.getElementById('stats-content'); if(!el) return;
+  const cards = [
+    { label:'Por locacion',  data: countBy(ALL_CLIPS,'location'),  color:'#6366F1' },
+    { label:'Por accion',    data: countByMulti(ALL_CLIPS,'action'), color:'#D4960A' },
+    { label:'Por pilar',     data: countByMulti(ALL_CLIPS,'pillar'), color:'#C0396A' },
+    { label:'Por estado',    data: countBy(ALL_CLIPS,'status'),    color:'#1D9E75' },
+    { label:'Por camara',    data: countBy(ALL_CLIPS,'camera'),    color:'#6366F1' },
+    { label:'Por orientacion',data:countBy(ALL_CLIPS,'orientation'),color:'#D85A30' },
+  ];
+  el.innerHTML = cards.map(c=>{
+    const max = Math.max(...Object.values(c.data),1);
+    return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 18px">
+      <div style="font-family:var(--ff-m);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--text3);margin-bottom:12px">${c.label}</div>
+      ${Object.entries(c.data).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`
+        <div style="margin-bottom:7px">
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-bottom:3px"><span>${k||'Sin dato'}</span><span style="font-family:var(--ff-m);color:var(--text3)">${v}</span></div>
+          <div style="height:3px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden"><div style="height:100%;width:${Math.round((v/max)*100)}%;background:${c.color};border-radius:3px;transition:width .4s"></div></div>
+        </div>`).join('')}
+    </div>`;
+  }).join('');
+}
+
+function countBy(arr,key){ const o={};arr.forEach(c=>{const v=c[key]||'';o[v]=(o[v]||0)+1;});return o; }
+function countByMulti(arr,key){ const o={};arr.forEach(c=>(c[key]||[]).forEach(v=>{o[v]=(o[v]||0)+1;}));return o; }
+
+// ── FILTER CHIPS ───────────────────────────────────────────────────────────
+function buildFilterChips(){
+  buildChipGroup('fc-cam',    [...new Set(ALL_CLIPS.map(c=>c.camera).filter(Boolean))],    'cam');
+  buildChipGroup('fc-loc',    [...new Set(ALL_CLIPS.map(c=>c.location).filter(Boolean))],  'loc');
+  buildChipGroup('fc-people', [...new Set(ALL_CLIPS.flatMap(c=>c.people))].filter(Boolean),'people');
+  buildChipGroup('fc-action', [...new Set(ALL_CLIPS.flatMap(c=>c.action))].filter(Boolean),'action');
+  buildChipGroup('fc-pillar', [...new Set(ALL_CLIPS.flatMap(c=>c.pillar))].filter(Boolean),'pillar');
+  buildChipGroup('fc-orient', [...new Set(ALL_CLIPS.map(c=>c.orientation).filter(Boolean))],'orient');
+  buildChipGroup('fc-status', [...new Set(ALL_CLIPS.map(c=>c.status).filter(Boolean))],    'status');
+}
+
+function buildChipGroup(elId, vals, filterKey){
+  const el = document.getElementById(elId); if(!el)return;
+  el.innerHTML = vals.map(v=>`<button class="chip" onclick="toggleChip(this,'${filterKey}','${v}')">${v}</button>`).join('');
+}
+
+function toggleChip(el, key, val){
+  el.classList.toggle('on');
+  if(el.classList.contains('on')){
+    if(!FILTERS[key].includes(val)) FILTERS[key].push(val);
+  } else {
+    FILTERS[key] = FILTERS[key].filter(x=>x!==val);
+  }
+  applyFilters();
+}
+
+function clearFilters(){
+  FILTERS = { cam:[], loc:[], people:[], action:[], pillar:[], orient:[], status:[] };
+  document.querySelectorAll('.chip.on').forEach(c=>c.classList.remove('on'));
+  document.getElementById('search-inp').value = '';
+  applyFilters();
+}
+
+// ── FILTER + RENDER ────────────────────────────────────────────────────────
+function applyFilters(){
+  const q = (document.getElementById('search-inp')?.value||'').toLowerCase().trim();
+  let clips = ALL_CLIPS;
+
+  if(q) clips = clips.filter(c=>[c.name,c.location,...c.people,...c.action,...c.pillar,...c.topics,c.notes].join(' ').toLowerCase().includes(q));
+  if(FILTERS.cam.length)    clips = clips.filter(c=>FILTERS.cam.includes(c.camera));
+  if(FILTERS.loc.length)    clips = clips.filter(c=>FILTERS.loc.includes(c.location));
+  if(FILTERS.people.length) clips = clips.filter(c=>FILTERS.people.some(p=>c.people.includes(p)));
+  if(FILTERS.action.length) clips = clips.filter(c=>FILTERS.action.some(a=>c.action.includes(a)));
+  if(FILTERS.pillar.length) clips = clips.filter(c=>FILTERS.pillar.some(p=>c.pillar.includes(p)));
+  if(FILTERS.orient.length) clips = clips.filter(c=>FILTERS.orient.includes(c.orientation));
+  if(FILTERS.status.length) clips = clips.filter(c=>FILTERS.status.includes(c.status));
+
+  const meta = document.getElementById('results-meta');
+  if(meta) meta.innerHTML = `<span>${clips.length}</span> clip${clips.length!==1?'s':''} encontrado${clips.length!==1?'s':''}${clips.length!==ALL_CLIPS.length?' de '+ALL_CLIPS.length+' total':''}`;
+
+  renderGrid(clips);
+}
+
+function renderGrid(clips){
+  const el = document.getElementById('clip-grid'); if(!el) return;
+  if(!clips.length){
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">&#127916;</div><div class="empty-title">Sin resultados</div><div class="empty-sub">Intenta con otros filtros o agrega clips nuevos.</div></div>';
+    return;
+  }
+  el.innerHTML = clips.map(c=>clipCard(c)).join('');
+}
+
+function qualStars(q){ if(!q)return''; const n=parseInt(q);return'&#9733;'.repeat(n)+'&#9734;'.repeat(5-n); }
+
+function clipCard(c){
+  const camClass = c.camera==='Blackmagic 6K'?'ct-cam-bm':'ct-cam-ph';
+  const camShort = c.camera==='Blackmagic 6K'?'BM 6K':'Phone';
+  const statusClass = {'Raw':'cs-raw','Reviewed':'cs-reviewed','Usable':'cs-usable','Used':'cs-used','Archived':'cs-archived'}[c.status]||'cs-raw';
+  const qualEmoji = {'5 &#9733;':'&#11088;','4 &#9733;':'&#9733;','3 &#9733;':'&#11835;','2 &#9733;':'&#9734;','1 &#9733;':'&#128081;'}[c.quality]||'';
+  const dateStr = c.date ? new Date(c.date+'T00:00:00').toLocaleDateString('es-VE',{day:'numeric',month:'short',year:'numeric'}) : '';
+
+  return `<div class="clip-card" onclick="openModal('edit','${c.id}')">
+    <div class="clip-thumb">
+      <div class="clip-thumb-icon">&#127916;</div>
+      ${qualEmoji?`<div class="clip-qual">${qualEmoji}</div>`:''}
+      <div class="clip-thumb-overlay">
+        <span class="clip-dur">${c.duration||'--:--'}</span>
+        ${c.orientation?`<span class="clip-orient">${c.orientation.split(' ')[0]}</span>`:''}
+      </div>
+    </div>
+    <div class="clip-body">
+      <div class="clip-name">${c.name}</div>
+      <div class="clip-date">${dateStr}${c.location?' &middot; '+c.location:''}</div>
+      <div class="clip-tags">
+        ${c.camera?`<span class="clip-tag ${camClass}">${camShort}</span>`:''}
+        ${c.shot?`<span class="clip-tag ct-loc">${c.shot}</span>`:''}
+        ${c.people.slice(0,2).map(p=>`<span class="clip-tag ct-people">${p}</span>`).join('')}
+        ${c.action.slice(0,2).map(a=>`<span class="clip-tag ct-action">${a}</span>`).join('')}
+        ${c.pillar.slice(0,1).map(p=>`<span class="clip-tag ct-pillar">${p}</span>`).join('')}
+      </div>
+      ${c.filePath?`<div class="clip-path" title="${c.filePath}" onclick="copyPath(event,'${c.filePath.replace(/'/g,"\\'")}')">&#128190; ${c.filePath}</div>`:''}
+    </div>
+    <div class="clip-footer">
+      <span class="clip-status ${statusClass}">${c.status||'Raw'}</span>
+      <div class="clip-actions">
+        <button class="clip-btn" onclick="event.stopPropagation();openModal('edit','${c.id}')">Editar</button>
+        ${c.filePath?`<button class="clip-btn" onclick="event.stopPropagation();copyPath(event,'${c.filePath.replace(/'/g,"\\'")}')">Copiar ruta</button>`:''}
+      </div>
+    </div>
+  </div>`;
+}
+
+function copyPath(e, path){
+  e.stopPropagation();
+  navigator.clipboard.writeText(path).then(()=>{
+    const el = e.target;
+    const orig = el.textContent;
+    el.textContent = '&#10003; Copiado';
+    setTimeout(()=>{ el.textContent = orig; }, 1500);
+  });
+}
+
+// ── MODAL ─────────────────────────────────────────────────────────────────
+function openModal(mode, clipId){
+  editingId = mode==='edit' ? clipId : null;
+  const clip = editingId ? ALL_CLIPS.find(c=>c.id===editingId) : null;
+  document.getElementById('modal-title').textContent = mode==='edit' ? 'Editar clip' : 'Agregar clip';
+
+  const val = (f,def='') => clip?.(clip[f]||def)||def;
+
+  document.getElementById('modal-body').innerHTML = `
+    <div class="form-row">
+      <label>Nombre del archivo</label>
+      <input type="text" id="m-name" placeholder="KFY_20260518_FINCA_COSECHA_MACRO_BM_001.braw" value="${val('name')}">
+    </div>
+    <div class="form-2col">
+      <div class="form-row"><label>Fecha de rodaje</label><input type="date" id="m-date" value="${val('date')}"></div>
+      <div class="form-row"><label>Duracion</label><input type="text" id="m-duration" placeholder="00:45" value="${val('duration')}"></div>
+    </div>
+    <div class="form-2col">
+      <div class="form-row"><label>Camara</label><select id="m-cam">${['','Blackmagic 6K','Phone'].map(o=>`<option${val('camera')===o?' selected':''}>${o}</option>`).join('')}</select></div>
+      <div class="form-row"><label>Orientacion</label><select id="m-orient">${['','Vertical 9:16','Horizontal 16:9','Square 1:1'].map(o=>`<option${val('orientation')===o?' selected':''}>${o}</option>`).join('')}</select></div>
+    </div>
+    <div class="form-2col">
+      <div class="form-row"><label>Locacion</label><select id="m-loc">${['','Cafeteria','Roastery','Finca','Exterior urbano','Estudio','En movimiento'].map(o=>`<option${val('location')===o?' selected':''}>${o}</option>`).join('')}</select></div>
+      <div class="form-row"><label>Tipo de plano</label><select id="m-shot">${['','Macro','Close-up','Medio','Wide','Vertical POV','Aereo'].map(o=>`<option${val('shot')===o?' selected':''}>${o}</option>`).join('')}</select></div>
+    </div>
+    <div class="form-row"><label>Personas</label><div class="tag-picker">${PEOPLE.map(p=>`<button class="tag-pick${(clip?.people||[]).includes(p)?' on':''}" onclick="this.classList.toggle('on')">${p}</button>`).join('')}</div></div>
+    <div class="form-row"><label>Accion</label><div class="tag-picker">${ACTIONS.map(a=>`<button class="tag-pick${(clip?.action||[]).includes(a)?' on':''}" onclick="this.classList.toggle('on')">${a}</button>`).join('')}</div></div>
+    <div class="form-row"><label>Pilares</label><div class="tag-picker">${PILLARS.map(p=>`<button class="tag-pick${(clip?.pillar||[]).includes(p)?' on':''}" onclick="this.classList.toggle('on')">${p}</button>`).join('')}</div></div>
+    <div class="form-row"><label>Topicos</label><div class="tag-picker">${TOPICS.map(t=>`<button class="tag-pick${(clip?.topics||[]).includes(t)?' on':''}" onclick="this.classList.toggle('on')">${t}</button>`).join('')}</div></div>
+    <div class="form-2col">
+      <div class="form-row"><label>Calidad</label><select id="m-quality">${['','5','4','3','2','1'].map(o=>`<option value="${o?o+' &#9733;':''}"${val('quality')===(o?o+' &#9733;':'')?' selected':''}>${o?'&#9733;'.repeat(parseInt(o)):'-- Sin calificar --'}</option>`).join('')}</select></div>
+      <div class="form-row"><label>Estado</label><select id="m-status">${['Raw','Reviewed','Usable','Used','Archived'].map(o=>`<option${val('status')===o?' selected':''}>${o}</option>`).join('')}</select></div>
+    </div>
+    <div class="form-2col">
+      <div class="form-row"><label>Drive</label><select id="m-drive">${['','Drive A','Drive B'].map(o=>`<option${val('drive')===o?' selected':''}>${o}</option>`).join('')}</select></div>
+      <div class="form-row"><label>Ruta del archivo</label><input type="text" id="m-path" placeholder="/Volumes/DriveA/KFY_20260518..." value="${val('filePath')}"></div>
+    </div>
+    <div class="form-row"><label>Usado en</label><input type="text" id="m-usedin" placeholder="p01 - Aniversario, p09 - Documental..." value="${val('usedIn')}"></div>
+    <div class="form-row"><label>Notas</label><textarea id="m-notes" placeholder="Contexto, observaciones, problemas tecnicos...">${val('notes')}</textarea></div>
+  `;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function closeModal(){ document.getElementById('modal-overlay').classList.remove('open'); editingId=null; }
+function closeModalOutside(e){ if(e.target===document.getElementById('modal-overlay')) closeModal(); }
+
+function getModalData(){
+  const picked = (containerSel) => [...document.querySelectorAll(containerSel+' .tag-pick.on')].map(b=>b.textContent);
+  return {
+    name:        document.getElementById('m-name')?.value.trim()||'',
+    date:        document.getElementById('m-date')?.value||'',
+    camera:      document.getElementById('m-cam')?.value||'',
+    orientation: document.getElementById('m-orient')?.value||'',
+    location:    document.getElementById('m-loc')?.value||'',
+    shot:        document.getElementById('m-shot')?.value||'',
+    people:      picked('#modal-body .form-row:nth-child(6) .tag-picker'),
+    action:      picked('#modal-body .form-row:nth-child(7) .tag-picker'),
+    pillar:      picked('#modal-body .form-row:nth-child(8) .tag-picker'),
+    topics:      picked('#modal-body .form-row:nth-child(9) .tag-picker'),
+    quality:     document.getElementById('m-quality')?.value||'',
+    status:      document.getElementById('m-status')?.value||'',
+    drive:       document.getElementById('m-drive')?.value||'',
+    filePath:    document.getElementById('m-path')?.value.trim()||'',
+    usedIn:      document.getElementById('m-usedin')?.value.trim()||'',
+    notes:       document.getElementById('m-notes')?.value.trim()||'',
+    duration:    document.getElementById('m-duration')?.value.trim()||'',
+  };
+}
+
+function buildPayload(data, includeParent=true){
+  const props = {
+    'Name':        { title:     [{ text: { content: data.name } }] },
+    'Date':        { date:      data.date ? { start: data.date } : null },
+    'Camera':      { select:    data.camera ? { name: data.camera } : null },
+    'Orientation': { select:    data.orientation ? { name: data.orientation } : null },
+    'Location':    { select:    data.location ? { name: data.location } : null },
+    'Shot':        { select:    data.shot ? { name: data.shot } : null },
+    'Drive':       { select:    data.drive ? { name: data.drive } : null },
+    'Quality':     { select:    data.quality ? { name: data.quality } : null },
+    'Status':      { select:    data.status ? { name: data.status } : null },
+    'People':      { multi_select: data.people.map(n=>({ name: n })) },
+    'Action':      { multi_select: data.action.map(n=>({ name: n })) },
+    'Pillar':      { multi_select: data.pillar.map(n=>({ name: n })) },
+    'Topics':      { multi_select: data.topics.map(n=>({ name: n })) },
+    'FilePath':    { rich_text:  [{ text: { content: data.filePath } }] },
+    'Duration':    { rich_text:  [{ text: { content: data.duration } }] },
+    'UsedIn':      { rich_text:  [{ text: { content: data.usedIn } }] },
+    'Notes':       { rich_text:  [{ text: { content: data.notes } }] },
+  };
+  if(includeParent) return { parent: { database_id: DATABASE_ID }, properties: props };
+  return { properties: props };
+}
+
+async function saveClip(){
+  const data = getModalData();
+  if(!data.name){ alert('El nombre del archivo es obligatorio.'); return; }
+  const btn = document.getElementById('modal-save-btn');
+  btn.disabled=true; btn.textContent='Guardando...';
+  try{
+    let res;
+    if(editingId){
+      res = await fetch(PROXY_URL+'/pages/'+editingId, { method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify(buildPayload(data, false)) });
+    } else {
+      res = await fetch(PROXY_URL+'/pages', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(buildPayload(data, true)) });
+    }
+    const result = await res.json();
+    if(res.ok && result.object==='page'){
+      closeModal();
+      await loadClips();
+    } else {
+      alert('Error: '+(result.message||'Respuesta inesperada'));
+    }
+  }catch(e){ alert('No se pudo conectar: '+e.message); }
+  btn.disabled=false; btn.textContent='Guardar en Notion';
+}
+
+// ── BATCH ENTRY ────────────────────────────────────────────────────────────
+function initBatchPickers(){
+  const pp = document.getElementById('b-people-picker');
+  const pilp = document.getElementById('b-pillar-picker');
+  if(pp) pp.innerHTML = PEOPLE.map(p=>`<button class="tag-pick" onclick="this.classList.toggle('on')">${p}</button>`).join('');
+  if(pilp) pilp.innerHTML = PILLARS.map(p=>`<button class="tag-pick" onclick="this.classList.toggle('on')">${p}</button>`).join('');
+}
+
+function addBatchRow(){
+  batchRowCount++;
+  const id = 'br-'+batchRowCount;
+  const row = document.createElement('div');
+  row.className='batch-clip-row'; row.id=id;
+  row.innerHTML=`
+    <input type="text" id="${id}-name" placeholder="KFY_YYYYMMDD_LOC_ACTION_SHOT_CAM_001.braw" style="flex:2">
+    <select id="${id}-shot" style="flex:1;background:var(--surface3);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:11px;padding:5px 8px;outline:none">
+      <option value="">Plano</option>${SHOTS.map(s=>`<option>${s}</option>`).join('')}
+    </select>
+    <select id="${id}-orient" style="flex:1;background:var(--surface3);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:11px;padding:5px 8px;outline:none">
+      <option value="">Orient.</option><option>Vertical 9:16</option><option>Horizontal 16:9</option><option>Square 1:1</option>
+    </select>
+    <select id="${id}-action" style="flex:1;background:var(--surface3);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:11px;padding:5px 8px;outline:none">
+      <option value="">Accion</option>${ACTIONS.map(a=>`<option>${a}</option>`).join('')}
+    </select>
+    <input type="text" id="${id}-dur" placeholder="dur." style="width:50px;flex:none">
+    <span class="batch-clip-remove" onclick="document.getElementById('${id}').remove()">&#10005;</span>`;
+  document.getElementById('batch-rows').appendChild(row);
+}
+
+async function submitBatch(){
+  const rows = document.querySelectorAll('.batch-clip-row');
+  if(!rows.length){ alert('Agrega al menos un clip.'); return; }
+
+  const common = {
+    date:   document.getElementById('b-date')?.value||'',
+    camera: document.getElementById('b-cam')?.value||'',
+    location: document.getElementById('b-loc')?.value||'',
+    drive:  document.getElementById('b-drive')?.value||'',
+    people: [...document.querySelectorAll('#b-people-picker .tag-pick.on')].map(b=>b.textContent),
+    pillar: [...document.querySelectorAll('#b-pillar-picker .tag-pick.on')].map(b=>b.textContent),
+  };
+
+  const btn = document.getElementById('batch-submit-btn');
+  const st  = document.getElementById('batch-status');
+  btn.disabled=true;
+  let ok=0,fail=0;
+
+  for(const row of rows){
+    const rid = row.id;
+    const name = document.getElementById(rid+'-name')?.value.trim()||'';
+    if(!name){ fail++; continue; }
+    const data = {
+      name, ...common,
+      shot:        document.getElementById(rid+'-shot')?.value||'',
+      orientation: document.getElementById(rid+'-orient')?.value||'',
+      action:      document.getElementById(rid+'-action')?.value ? [document.getElementById(rid+'-action').value] : [],
+      duration:    document.getElementById(rid+'-dur')?.value||'',
+      topics:[],filePath:'',usedIn:'',notes:'',quality:'',status:'Raw',
+    };
+    try{
+      const res = await fetch(PROXY_URL+'/pages', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(buildPayload(data)) });
+      const result = await res.json();
+      if(res.ok && result.object==='page') ok++;
+      else fail++;
+    }catch(e){ fail++; }
+    if(st) st.textContent = `Guardando... ${ok+fail}/${rows.length}`;
+    await new Promise(r=>setTimeout(r,300));
+  }
+
+  if(st) st.textContent = `${ok} guardados${fail>0?' · '+fail+' fallaron':''}`;
+  btn.disabled=false;
+  if(ok>0) await loadClips();
+}
+
+// ── TABS ───────────────────────────────────────────────────────────────────
+function showTab(id,btn){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+  if(id==='t-stats') renderStatsTab();
+}
+
+// ── INIT ───────────────────────────────────────────────────────────────────
+initBatchPickers();
+addBatchRow();
+addBatchRow();
+addBatchRow();
+loadClips();
+
+// Auto-refresh every 2 minutes
+setInterval(()=>{ if(!document.hidden) loadClips(); }, 120000);
+</script>
+</body>
+</html>
