@@ -35,9 +35,10 @@ export default {
     // READ: query a database ──────────────────────────────────────────────────
     if (request.method === "POST" && path === "/query") {
       const body = await request.json();
+      const { database_id, ...queryBody } = body; // pass filter/sorts/page_size through
       const res  = await fetch(
-        `https://api.notion.com/v1/databases/${body.database_id}/query`,
-        { method: "POST", headers: notionHeaders(token), body: JSON.stringify({}) }
+        `https://api.notion.com/v1/databases/${database_id}/query`,
+        { method: "POST", headers: notionHeaders(token), body: JSON.stringify(queryBody) }
       );
       return cors(new Response(await res.text(), {
         status: res.status, headers: { "Content-Type": "application/json" },
@@ -94,6 +95,10 @@ export default {
         stock_low_origen:         { body: "{origenName} bajo: {kgRemanente} kg. Hora de reponer." },
         stock_low_empaque:        { body: "Empaque {bind} bajo: {stock} bolsas quedan." },
         b2b_cadence:              { body: "{clientName} no ha ordenado en {dias} días. ¿Confirmamos?" },
+        // Portal cliente templates
+        portal_order_request_staff:  { body: "🛒 Nueva solicitud desde el portal.\n\nCliente: {clientName}\nID: {orderId}\nItems: {itemsSummary}\n\nConfirmá en el panel de órdenes (Recibida)." },
+        portal_order_confirm_client: { subject: "Tu solicitud llegó · {orderId}", body: "Hola {clientName} 👋\n\nRecibimos tu solicitud ({orderId}). El equipo Kofy la revisará y te confirma en breve por este medio.\n\n— Kofy" },
+        portal_message_client:       { subject: "Mensaje del portal · {clientName}", body: "Mensaje de {from}:\n\n{message}" },
       };
 
       const tpl        = TEMPLATES[tplKey] || { body: JSON.stringify(data) };
