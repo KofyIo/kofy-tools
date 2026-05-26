@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kofy · Comms Setup Runner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Mono:wght@400;500&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0A0A0F; --surface:#111118; --surface-2:#1A1A24;
+    --line:#25252F; --accent:#2BB59E;
+    --gold:#D4960A; --green:#1D9E75; --red:#D9534F;
+    --text:#E8E8F0; --text2:#9898B0; --text3:#5A5A70;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--text);font-family:'Lato',system-ui,sans-serif;line-height:1.55;min-height:100vh}
+  body{max-width:780px;margin:0 auto;padding:36px 22px 80px}
+  h1{font-family:'DM Serif Display',Georgia,serif;font-weight:400;font-size:32px;margin-bottom:6px}
+  h2{font-family:'DM Serif Display',Georgia,serif;font-weight:400;font-size:20px;color:var(--accent);margin:0 0 14px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+  h3{font-family:'DM Serif Display',Georgia,serif;font-weight:400;font-size:16px;color:var(--gold);margin:18px 0 10px}
+  .sub{color:var(--text2);font-size:13px;margin-bottom:24px;font-family:'DM Mono',monospace;letter-spacing:0.06em;text-transform:uppercase}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:20px;margin-bottom:18px}
+  .step-num{display:inline-block;width:26px;height:26px;border-radius:50%;background:var(--accent);color:#06231D;font-weight:700;font-family:'DM Mono',monospace;font-size:13px;text-align:center;line-height:26px;margin-right:10px;vertical-align:middle}
+  label{display:block;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text2);margin-bottom:6px;margin-top:12px}
+  label:first-child{margin-top:0}
+  label .hint{text-transform:none;letter-spacing:0;color:var(--text3);font-size:11px;margin-left:6px}
+  input{font-family:'DM Mono',monospace;font-size:12px;color:var(--text);background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:10px 12px;width:100%;min-height:40px}
+  input:focus{outline:none;border-color:var(--accent)}
+  input.lato{font-family:'Lato',system-ui,sans-serif;font-size:14px}
+  button{font-family:inherit;font-size:14px;background:var(--accent);color:#06231D;border:none;border-radius:6px;padding:12px 22px;cursor:pointer;font-weight:700;min-height:44px}
+  button:hover{background:#33CCB1}
+  button.ghost{background:transparent;color:var(--text);border:1px solid var(--line);font-weight:400}
+  button.ghost:hover{border-color:var(--accent);color:var(--accent)}
+  button.small{padding:8px 14px;font-size:12px;font-weight:400}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  .row{display:flex;gap:10px;align-items:center;margin-top:14px;flex-wrap:wrap}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media(max-width:520px){.grid2{grid-template-columns:1fr}}
+  .grid3{display:grid;grid-template-columns:1.4fr 1fr 1fr auto;gap:8px;align-items:end}
+  @media(max-width:600px){.grid3{grid-template-columns:1fr}}
+  .badge{display:inline-block;padding:3px 10px;border:1px solid var(--line);border-radius:10px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;margin-right:4px}
+  .badge.ok{color:var(--green);border-color:rgba(29,158,117,.5);background:rgba(29,158,117,.08)}
+  .badge.err{color:var(--red);border-color:rgba(217,83,79,.5);background:rgba(217,83,79,.08)}
+  .badge.warn{color:var(--gold);border-color:rgba(212,150,10,.5)}
+  .badge.muted{color:var(--text3);border-color:var(--line)}
+  pre{background:var(--surface-2);border:1px solid var(--line);border-radius:5px;padding:12px;font-family:'DM Mono',monospace;font-size:11px;line-height:1.6;overflow-x:auto;white-space:pre-wrap;word-break:break-word;color:var(--text);margin-top:10px;max-height:280px;overflow-y:auto}
+  .muted{color:var(--text2);font-size:13px}
+  .tiny{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;letter-spacing:0.04em}
+  .log{margin-top:14px;background:var(--surface-2);border-radius:6px;padding:14px;max-height:340px;overflow-y:auto;border:1px solid var(--line)}
+  .log-line{font-family:'DM Mono',monospace;font-size:12px;padding:4px 0;border-bottom:1px dashed rgba(89,89,89,.2);display:flex;gap:10px;align-items:flex-start}
+  .log-line:last-child{border-bottom:none}
+  .log-line .dot{width:8px;height:8px;border-radius:50%;background:var(--text3);margin-top:6px;flex-shrink:0}
+  .log-line.ok .dot{background:var(--green)}
+  .log-line.err .dot{background:var(--red)}
+  .log-line.warn .dot{background:var(--gold)}
+  .log-line.run .dot{background:var(--accent);animation:pulse 1s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  .log-line .t{flex:1}
+  .log-line .ts{color:var(--text3);font-size:10px;letter-spacing:0.04em}
+  details{margin-top:8px}
+  summary{cursor:pointer;color:var(--text2);font-size:12px}
+  details[open] summary{color:var(--accent)}
+  .seed-row{padding:14px;background:var(--surface-2);border-radius:6px;margin-bottom:10px;border:1px solid var(--line)}
+  .seed-row .name{font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+  .seed-row .status{margin-left:auto;font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;letter-spacing:0.06em;text-transform:uppercase}
+  .footnote{color:var(--text3);font-size:11px;font-family:'DM Mono',monospace;letter-spacing:0.06em;text-align:center;margin-top:30px;padding-top:16px;border-top:1px solid var(--line)}
+  .callout{background:var(--surface-2);border-left:3px solid var(--gold);padding:12px 16px;border-radius:0 4px 4px 0;font-size:13px;color:var(--text2);margin:14px 0}
+  .callout strong{color:var(--gold)}
+  .callout.ok{border-left-color:var(--green)}
+  .callout.ok strong{color:var(--green)}
+</style>
+</head>
+<body>
+
+<h1>Comms Setup Runner</h1>
+<div class="sub">Configura Notion en un click · v1</div>
+
+<!-- ============ STEP 1: WORKER URL ============ -->
+<div class="card">
+  <h2><span class="step-num">0</span>Worker</h2>
+  <label>URL del Cloudflare Worker</label>
+  <input id="workerUrl" type="url" class="lato" value="https://kofy-notion-proxy.delicate-surf-529c.workers.dev">
+  <div class="row">
+    <button class="small ghost" id="btnHealth" type="button">Verificar worker</button>
+    <span id="healthStatus" class="tiny"></span>
+  </div>
+</div>
+
+<!-- ============ STEP 2: DATABASE IDS ============ -->
+<div class="card">
+  <h2><span class="step-num">1</span>Database IDs</h2>
+  <p class="muted">Pega los IDs de cada DB en Notion. Para obtenerlos: abrí la DB en Notion, mirá la URL — el ID es la sección larga entre el último <code style="color:var(--gold);font-family:'DM Mono',monospace">/</code> y el <code style="color:var(--gold);font-family:'DM Mono',monospace">?</code>. Se guardan en este navegador para que no los pegues de nuevo.</p>
+
+  <div class="grid2">
+    <div>
+      <label>Miembros</label>
+      <input id="dbMiembros" type="text" placeholder="abc123...">
+    </div>
+    <div>
+      <label>Clientes</label>
+      <input id="dbClientes" type="text" placeholder="abc123...">
+    </div>
+    <div>
+      <label>Órdenes</label>
+      <input id="dbOrdenes" type="text" placeholder="abc123...">
+    </div>
+    <div>
+      <label>Notificaciones <span class="hint">(NUEVA — ver abajo)</span></label>
+      <input id="dbNotificaciones" type="text" placeholder="abc123...">
+    </div>
+  </div>
+
+  <div class="callout">
+    <strong>Sobre la DB Notificaciones:</strong> el API de Notion no permite crear DBs nuevas — solo modificar esquemas existentes. Así que primero tenés que crearla manualmente:
+    <ol style="margin:8px 0 0 22px">
+      <li>En Notion, creá una nueva página dentro del workspace de Kofy. Llamala <code>Notificaciones</code>. Adentro, agregá una nueva DB (full-page).</li>
+      <li>Click en los <code>...</code> de la DB → <em>Connections</em> → agregá la integración <code>Kofy Forms</code>.</li>
+      <li>Copiá el ID de la URL y pegalo arriba.</li>
+    </ol>
+  </div>
+
+  <div class="row">
+    <button class="ghost small" id="btnSaveIds" type="button">Guardar IDs</button>
+    <button class="ghost small" id="btnClearIds" type="button">Limpiar</button>
+  </div>
+</div>
+
+<!-- ============ STEP 3: MIGRATIONS ============ -->
+<div class="card">
+  <h2><span class="step-num">2</span>Migraciones</h2>
+
+  <h3>A · Agregar Email/WhatsApp/SMS a Miembros + Clientes</h3>
+  <p class="muted">Agrega 3 propiedades a Miembros (<code>Email</code>, <code>WhatsApp</code>, <code>SMS</code>) y 2 a Clientes (<code>Email</code>, <code>WhatsApp</code>). Idempotente — si ya existen, no pasa nada.</p>
+  <div class="row">
+    <button id="btnMigrateA" type="button">Correr Migración A</button>
+    <span id="statusA" class="badge muted">pendiente</span>
+  </div>
+
+  <h3>B · Crear esquema de Notificaciones</h3>
+  <p class="muted">Asume que ya creaste la DB <code>Notificaciones</code> vacía y la compartiste con la integración. Patcha el esquema completo (12 propiedades incluyendo relaciones a Órdenes, Miembros y Clientes).</p>
+  <div class="row">
+    <button id="btnMigrateB" type="button">Correr Migración B</button>
+    <span id="statusB" class="badge muted">pendiente</span>
+  </div>
+</div>
+
+<!-- ============ STEP 4: SEED CONTACTS ============ -->
+<div class="card">
+  <h2><span class="step-num">3</span>Cargar contactos</h2>
+  <p class="muted">Tiene que correr Migración A primero. Esto busca cada miembro en la DB Miembros por su nombre y actualiza Email/WhatsApp/SMS. Los números se normalizan a formato E.164 automáticamente.</p>
+
+  <div id="seedRows"></div>
+
+  <div class="row">
+    <button id="btnSeedAll" type="button">Cargar todos</button>
+    <span id="statusSeed" class="badge muted">pendiente</span>
+  </div>
+</div>
+
+<!-- ============ STEP 5: ONE CLICK ============ -->
+<div class="card" style="background:linear-gradient(135deg, rgba(43,181,158,0.12), rgba(212,150,10,0.05));border:1px solid rgba(43,181,158,0.3)">
+  <h2 style="border-bottom:none;margin-bottom:6px">Hacelo todo de un toque</h2>
+  <p class="muted" style="margin-bottom:14px">Corre Migración A → Migración B → Carga contactos, en orden.</p>
+  <button id="btnRunAll" type="button" style="font-size:15px;padding:14px 28px">Correr todo</button>
+  <span id="statusAll" class="badge muted" style="margin-left:10px">pendiente</span>
+</div>
+
+<!-- ============ LOG ============ -->
+<div class="card">
+  <h2>Log</h2>
+  <div class="log" id="log"></div>
+</div>
+
+<div class="footnote">Kofy · Setup Runner · todo en localStorage</div>
+
+<script>
+(() => {
+  'use strict';
+
+  // ========== Storage ==========
+  const STORAGE = 'kofy_comms_setup_v1';
+  function loadCfg() {
+    try { return JSON.parse(localStorage.getItem(STORAGE) || '{}'); }
+    catch { return {}; }
+  }
+  function saveCfg(patch) {
+    const cur = loadCfg();
+    localStorage.setItem(STORAGE, JSON.stringify({ ...cur, ...patch }));
+  }
+
+  // ========== DOM helpers ==========
+  const $ = id => document.getElementById(id);
+
+  // ========== Log ==========
+  function log(msg, kind='') {
+    const root = $('log');
+    const line = document.createElement('div');
+    line.className = 'log-line ' + kind;
+    const dot = document.createElement('span'); dot.className = 'dot';
+    const t = document.createElement('span'); t.className = 't';
+    const ts = document.createElement('span'); ts.className = 'ts';
+    ts.textContent = new Date().toLocaleTimeString();
+    t.innerHTML = msg;
+    line.append(dot, t, ts);
+    root.appendChild(line);
+    root.scrollTop = root.scrollHeight;
+    return line;
+  }
+  function setBadge(id, kind, text) {
+    const b = $(id);
+    b.className = 'badge ' + kind;
+    b.textContent = text;
+  }
+
+  // ========== Worker helpers ==========
+  function worker() { return $('workerUrl').value.trim().replace(/\/$/, ''); }
+  async function workerFetch(path, init={}) {
+    const r = await fetch(worker() + path, {
+      ...init,
+      headers: { 'Content-Type': 'application/json', ...(init.headers||{}) }
+    });
+    const j = await r.json().catch(() => ({}));
+    return { ok: r.ok, status: r.status, body: j };
+  }
+
+  // ========== Phone normalization ==========
+  function normalizePhone(raw) {
+    if (!raw) return '';
+    let s = String(raw).trim();
+    // strip everything that isn't a digit or leading +
+    const hasPlus = s.startsWith('+');
+    s = s.replace(/[^0-9]/g, '');
+    return hasPlus ? '+' + s : (s ? '+' + s : '');
+  }
+
+  // ========== Seed roster ==========
+  const ROSTER = [
+    { dbName: 'Leo',          realName: 'Leonardo',         email: 'greensodesigns@gmail.com',  phone: '+58 424-1370545' },
+    { dbName: 'Partner',      realName: 'Gabriela',         email: 'Gabriela.zamv@gmail.com',   phone: '+61 449 987 797' },
+    { dbName: 'Primo (José)', realName: 'José',             email: 'josemorffe247@gmail.com',   phone: '+58 424-2811785' },
+    { dbName: 'Kafay',        realName: 'Kafay',            email: '',                          phone: '' }
+  ];
+
+  function renderSeedRows() {
+    const root = $('seedRows'); root.innerHTML = '';
+    const saved = loadCfg().roster || {};
+    ROSTER.forEach((m, i) => {
+      const data = saved[m.dbName] || m;
+      const row = document.createElement('div');
+      row.className = 'seed-row';
+      row.innerHTML = `
+        <div class="name">
+          <span style="background:var(--accent);color:#06231D;width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:11px;font-weight:700">${m.realName[0]}</span>
+          ${m.realName} <span class="tiny" style="margin-left:6px">→ busca "${m.dbName}" en Miembros</span>
+          <span class="status" id="seedStatus${i}">pendiente</span>
+        </div>
+        <div class="grid3">
+          <div>
+            <label>Email</label>
+            <input class="lato" data-i="${i}" data-k="email" type="email" value="${data.email||''}" placeholder="opcional">
+          </div>
+          <div>
+            <label>WhatsApp</label>
+            <input class="lato" data-i="${i}" data-k="phone" type="tel" value="${data.phone||''}" placeholder="+58412...">
+          </div>
+          <div>
+            <label>DB Name</label>
+            <input data-i="${i}" data-k="dbName" type="text" value="${data.dbName||''}" placeholder="Nombre exacto">
+          </div>
+          <div>
+            <button class="ghost small" data-seed-one="${i}" type="button">Cargar</button>
+          </div>
+        </div>
+      `;
+      root.appendChild(row);
+    });
+    // Wire input persistence
+    document.querySelectorAll('#seedRows input').forEach(input => {
+      input.addEventListener('input', () => {
+        const i = +input.dataset.i, k = input.dataset.k;
+        const cfg = loadCfg();
+        cfg.roster = cfg.roster || {};
+        const r = ROSTER[i];
+        cfg.roster[r.dbName] = cfg.roster[r.dbName] || { ...r };
+        cfg.roster[r.dbName][k] = input.value;
+        // If they renamed dbName, the key changes — re-save under new key
+        if (k === 'dbName' && input.value && input.value !== r.dbName) {
+          cfg.roster[input.value] = { ...cfg.roster[r.dbName], dbName: input.value };
+          delete cfg.roster[r.dbName];
+        }
+        localStorage.setItem(STORAGE, JSON.stringify(cfg));
+      });
+    });
+    document.querySelectorAll('[data-seed-one]').forEach(btn => {
+      btn.addEventListener('click', () => seedOne(+btn.dataset.seedOne));
+    });
+  }
+
+  // ========== Health ==========
+  $('btnHealth').addEventListener('click', async () => {
+    $('healthStatus').textContent = 'chequeando…';
+    log('GET /health …', 'run');
+    try {
+      const r = await fetch(worker() + '/health');
+      const j = await r.json().catch(()=>({}));
+      const ok = r.ok && j.ok === true;
+      $('healthStatus').textContent = ok ? '✓ ' + (j.version||'') : 'HTTP ' + r.status;
+      $('healthStatus').style.color = ok ? 'var(--green)' : 'var(--red)';
+      log(ok ? 'Worker vivo: ' + JSON.stringify(j) : 'Worker respondió ' + r.status, ok?'ok':'err');
+    } catch (e) {
+      $('healthStatus').textContent = '✗ sin conexión';
+      $('healthStatus').style.color = 'var(--red)';
+      log('Worker no alcanzable: ' + e.message, 'err');
+    }
+  });
+
+  // ========== DB IDs ==========
+  function readIds() {
+    return {
+      miembros:       $('dbMiembros').value.trim(),
+      clientes:       $('dbClientes').value.trim(),
+      ordenes:        $('dbOrdenes').value.trim(),
+      notificaciones: $('dbNotificaciones').value.trim()
+    };
+  }
+  function bindIds() {
+    const cfg = loadCfg();
+    if (cfg.miembros)       $('dbMiembros').value       = cfg.miembros;
+    if (cfg.clientes)       $('dbClientes').value       = cfg.clientes;
+    if (cfg.ordenes)        $('dbOrdenes').value        = cfg.ordenes;
+    if (cfg.notificaciones) $('dbNotificaciones').value = cfg.notificaciones;
+    ['dbMiembros','dbClientes','dbOrdenes','dbNotificaciones'].forEach(id => {
+      $(id).addEventListener('input', () => {
+        saveCfg({
+          miembros:       $('dbMiembros').value.trim(),
+          clientes:       $('dbClientes').value.trim(),
+          ordenes:        $('dbOrdenes').value.trim(),
+          notificaciones: $('dbNotificaciones').value.trim()
+        });
+      });
+    });
+  }
+  $('btnSaveIds').addEventListener('click', () => {
+    saveCfg(readIds());
+    log('IDs guardados', 'ok');
+  });
+  $('btnClearIds').addEventListener('click', () => {
+    if (!confirm('¿Limpiar todos los IDs guardados?')) return;
+    ['dbMiembros','dbClientes','dbOrdenes','dbNotificaciones'].forEach(id => $(id).value = '');
+    saveCfg({ miembros:'', clientes:'', ordenes:'', notificaciones:'' });
+    log('IDs limpiados', 'warn');
+  });
+
+  // ========== Migration A ==========
+  async function migrateA() {
+    const ids = readIds();
+    if (!ids.miembros || !ids.clientes) {
+      log('Faltan IDs (Miembros y/o Clientes)', 'err');
+      setBadge('statusA', 'err', 'faltan IDs');
+      return false;
+    }
+    log('Migración A · empezando…', 'run');
+    setBadge('statusA', 'warn', 'corriendo');
+
+    // Miembros
+    log('PATCH /database/' + ids.miembros.slice(0,8) + '… (Miembros: Email, WhatsApp, SMS)', 'run');
+    const a1 = await workerFetch('/database/' + ids.miembros, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        properties: {
+          'Email':    { email: {} },
+          'WhatsApp': { phone_number: {} },
+          'SMS':      { phone_number: {} }
+        }
+      })
+    });
+    if (!a1.ok) {
+      log('Miembros falló: HTTP ' + a1.status + ' — ' + (a1.body?.message || JSON.stringify(a1.body).slice(0,200)), 'err');
+      setBadge('statusA', 'err', 'falló');
+      return false;
+    }
+    log('Miembros ✓', 'ok');
+
+    // Clientes
+    log('PATCH /database/' + ids.clientes.slice(0,8) + '… (Clientes: Email, WhatsApp)', 'run');
+    const a2 = await workerFetch('/database/' + ids.clientes, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        properties: {
+          'Email':    { email: {} },
+          'WhatsApp': { phone_number: {} }
+        }
+      })
+    });
+    if (!a2.ok) {
+      log('Clientes falló: HTTP ' + a2.status + ' — ' + (a2.body?.message || JSON.stringify(a2.body).slice(0,200)), 'err');
+      setBadge('statusA', 'err', 'parcial');
+      return false;
+    }
+    log('Clientes ✓', 'ok');
+
+    setBadge('statusA', 'ok', 'completa');
+    log('Migración A completa', 'ok');
+    return true;
+  }
+  $('btnMigrateA').addEventListener('click', migrateA);
+
+  // ========== Migration B ==========
+  async function migrateB() {
+    const ids = readIds();
+    if (!ids.notificaciones) {
+      log('Falta ID de Notificaciones — creá la DB en Notion primero', 'err');
+      setBadge('statusB', 'err', 'falta ID');
+      return false;
+    }
+    if (!ids.ordenes || !ids.miembros || !ids.clientes) {
+      log('Las relaciones requieren los IDs de Órdenes, Miembros y Clientes', 'err');
+      setBadge('statusB', 'err', 'faltan IDs');
+      return false;
+    }
+    log('Migración B · empezando…', 'run');
+    setBadge('statusB', 'warn', 'corriendo');
+
+    // Step 0: read current schema so we know what the existing title column is called.
+    // Notion DBs always have exactly ONE title property — we have to RENAME it, not create a new one.
+    log('Leyendo esquema actual de Notificaciones…', 'run');
+    const peek = await workerFetch('/database/' + ids.notificaciones, {
+      method: 'PATCH',
+      body: JSON.stringify({ properties: {} })
+    });
+    if (!peek.ok) {
+      log('No se pudo leer el esquema: HTTP ' + peek.status + ' — ' + (peek.body?.message || ''), 'err');
+      log('¿Está compartida la DB con la integración "Kofy Forms"?', 'warn');
+      setBadge('statusB', 'err', 'falló');
+      return false;
+    }
+    let currentTitleName = null;
+    const existingProps = peek.body?.properties || {};
+    for (const [name, def] of Object.entries(existingProps)) {
+      if (def?.type === 'title') { currentTitleName = name; break; }
+    }
+    log('Title actual: "' + (currentTitleName || '(no encontrado)') + '"' +
+        (currentTitleName === 'Notification ID' ? ' ✓ ya correcta' : ' — la renombro a "Notification ID"'),
+        currentTitleName === 'Notification ID' ? 'ok' : 'warn');
+
+    const body = {
+      properties: {
+        // Rename the existing title (only if needed). When currentTitleName === 'Notification ID',
+        // skip this — Notion would no-op anyway but it keeps the log cleaner.
+        ...(currentTitleName && currentTitleName !== 'Notification ID'
+            ? { [currentTitleName]: { name: 'Notification ID' } }
+            : {}),
+        'Trigger':           { select: { options: [
+          { name:'order_created',        color:'blue' },
+          { name:'order_advanced_CV',    color:'orange' },
+          { name:'order_ready_envio',    color:'green' },
+          { name:'order_delivered',      color:'green' },
+          { name:'order_cancelled',      color:'red' },
+          { name:'order_archived',       color:'gray' },
+          { name:'stock_low_origen',     color:'yellow' },
+          { name:'stock_low_empaque',    color:'yellow' },
+          { name:'b2b_cadence_reached',  color:'purple' },
+          { name:'free_coffee_dispatch', color:'pink' },
+          { name:'manual_test',          color:'default' },
+          { name:'Otro',                 color:'default' }
+        ] } },
+        'Channel':           { select: { options: [
+          { name:'email',    color:'blue' },
+          { name:'whatsapp', color:'green' },
+          { name:'sms',      color:'purple' }
+        ] } },
+        'Recipient name':    { rich_text: {} },
+        'Recipient address': { rich_text: {} },
+        'Body sent':         { rich_text: {} },
+        'Status':            { select: { options: [
+          { name:'pending', color:'gray' },
+          { name:'sent',    color:'green' },
+          { name:'failed',  color:'red' },
+          { name:'skipped', color:'yellow' }
+        ] } },
+        'Provider response': { rich_text: {} },
+        'Related Orden':     { relation: { database_id: ids.ordenes,   single_property: {} } },
+        'Related Miembro':   { relation: { database_id: ids.miembros,  single_property: {} } },
+        'Related Cliente':   { relation: { database_id: ids.clientes,  single_property: {} } },
+        'Triggered by':      { relation: { database_id: ids.miembros,  single_property: {} } },
+        'Fecha':             { date: {} }
+      }
+    };
+
+    log('PATCH /database/' + ids.notificaciones.slice(0,8) + '… (esquema completo)', 'run');
+    const r = await workerFetch('/database/' + ids.notificaciones, {
+      method: 'PATCH',
+      body: JSON.stringify(body)
+    });
+    if (!r.ok) {
+      log('Notificaciones falló: HTTP ' + r.status + ' — ' + (r.body?.message || JSON.stringify(r.body).slice(0,200)), 'err');
+      log('¿Está compartida la DB con la integración "Kofy Forms"? ¿Es una DB vacía (no una página normal)?', 'warn');
+      setBadge('statusB', 'err', 'falló');
+      return false;
+    }
+    log('Notificaciones esquema ✓', 'ok');
+    log('Acordate de poner <code>NOTIFICACIONES_DB_ID=' + ids.notificaciones + '</code> como env var en el worker.', 'warn');
+    setBadge('statusB', 'ok', 'completa');
+    return true;
+  }
+  $('btnMigrateB').addEventListener('click', migrateB);
+
+  // ========== Seed contacts ==========
+  async function findMemberByName(name, miembrosDbId) {
+    const r = await workerFetch('/query', {
+      method: 'POST',
+      body: JSON.stringify({
+        database_id: miembrosDbId,
+        filter: { property: 'Nombre', title: { equals: name } }
+      })
+    });
+    if (!r.ok) return null;
+    return (r.body?.results || [])[0] || null;
+  }
+
+  async function seedOne(i) {
+    const ids = readIds();
+    if (!ids.miembros) { log('Falta MIEMBROS_DB_ID', 'err'); return false; }
+    const cfg = loadCfg();
+    const original = ROSTER[i];
+    const data = (cfg.roster && cfg.roster[original.dbName]) || original;
+    const realName = original.realName;
+    const dbName = data.dbName || original.dbName;
+    const statusEl = $('seedStatus' + i);
+
+    statusEl.textContent = 'buscando…';
+    statusEl.style.color = 'var(--gold)';
+    log('Buscando "' + dbName + '" en Miembros…', 'run');
+
+    const member = await findMemberByName(dbName, ids.miembros);
+    if (!member) {
+      log(realName + ': no encontrado en Miembros (busqué por Nombre = "' + dbName + '"). Creá la fila en warehouse-miembros.html primero, o ajustá el DB Name arriba.', 'err');
+      statusEl.textContent = 'no encontrado';
+      statusEl.style.color = 'var(--red)';
+      return false;
+    }
+
+    const props = {};
+    if (data.email) props['Email']    = { email: data.email };
+    const wa = normalizePhone(data.phone);
+    if (wa) {
+      props['WhatsApp'] = { phone_number: wa };
+      props['SMS']      = { phone_number: wa };
+    }
+    if (!Object.keys(props).length) {
+      log(realName + ': sin email ni teléfono, saltado.', 'warn');
+      statusEl.textContent = 'vacío';
+      statusEl.style.color = 'var(--text3)';
+      return true;
+    }
+
+    log('PATCH /pages/' + member.id.slice(0,8) + '… (' + realName + ')', 'run');
+    const r = await workerFetch('/pages/' + member.id, {
+      method: 'PATCH',
+      body: JSON.stringify({ properties: props })
+    });
+    if (!r.ok) {
+      log(realName + ' falló: HTTP ' + r.status + ' — ' + (r.body?.message || ''), 'err');
+      log('¿Corriste Migración A? Sin ella, las propiedades Email/WhatsApp/SMS no existen.', 'warn');
+      statusEl.textContent = 'falló';
+      statusEl.style.color = 'var(--red)';
+      return false;
+    }
+    log(realName + ' ✓ — ' + (data.email || '(sin email)') + ' · ' + (wa || '(sin tel)'), 'ok');
+    statusEl.textContent = '✓ cargado';
+    statusEl.style.color = 'var(--green)';
+    return true;
+  }
+
+  async function seedAll() {
+    setBadge('statusSeed', 'warn', 'corriendo');
+    let allOk = true, any = false;
+    for (let i = 0; i < ROSTER.length; i++) {
+      const cfg = loadCfg();
+      const original = ROSTER[i];
+      const data = (cfg.roster && cfg.roster[original.dbName]) || original;
+      if (!data.email && !data.phone) {
+        log(original.realName + ': sin contactos, saltado.', 'warn');
+        continue;
+      }
+      any = true;
+      const ok = await seedOne(i);
+      if (!ok) allOk = false;
+    }
+    setBadge('statusSeed', allOk ? 'ok' : 'err', allOk ? (any ? 'completa' : 'sin contactos') : 'parcial');
+  }
+  $('btnSeedAll').addEventListener('click', seedAll);
+
+  // ========== One-click runner ==========
+  $('btnRunAll').addEventListener('click', async () => {
+    setBadge('statusAll', 'warn', 'corriendo');
+    log('═══ Empezando setup completo ═══', 'run');
+
+    const okA = await migrateA();
+    if (!okA) { setBadge('statusAll', 'err', 'falló en A'); log('Detenido en Migración A.', 'err'); return; }
+
+    const okB = await migrateB();
+    if (!okB) { setBadge('statusAll', 'err', 'falló en B'); log('Migración B falló pero seguimos al seed (no es bloqueante).', 'warn'); }
+
+    await seedAll();
+
+    setBadge('statusAll', 'ok', 'todo listo');
+    log('═══ Setup terminado. Acordate de actualizar NOTIFICACIONES_DB_ID en el worker. ═══', 'ok');
+  });
+
+  // ========== Init ==========
+  function init() {
+    bindIds();
+    renderSeedRows();
+    log('Setup runner cargado.', 'ok');
+  }
+  init();
+})();
+</script>
+</body>
+</html>

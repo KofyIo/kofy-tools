@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Kofy · Comms</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Mono:wght@400;500&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0A0A0F; --surface:#111118; --surface-2:#1A1A24;
+    --line:#25252F; --accent:#2BB59E;
+    --gold:#D4960A; --green:#1D9E75; --red:#D9534F;
+    --text:#E8E8F0; --text2:#9898B0; --text3:#5A5A70;
+    --tap:44px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--text);font-family:'Lato',system-ui,sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh}
+  body{padding:env(safe-area-inset-top) env(safe-area-inset-right) calc(72px + env(safe-area-inset-bottom)) env(safe-area-inset-left)}
+  h1,h2,h3{font-family:'DM Serif Display',Georgia,serif;font-weight:400;letter-spacing:-0.01em}
+  h1{font-size:26px;color:var(--text)}
+  h2{font-size:20px;color:var(--accent);margin:0 0 12px}
+  h3{font-size:16px;color:var(--gold);margin:0 0 8px}
+  .mono,code,.label{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text2)}
+  code{font-size:12px;color:var(--gold);text-transform:none;letter-spacing:0;background:var(--surface);padding:2px 6px;border-radius:3px}
+  button,select,input,textarea{font-family:inherit;font-size:14px;color:var(--text)}
+  button{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:10px 14px;cursor:pointer;min-height:var(--tap);transition:all .15s}
+  button:hover{border-color:var(--accent);color:var(--accent)}
+  button.primary{background:var(--accent);color:#06231D;border-color:var(--accent);font-weight:700}
+  button.primary:hover{background:#33CCB1;color:#06231D}
+  button.danger{color:var(--red)}
+  button.danger:hover{border-color:var(--red);color:var(--red)}
+  button.ghost{background:transparent}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  input,select,textarea{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:10px 12px;width:100%;min-height:var(--tap)}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent)}
+  textarea{min-height:90px;resize:vertical;font-family:'DM Mono',monospace;font-size:12px}
+  label{display:block;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text2);margin-bottom:6px}
+
+  /* Layout */
+  .topbar{position:sticky;top:0;background:rgba(10,10,15,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:14px 18px;display:flex;align-items:center;gap:12px;z-index:50}
+  .topbar h1{flex:1;font-size:22px}
+  .persona-chip{display:inline-flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:6px 12px;font-size:12px;color:var(--text2);cursor:pointer}
+  .persona-chip .ini{width:22px;height:22px;border-radius:50%;background:var(--accent);color:#06231D;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;font-family:'DM Mono',monospace}
+  .container{max-width:980px;margin:0 auto;padding:18px}
+
+  /* Tabs */
+  .tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:24px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .tab{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);padding:12px 16px;border:none;background:transparent;border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;min-height:var(--tap)}
+  .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+  /* Cards */
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:18px;margin-bottom:18px}
+  .card .head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:12px;flex-wrap:wrap}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .row + .row{margin-top:10px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media (max-width:600px){.grid2{grid-template-columns:1fr}}
+  .pill{display:inline-block;padding:3px 9px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;font-size:10px;font-family:'DM Mono',monospace;color:var(--text2);letter-spacing:0.06em;text-transform:uppercase}
+  .pill.green{color:var(--green);border-color:rgba(29,158,117,.4)}
+  .pill.gold{color:var(--gold);border-color:rgba(212,150,10,.4)}
+  .pill.red{color:var(--red);border-color:rgba(217,83,79,.4)}
+  .pill.accent{color:var(--accent);border-color:rgba(43,181,158,.4)}
+  .muted{color:var(--text2);font-size:13px}
+
+  /* Trigger matrix */
+  .trigger-row{padding:14px 0;border-bottom:1px solid var(--line)}
+  .trigger-row:last-child{border-bottom:none}
+  .trigger-name{font-weight:700;font-size:14px;margin-bottom:4px}
+  .trigger-desc{color:var(--text2);font-size:12px;margin-bottom:10px}
+  .channels{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+  .channel-toggle{display:inline-flex;align-items:center;gap:6px;background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:6px 12px;cursor:pointer;font-size:12px;color:var(--text2);user-select:none;min-height:32px}
+  .channel-toggle.on{background:rgba(43,181,158,.12);border-color:var(--accent);color:var(--accent)}
+  .channel-toggle input{position:absolute;opacity:0;pointer-events:none}
+  .recipients-line{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--text2)}
+  .recipients-line .pill{cursor:pointer}
+  .recipients-line .pill.on{background:rgba(43,181,158,.12);color:var(--accent);border-color:rgba(43,181,158,.4)}
+
+  /* Log */
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{text-align:left;background:var(--surface-2);color:var(--gold);padding:10px 12px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;border-bottom:1px solid var(--line)}
+  td{padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text);vertical-align:top}
+  .body-preview{color:var(--text2);font-size:12px;max-width:380px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+
+  /* Persona overlay */
+  .overlay{position:fixed;inset:0;background:rgba(10,10,15,.94);backdrop-filter:blur(12px);z-index:200;display:flex;align-items:center;justify-content:center;padding:24px}
+  .overlay .panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:28px;max-width:420px;width:100%}
+  .overlay .panel h2{margin-bottom:6px}
+  .persona-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
+  .persona-grid button{display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:14px;text-align:left}
+  .persona-grid .pname{font-size:15px;font-weight:700;color:var(--text)}
+  .persona-grid .prole{font-size:11px;color:var(--text2);font-family:'DM Mono',monospace;letter-spacing:0.06em;text-transform:uppercase}
+
+  /* Toast */
+  .toast{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--accent);border-radius:8px;padding:12px 18px;font-size:13px;z-index:300;box-shadow:0 8px 24px rgba(0,0,0,.5);max-width:90%}
+  .toast.err{border-color:var(--red);color:var(--red)}
+  .toast.ok{border-color:var(--green);color:var(--green)}
+
+  /* Empty state */
+  .empty{padding:40px 20px;text-align:center;color:var(--text3);font-size:13px}
+
+  /* Status badges */
+  .status-sent{color:var(--green)}
+  .status-failed{color:var(--red)}
+  .status-skipped{color:var(--gold)}
+  .status-pending{color:var(--text2)}
+
+  /* Recipients editor */
+  .recipient-card{background:var(--surface-2);border-radius:6px;padding:14px;margin-bottom:10px}
+  .recipient-card .name{font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+
+  /* Footer note */
+  .footnote{color:var(--text3);font-size:11px;font-family:'DM Mono',monospace;letter-spacing:0.06em;text-align:center;margin-top:30px;padding-top:16px;border-top:1px solid var(--line)}
+</style>
+</head>
+<body>
+
+<!-- ============ PERSONA OVERLAY ============ -->
+<div class="overlay" id="personaOverlay" style="display:none">
+  <div class="panel">
+    <h2>¿Quién está usando esto?</h2>
+    <p class="muted">Tu firma se guarda automáticamente para las notificaciones que envíes.</p>
+    <div class="persona-grid" id="personaGrid"></div>
+  </div>
+</div>
+
+<!-- ============ TOP BAR ============ -->
+<div class="topbar">
+  <h1>Comms</h1>
+  <span class="pill accent" id="connBadge">conectando…</span>
+  <button class="persona-chip" id="personaBtn" type="button">
+    <span class="ini" id="personaIni">·</span>
+    <span id="personaName">—</span>
+  </button>
+</div>
+
+<div class="container">
+
+  <!-- ============ TABS ============ -->
+  <div class="tabs" role="tablist">
+    <button class="tab active" data-tab="triggers">Triggers</button>
+    <button class="tab"        data-tab="recipients">Recipients</button>
+    <button class="tab"        data-tab="log">Log</button>
+    <button class="tab"        data-tab="test">Test</button>
+    <button class="tab"        data-tab="templates">Templates</button>
+  </div>
+
+  <!-- ============ TRIGGERS ============ -->
+  <section class="pane" data-pane="triggers">
+    <div class="card">
+      <div class="head">
+        <h2>Trigger matrix</h2>
+        <button class="ghost" id="resetTriggers">Restablecer</button>
+      </div>
+      <p class="muted" style="margin-bottom:14px">9 eventos · 3 canales · destinatarios. Cambios se guardan al instante en este dispositivo.</p>
+      <div id="triggerList"></div>
+    </div>
+
+    <div class="card">
+      <div class="head"><h3>Umbral de stock</h3></div>
+      <div class="grid2">
+        <div>
+          <label>Origen · kg mínimos</label>
+          <input type="number" id="umbralOrigen" min="0" step="0.5">
+        </div>
+        <div style="display:flex;align-items:flex-end">
+          <button class="primary" id="saveUmbral" type="button">Guardar</button>
+        </div>
+      </div>
+      <p class="muted" style="margin-top:10px;font-size:12px">El umbral por empaque se define por bolsa en <code>warehouse-inventario.html</code>.</p>
+    </div>
+  </section>
+
+  <!-- ============ RECIPIENTS ============ -->
+  <section class="pane" data-pane="recipients" style="display:none">
+    <div class="card">
+      <h2>Miembros</h2>
+      <p class="muted" style="margin-bottom:14px">Editá el email · WhatsApp · SMS de cada miembro del equipo. Se guarda en Notion.</p>
+      <div id="miembrosList"><div class="empty">Cargando…</div></div>
+    </div>
+
+    <div class="card">
+      <div class="head">
+        <h2>Clientes</h2>
+        <input type="search" id="clienteFilter" placeholder="Buscar…" style="max-width:220px">
+      </div>
+      <p class="muted" style="margin-bottom:14px">Email y WhatsApp de cada cliente. La cancelación, el envío y la entrega les llegan acá.</p>
+      <div id="clientesList"><div class="empty">Cargando…</div></div>
+    </div>
+  </section>
+
+  <!-- ============ LOG ============ -->
+  <section class="pane" data-pane="log" style="display:none">
+    <div class="card">
+      <div class="head">
+        <h2>Últimas notificaciones</h2>
+        <div class="row">
+          <select id="logFilter" style="max-width:170px">
+            <option value="">Todas</option>
+            <option value="sent">Enviadas</option>
+            <option value="failed">Fallidas</option>
+            <option value="skipped">Saltadas</option>
+            <option value="pending">Pendientes</option>
+          </select>
+          <button class="ghost" id="refreshLog">Refrescar</button>
+        </div>
+      </div>
+      <div id="logBody"><div class="empty">Cargando…</div></div>
+    </div>
+  </section>
+
+  <!-- ============ TEST SENDER ============ -->
+  <section class="pane" data-pane="test" style="display:none">
+    <div class="card">
+      <h2>Test sender</h2>
+      <p class="muted" style="margin-bottom:14px">Envía una notificación real para verificar credenciales y plantillas. <strong style="color:var(--red)">No es simulación</strong>: el destinatario recibirá el mensaje.</p>
+
+      <div class="grid2">
+        <div>
+          <label>Canal</label>
+          <select id="testChannel">
+            <option value="email">Email</option>
+            <option value="whatsapp">WhatsApp</option>
+            <option value="sms">SMS</option>
+          </select>
+        </div>
+        <div>
+          <label>Plantilla</label>
+          <select id="testTemplate"></select>
+        </div>
+      </div>
+
+      <div style="margin-top:14px">
+        <label>Destinatario (email o teléfono con +código país)</label>
+        <input type="text" id="testTo" placeholder="kafay@kofy.io o +584121234567">
+      </div>
+
+      <div style="margin-top:14px">
+        <label>Variables de la plantilla (JSON)</label>
+        <textarea id="testData">{
+  "orderId": "PETIT-3003",
+  "clientName": "PETIT",
+  "itemsSummary": "12 × 1 KG CM",
+  "eta": "2026-05-20"
+}</textarea>
+      </div>
+
+      <div class="row" style="margin-top:14px">
+        <button class="primary" id="testFire" type="button">Enviar prueba</button>
+        <button class="ghost"   id="testFireEvent" type="button">Disparar como evento</button>
+      </div>
+
+      <div id="testResult" style="margin-top:14px"></div>
+    </div>
+
+    <div class="card">
+      <h3>Atajos · simular eventos</h3>
+      <p class="muted" style="margin-bottom:10px;font-size:12px">Dispara un <code>CustomEvent</code> con datos mock para validar la cadena completa. El loader debería responder y registrar en Notion.</p>
+      <div class="row">
+        <button class="ghost" data-mock="orderCreated">orderCreated</button>
+        <button class="ghost" data-mock="orderStageAdvanced">stageAdvanced (CV)</button>
+        <button class="ghost" data-mock="orderCancelled">orderCancelled</button>
+        <button class="ghost" data-mock="stockLowOrigen">stockLowOrigen</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TEMPLATES ============ -->
+  <section class="pane" data-pane="templates" style="display:none">
+    <div class="card">
+      <h2>Plantillas</h2>
+      <p class="muted" style="margin-bottom:14px">El texto definitivo lo escribe Kafay. Estas son las base — tono cálido, restringido, anclado a <em>conexión</em>. Las variables entre <code>{llaves}</code> se rellenan al enviar.</p>
+      <div id="tplList"></div>
+    </div>
+  </section>
+
+  <div class="footnote">Kofy · Comms v1 · localStorage settings · changes apply on next event</div>
+</div>
+
+<div id="toastSlot"></div>
+
+<!-- ============ LOADER (event bus) — listens to kofy:* events ============ -->
+<script src="kofy-comms-loader.js"></script>
+
+<!-- ============ APP ============ -->
+<script>
+(function () {
+  'use strict';
+
+  // ---------- Config (mirrors loader) ----------
+  const WORKER = 'https://kofy-notion-proxy.delicate-surf-529c.workers.dev';
+  const PERSONA_KEY = 'kofy_warehouse_persona_v1';
+  const SETTINGS_KEY = 'kofy_comms_settings_v1';
+
+  // DB IDs · fallback chain:
+  //   1. window.KOFY_DB_IDS — set inline by warehouse-setup.html in production
+  //   2. localStorage "kofy_comms_setup_v1" — saved by kofy-comms-setup-runner.html
+  //   3. nothing — tabs show "DB no configurada" hints
+  function readSavedIds() {
+    if (window.KOFY_DB_IDS && Object.values(window.KOFY_DB_IDS).some(Boolean)) {
+      return window.KOFY_DB_IDS;
+    }
+    try {
+      const cfg = JSON.parse(localStorage.getItem('kofy_comms_setup_v1') || '{}');
+      return {
+        MIEMBROS:       cfg.miembros       || null,
+        CLIENTES:       cfg.clientes       || null,
+        ORDENES:        cfg.ordenes        || null,
+        NOTIFICACIONES: cfg.notificaciones || null
+      };
+    } catch { return { MIEMBROS:null, CLIENTES:null, ORDENES:null, NOTIFICACIONES:null }; }
+  }
+  const DB = readSavedIds();
+
+  // ---------- Templates (preview only — server uses its own copies) ----------
+  const TEMPLATES = {
+    order_created_leo:       { channel:'whatsapp', body:'Nueva orden {orderId} de {clientName}. Pedido: {itemsSummary}. ETA {eta}. A tostar.' },
+    order_cv_leo:            { channel:'whatsapp', body:'Verde apartado para {orderId}. Listo para tostar.' },
+    order_ready_customer:    { channel:'email',    subject:'Tu pedido {orderId} está listo', body:'Hola {clientName},\n\nTu pedido ya está empacado y listo. Acordemos la entrega cuando te quede bien.\n\nGracias por la conexión.\n— Kofy' },
+    order_delivered:         { channel:'email',    subject:'Gracias · {orderId}', body:'Hola {clientName},\n\nQuedó entregado. ¿Cómo te fue con el café? Cualquier nota nos sirve.\n\n— Kofy' },
+    order_cancelled_customer:{ channel:'email',    subject:'Tu pedido {orderId} fue cancelado', body:'Hola {clientName},\n\nTu pedido {orderId} fue cancelado: {razon}.\nSi querés que lo retomemos, respondemos por acá.\n\n— Kofy' },
+    stock_low_origen:        { channel:'whatsapp', body:'{origenName} bajo: {kgRemanente} kg. Hora de reponer.' },
+    stock_low_empaque:       { channel:'whatsapp', body:'Empaque {bind} bajo: {stock} bolsas quedan.' },
+    b2b_cadence:             { channel:'whatsapp', body:'{clientName} no ha ordenado en {dias} días. ¿Confirmamos?' }
+  };
+
+  // ---------- DOM helpers ----------
+  const $  = (s, r=document) => r.querySelector(s);
+  const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+  function el(tag, props, ...kids) {
+    const e = document.createElement(tag);
+    if (props) for (const k of Object.keys(props)) {
+      if (k === 'class') e.className = props[k];
+      else if (k === 'html') e.innerHTML = props[k];
+      else if (k.startsWith('on')) e.addEventListener(k.slice(2), props[k]);
+      else if (k === 'style') Object.assign(e.style, props[k]);
+      else e.setAttribute(k, props[k]);
+    }
+    for (const k of kids.flat()) if (k != null) e.append(k.nodeType ? k : document.createTextNode(k));
+    return e;
+  }
+  function toast(msg, kind='ok', ms=3000) {
+    const slot = $('#toastSlot');
+    const t = el('div', { class: 'toast ' + (kind==='err'?'err':kind==='ok'?'ok':'') }, msg);
+    slot.append(t);
+    setTimeout(() => t.remove(), ms);
+  }
+
+  // ---------- Notion proxy helpers ----------
+  async function notionQuery(database_id, filter) {
+    const body = filter ? { database_id, filter } : { database_id };
+    const r = await fetch(WORKER + '/query', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(body)
+    });
+    if (!r.ok) throw new Error('query ' + r.status);
+    return r.json();
+  }
+  async function notionPatchPage(pageId, properties) {
+    const r = await fetch(WORKER + '/pages/' + pageId, {
+      method: 'PATCH', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ properties })
+    });
+    if (!r.ok) throw new Error('patch ' + r.status);
+    return r.json();
+  }
+  function plain(prop) {
+    if (!prop) return '';
+    if (prop.type === 'title')     return (prop.title    || []).map(t => t.plain_text).join('');
+    if (prop.type === 'rich_text') return (prop.rich_text|| []).map(t => t.plain_text).join('');
+    if (prop.type === 'email')     return prop.email || '';
+    if (prop.type === 'phone_number') return prop.phone_number || '';
+    if (prop.type === 'select')    return prop.select?.name || '';
+    return '';
+  }
+
+  // ---------- Persona ----------
+  const MIEMBROS_FIXED = [
+    { name:'Kafay',         role:'Fundadora · founder',           ini:'KL' },
+    { name:'Partner',       role:'Co-fundador · ops · design',    ini:'P'  },
+    { name:'Leo',           role:'Tostador · head barista',       ini:'L'  },
+    { name:'Primo (José)',  role:'Soporte · part-time',           ini:'J'  }
+  ];
+  function getPersona() {
+    try { return JSON.parse(localStorage.getItem(PERSONA_KEY)); } catch (_) { return null; }
+  }
+  function setPersona(p) {
+    localStorage.setItem(PERSONA_KEY, JSON.stringify(p));
+    renderPersonaChip();
+  }
+  function renderPersonaChip() {
+    const p = getPersona();
+    $('#personaIni').textContent = p?.ini || '·';
+    $('#personaName').textContent = p?.name || 'Elegir';
+  }
+  function openPersonaPicker() {
+    const grid = $('#personaGrid'); grid.innerHTML = '';
+    MIEMBROS_FIXED.forEach(m => {
+      grid.append(el('button', { type:'button', onclick: () => {
+        setPersona({ name: m.name, ini: m.ini, role: m.role });
+        $('#personaOverlay').style.display = 'none';
+      }},
+        el('span', { class:'pname' }, m.name),
+        el('span', { class:'prole' }, m.role)
+      ));
+    });
+    $('#personaOverlay').style.display = 'flex';
+  }
+
+  // ---------- Settings ----------
+  function settings() { return window.KofyComms?.loadSettings() || {}; }
+  function saveSettings(s) { window.KofyComms?.saveSettings(s); }
+
+  const TRIGGER_META = [
+    { key:'order_created',        name:'Orden creada',                  desc:'Nueva orden ingresa al sistema',                  template:'order_created_leo' },
+    { key:'order_advanced_CV',    name:'Orden → Café Verde',            desc:'Verde apartado, listo para tostar',               template:'order_cv_leo' },
+    { key:'order_ready_envio',    name:'Orden lista para envío',        desc:'Empacada y lista (E)',                            template:'order_ready_customer' },
+    { key:'order_delivered',      name:'Orden entregada',               desc:'Stage final (EN)',                                template:'order_delivered' },
+    { key:'order_cancelled',      name:'Orden cancelada',               desc:'Cancelación con razón firmada',                   template:'order_cancelled_customer' },
+    { key:'stock_low_origen',     name:'Origen bajo',                   desc:'KG remanente < umbral',                           template:'stock_low_origen' },
+    { key:'stock_low_empaque',    name:'Empaque bajo',                  desc:'Stock empaque ≤ umbral',                          template:'stock_low_empaque' },
+    { key:'b2b_cadence_reached',  name:'Cadencia B2B alcanzada',        desc:'Cliente B2B sin pedido en N días (cron · v2)',    template:'b2b_cadence' },
+    { key:'free_coffee_dispatch', name:'Cortesía enviada',              desc:'Café gratis dispatched',                          template:'order_delivered' }
+  ];
+  const ALL_CHANNELS = ['email','whatsapp','sms'];
+
+  function renderTriggerMatrix() {
+    const list = $('#triggerList'); list.innerHTML = '';
+    const s = settings();
+    TRIGGER_META.forEach(meta => {
+      const cur = s.triggers[meta.key] || { enabled:false, channels:[], recipients:[] };
+      const row = el('div', { class:'trigger-row' });
+      const head = el('div', { class:'row', style:{justifyContent:'space-between'} });
+      const left = el('div', {},
+        el('div', { class:'trigger-name' }, meta.name),
+        el('div', { class:'trigger-desc' }, meta.desc + ' · template: ', el('code', {}, meta.template))
+      );
+      const toggle = el('label', { class:'channel-toggle' + (cur.enabled?' on':''), style:{cursor:'pointer'} },
+        el('input', { type:'checkbox', ...(cur.enabled?{checked:'checked'}:{}), onchange: e => {
+          const s2 = settings();
+          s2.triggers[meta.key] = s2.triggers[meta.key] || { enabled:false, channels:[], recipients:[] };
+          s2.triggers[meta.key].enabled = e.target.checked;
+          saveSettings(s2);
+          renderTriggerMatrix();
+        }}),
+        cur.enabled ? 'ACTIVO' : 'PAUSADO'
+      );
+      head.append(left, toggle);
+      row.append(head);
+
+      // Channels
+      const chRow = el('div', { class:'channels' });
+      ALL_CHANNELS.forEach(ch => {
+        const on = cur.channels.includes(ch);
+        chRow.append(el('label', { class:'channel-toggle' + (on?' on':'') },
+          el('input', { type:'checkbox', ...(on?{checked:'checked'}:{}), onchange: e => {
+            const s2 = settings();
+            const cs = new Set(s2.triggers[meta.key].channels);
+            e.target.checked ? cs.add(ch) : cs.delete(ch);
+            s2.triggers[meta.key].channels = [...cs];
+            saveSettings(s2);
+          }}),
+          ch
+        ));
+      });
+      row.append(chRow);
+
+      // Recipients
+      const recRow = el('div', { class:'recipients-line' },
+        el('span', { class:'label' }, 'Destinos:')
+      );
+      const allRoles = ['Kafay','Partner','Leo','Primo (José)','customer'];
+      allRoles.forEach(r => {
+        const on = cur.recipients.includes(r);
+        recRow.append(el('span', { class:'pill' + (on?' on':''), onclick: () => {
+          const s2 = settings();
+          const rs = new Set(s2.triggers[meta.key].recipients);
+          on ? rs.delete(r) : rs.add(r);
+          s2.triggers[meta.key].recipients = [...rs];
+          saveSettings(s2);
+          renderTriggerMatrix();
+        }}, r));
+      });
+      row.append(recRow);
+
+      list.append(row);
+    });
+  }
+
+  // ---------- Recipients editor ----------
+  let miembros = [], clientes = [];
+
+  async function loadMiembros() {
+    if (!DB.MIEMBROS) { $('#miembrosList').innerHTML = '<div class="empty">DB Miembros no configurada. Corré <code>warehouse-setup.html</code>.</div>'; return; }
+    try {
+      const { results } = await notionQuery(DB.MIEMBROS);
+      miembros = results;
+      renderMiembros();
+    } catch (e) {
+      $('#miembrosList').innerHTML = '<div class="empty">Error: ' + e.message + '</div>';
+    }
+  }
+  function renderMiembros() {
+    const root = $('#miembrosList'); root.innerHTML = '';
+    if (!miembros.length) { root.innerHTML = '<div class="empty">Sin miembros. Agregalos en <code>warehouse-miembros.html</code>.</div>'; return; }
+    miembros.forEach(m => {
+      const name = plain(m.properties?.Nombre);
+      const ini  = plain(m.properties?.Iniciales);
+      const email = plain(m.properties?.Email);
+      const wa    = plain(m.properties?.WhatsApp);
+      const sms   = plain(m.properties?.SMS);
+      const card = el('div', { class:'recipient-card' },
+        el('div', { class:'name' },
+          el('span', { class:'ini', style:{
+            width:'24px',height:'24px',borderRadius:'50%',
+            background:'var(--accent)',color:'#06231D',
+            display:'inline-flex',alignItems:'center',justifyContent:'center',
+            fontFamily:'DM Mono',fontSize:'11px',fontWeight:'700'
+          }}, ini || name[0]),
+          name
+        ),
+        el('div', { class:'grid2' },
+          el('div', {},
+            el('label', {}, 'Email'),
+            el('input', { type:'email', value: email, id: 'm-email-' + m.id })
+          ),
+          el('div', {},
+            el('label', {}, 'WhatsApp'),
+            el('input', { type:'tel', value: wa, id: 'm-wa-' + m.id, placeholder:'+58412...' })
+          )
+        ),
+        el('div', { class:'grid2', style:{marginTop:'10px'} },
+          el('div', {},
+            el('label', {}, 'SMS'),
+            el('input', { type:'tel', value: sms, id: 'm-sms-' + m.id, placeholder:'+58412...' })
+          ),
+          el('div', { style:{display:'flex',alignItems:'flex-end'} },
+            el('button', { class:'primary', onclick: () => saveMiembro(m.id) }, 'Guardar')
+          )
+        )
+      );
+      root.append(card);
+    });
+  }
+  async function saveMiembro(id) {
+    const props = {
+      Email:    { email: $('#m-email-' + id).value || null },
+      WhatsApp: { phone_number: $('#m-wa-'    + id).value || null },
+      SMS:      { phone_number: $('#m-sms-'   + id).value || null }
+    };
+    try {
+      await notionPatchPage(id, props);
+      toast('Guardado', 'ok');
+    } catch (e) {
+      toast('Error al guardar: ' + e.message, 'err');
+    }
+  }
+
+  async function loadClientes() {
+    if (!DB.CLIENTES) { $('#clientesList').innerHTML = '<div class="empty">DB Clientes no configurada.</div>'; return; }
+    try {
+      const { results } = await notionQuery(DB.CLIENTES);
+      clientes = results;
+      renderClientes();
+    } catch (e) {
+      $('#clientesList').innerHTML = '<div class="empty">Error: ' + e.message + '</div>';
+    }
+  }
+  function renderClientes() {
+    const root = $('#clientesList'); root.innerHTML = '';
+    const q = ($('#clienteFilter').value || '').toLowerCase();
+    const filtered = clientes.filter(c => {
+      const n = plain(c.properties?.['Nombre / Razón Social']) || plain(c.properties?.Nombre) || '';
+      return n.toLowerCase().includes(q);
+    });
+    if (!filtered.length) { root.innerHTML = '<div class="empty">Sin resultados.</div>'; return; }
+    filtered.slice(0, 30).forEach(c => {
+      const name = plain(c.properties?.['Nombre / Razón Social']) || plain(c.properties?.Nombre) || '(sin nombre)';
+      const email = plain(c.properties?.Email);
+      const wa    = plain(c.properties?.Teléfono) || plain(c.properties?.WhatsApp);
+      const card = el('div', { class:'recipient-card' },
+        el('div', { class:'name' }, name),
+        el('div', { class:'grid2' },
+          el('div', {},
+            el('label', {}, 'Email'),
+            el('input', { type:'email', value: email, id: 'c-email-' + c.id })
+          ),
+          el('div', {},
+            el('label', {}, 'WhatsApp / Teléfono'),
+            el('input', { type:'tel', value: wa, id: 'c-wa-' + c.id })
+          )
+        ),
+        el('div', { style:{marginTop:'10px'} },
+          el('button', { class:'primary', onclick: () => saveCliente(c.id) }, 'Guardar')
+        )
+      );
+      root.append(card);
+    });
+    if (filtered.length > 30) {
+      root.append(el('div', { class:'muted', style:{textAlign:'center',padding:'12px'} },
+        'Mostrando 30 de ' + filtered.length + '. Filtra para ver más.'));
+    }
+  }
+  async function saveCliente(id) {
+    const props = {
+      Email:    { email: $('#c-email-' + id).value || null },
+      Teléfono: { phone_number: $('#c-wa-' + id).value || null }
+    };
+    try {
+      await notionPatchPage(id, props);
+      toast('Cliente guardado', 'ok');
+    } catch (e) {
+      toast('Error: ' + e.message, 'err');
+    }
+  }
+
+  // ---------- Log viewer ----------
+  let isPollingLog = false;
+  async function loadLog() {
+    if (!DB.NOTIFICACIONES) { $('#logBody').innerHTML = '<div class="empty">DB Notificaciones no configurada. Corré la migración en <code>warehouse-setup.html</code>.</div>'; return; }
+    // Skip refresh if user is interacting with a select/input/textarea (smart refresh)
+    if (isPollingLog && document.activeElement && /^(INPUT|SELECT|TEXTAREA)$/.test(document.activeElement.tagName)) return;
+    try {
+      const filterVal = $('#logFilter').value;
+      const filter = filterVal ? { property:'Status', select:{ equals: filterVal } } : undefined;
+      const { results } = await notionQuery(DB.NOTIFICACIONES, filter);
+      renderLog(results.slice(0, 50));
+    } catch (e) {
+      $('#logBody').innerHTML = '<div class="empty">Error: ' + e.message + '</div>';
+    }
+  }
+  function renderLog(rows) {
+    const root = $('#logBody');
+    if (!rows.length) { root.innerHTML = '<div class="empty">Sin notificaciones aún.</div>'; return; }
+    root.innerHTML = '';
+    const t = el('table',{},
+      el('thead',{}, el('tr',{},
+        el('th',{},'Fecha'),
+        el('th',{},'Trigger'),
+        el('th',{},'Canal'),
+        el('th',{},'Destino'),
+        el('th',{},'Estado'),
+        el('th',{},'Mensaje')
+      )),
+      el('tbody',{})
+    );
+    const tb = t.querySelector('tbody');
+    rows.forEach(p => {
+      const props = p.properties || {};
+      const fecha = plain(props['Fecha']) || '';
+      const trig  = plain(props['Trigger']) || '';
+      const ch    = plain(props['Channel']) || '';
+      const to    = plain(props['Recipient address']) || '';
+      const status= plain(props['Status']) || '';
+      const body  = plain(props['Body sent']) || '';
+      tb.append(el('tr', {},
+        el('td', {}, el('span', { class:'mono', style:{fontSize:'11px'} }, (fecha || '').slice(0,16))),
+        el('td', {}, trig),
+        el('td', {}, el('span', { class:'pill' }, ch)),
+        el('td', { class:'mono', style:{fontSize:'12px'} }, to),
+        el('td', {}, el('span', { class:'status-'+status }, status || '—')),
+        el('td', {}, el('div', { class:'body-preview' }, body))
+      ));
+    });
+    root.append(t);
+  }
+
+  // ---------- Templates view ----------
+  function renderTemplates() {
+    const root = $('#tplList'); root.innerHTML = '';
+    Object.entries(TEMPLATES).forEach(([k, t]) => {
+      const card = el('div', { style:{padding:'14px 0',borderBottom:'1px solid var(--line)'} },
+        el('div', { style:{display:'flex',gap:'10px',alignItems:'center',marginBottom:'6px'} },
+          el('code', {}, k),
+          el('span', { class:'pill accent' }, t.channel)
+        ),
+        t.subject ? el('div', { class:'muted', style:{fontSize:'13px',marginBottom:'4px'} },
+          el('strong', {}, 'Asunto: '), t.subject) : null,
+        el('pre', { style:{whiteSpace:'pre-wrap',background:'var(--surface-2)',padding:'10px 12px',borderRadius:'4px',fontSize:'12px',fontFamily:"'DM Mono', monospace",color:'var(--text)'} }, t.body)
+      );
+      root.append(card);
+    });
+  }
+
+  // ---------- Test sender ----------
+  function fillTemplateSelect() {
+    const sel = $('#testTemplate'); sel.innerHTML = '';
+    Object.keys(TEMPLATES).forEach(k => {
+      sel.append(el('option', { value: k }, k));
+    });
+  }
+  async function fireTest(asEvent) {
+    const channel = $('#testChannel').value;
+    const tpl     = $('#testTemplate').value;
+    const to      = $('#testTo').value.trim();
+    let data = {};
+    try { data = JSON.parse($('#testData').value || '{}'); }
+    catch (e) { return toast('JSON inválido: ' + e.message, 'err'); }
+
+    if (asEvent) {
+      // Dispatches a kofy:* event so the loader handles it end-to-end.
+      const evtMap = { order_created_leo:'kofy:orderCreated', order_cv_leo:'kofy:orderStageAdvanced',
+                       order_ready_customer:'kofy:orderStageAdvanced', order_cancelled_customer:'kofy:orderCancelled',
+                       stock_low_origen:'kofy:stockLowOrigen', stock_low_empaque:'kofy:stockLowEmpaque' };
+      const evtName = evtMap[tpl] || 'kofy:manualTest';
+      window.dispatchEvent(new CustomEvent(evtName, { detail: data }));
+      return toast('Evento ' + evtName + ' disparado', 'ok');
+    }
+
+    if (!to) return toast('Falta destinatario', 'err');
+    $('#testResult').innerHTML = '<div class="muted">Enviando…</div>';
+    try {
+      const r = await fetch(WORKER + '/notify', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ channel, to, template: tpl, data, meta: { trigger:'manual_test', triggeredBy: getPersona()?.name || null } })
+      });
+      const j = await r.json().catch(()=>({}));
+      const ok = r.ok && j.status === 'sent';
+      $('#testResult').innerHTML = '';
+      $('#testResult').append(el('div', { class:'card', style:{margin:0,background:'var(--surface-2)'} },
+        el('div',{class:'row'},
+          el('span',{class:'pill ' + (ok?'green':'red')}, ok ? 'OK' : 'FAIL'),
+          el('code',{}, j.notifId || '—')
+        ),
+        j.error ? el('div',{class:'muted',style:{marginTop:8,color:'var(--red)'}}, j.error) : null,
+        el('pre', { style:{marginTop:10,whiteSpace:'pre-wrap',fontSize:11,background:'var(--surface)',padding:10,borderRadius:4} },
+          JSON.stringify(j, null, 2))
+      ));
+      toast(ok ? 'Enviada' : 'Falló', ok?'ok':'err');
+    } catch (e) {
+      toast('Error: ' + e.message, 'err');
+    }
+  }
+  function fireMock(kind) {
+    const map = {
+      orderCreated: ['kofy:orderCreated', { orderId:'PETIT-3003', orderPageId:'fake-page', clientName:'PETIT', items:[{presentacion:'1KG',tostado:'medio',cantidad:12}], eta:'2026-05-20', createdBy: getPersona()?.name }],
+      orderStageAdvanced: ['kofy:orderStageAdvanced', { orderId:'PETIT-3003', orderPageId:'fake-page', stages:['CV'], persona:getPersona()?.name, isCascade:false }],
+      orderCancelled: ['kofy:orderCancelled', { orderId:'PETIT-3003', orderPageId:'fake-page', clientName:'PETIT', razon:'Sin stock de origen', persona:getPersona()?.name }],
+      stockLowOrigen: ['kofy:stockLowOrigen', { origenId:'MG-MC-CM', origenName:'Mérida · CM', kgRemanente:8.5, umbral:10 }]
+    };
+    const [name, detail] = map[kind];
+    window.dispatchEvent(new CustomEvent(name, { detail }));
+    toast(name + ' disparado', 'ok');
+  }
+
+  // ---------- Tabs ----------
+  function switchTab(name) {
+    $$('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+    $$('.pane').forEach(p => p.style.display = (p.dataset.pane === name) ? '' : 'none');
+    if (name === 'recipients' && !miembros.length) { loadMiembros(); loadClientes(); }
+    if (name === 'log') loadLog();
+    if (name === 'templates') renderTemplates();
+  }
+
+  // ---------- Boot ----------
+  function boot() {
+    // Tabs
+    $$('.tab').forEach(t => t.addEventListener('click', () => switchTab(t.dataset.tab)));
+
+    // Persona
+    if (!getPersona()) openPersonaPicker();
+    renderPersonaChip();
+    $('#personaBtn').addEventListener('click', openPersonaPicker);
+
+    // Triggers tab
+    renderTriggerMatrix();
+    $('#resetTriggers').addEventListener('click', () => {
+      if (!confirm('¿Restablecer todos los triggers a sus valores por defecto?')) return;
+      localStorage.removeItem(SETTINGS_KEY);
+      renderTriggerMatrix();
+      toast('Restablecido', 'ok');
+    });
+
+    // Umbral
+    const s = settings();
+    $('#umbralOrigen').value = s.stockUmbralOrigenKg ?? 10;
+    $('#saveUmbral').addEventListener('click', () => {
+      const s2 = settings();
+      s2.stockUmbralOrigenKg = parseFloat($('#umbralOrigen').value) || 10;
+      saveSettings(s2);
+      toast('Umbral guardado', 'ok');
+    });
+
+    // Recipients tab
+    $('#clienteFilter').addEventListener('input', renderClientes);
+
+    // Log tab
+    $('#refreshLog').addEventListener('click', loadLog);
+    $('#logFilter').addEventListener('change', loadLog);
+
+    // Test tab
+    fillTemplateSelect();
+    $('#testFire').addEventListener('click', () => fireTest(false));
+    $('#testFireEvent').addEventListener('click', () => fireTest(true));
+    $$('[data-mock]').forEach(b => b.addEventListener('click', () => fireMock(b.dataset.mock)));
+
+    // Connectivity badge
+    fetch(WORKER + '/query', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ database_id: DB.MIEMBROS || '' })
+    }).then(r => {
+      $('#connBadge').textContent = r.ok ? 'conectado' : ('worker ' + r.status);
+      $('#connBadge').className = 'pill ' + (r.ok?'green':'red');
+    }).catch(() => {
+      $('#connBadge').textContent = 'sin conexión';
+      $('#connBadge').className = 'pill red';
+    });
+
+    // Smart-refresh log every 20s while log tab visible
+    setInterval(() => {
+      const logVisible = $$('.pane').find(p => p.style.display !== 'none')?.dataset.pane === 'log';
+      if (!logVisible) return;
+      const a = document.activeElement;
+      if (a && /^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName)) return;
+      if (document.querySelector('.overlay[style*="display: flex"]')) return;
+      isPollingLog = true; loadLog().finally(() => { isPollingLog = false; });
+    }, 20000);
+  }
+
+  document.addEventListener('DOMContentLoaded', boot);
+})();
+</script>
+
+</body>
+</html>

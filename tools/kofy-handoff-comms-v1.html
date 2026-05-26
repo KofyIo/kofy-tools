@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kofy · Comms Module · Handoff v1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Mono:wght@400;500&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0A0A0F; --surface: #111118; --surface-2: #1A1A24;
+    --line: #25252F; --accent: #6366F1;
+    --gold: #D4960A; --green: #1D9E75; --red: #D9534F;
+    --text: #E8E8F0; --text2: #9898B0; --text3: #5A5A70;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--bg); color: var(--text); font-family: 'Lato', system-ui, sans-serif; line-height: 1.55; }
+  body { max-width: 900px; margin: 0 auto; padding: 40px 24px 80px; }
+
+  h1, h2, h3 { font-family: 'DM Serif Display', Georgia, serif; font-weight: 400; letter-spacing: -0.01em; }
+  h1 { font-size: 40px; color: var(--text); margin-bottom: 6px; }
+  h2 { font-size: 24px; color: var(--accent); margin: 40px 0 14px; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+  h3 { font-size: 18px; color: var(--gold); margin: 24px 0 10px; }
+  h4 { font-size: 14px; color: var(--text); margin: 16px 0 8px; font-weight: 700; font-family: 'Lato', sans-serif; letter-spacing: 0.04em; text-transform: uppercase; }
+  p { color: var(--text); margin-bottom: 12px; font-size: 14px; }
+  p strong { color: var(--text); font-weight: 700; }
+  .meta { color: var(--text2); font-size: 12px; font-family: 'DM Mono', monospace; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 32px; padding-bottom: 18px; border-bottom: 1px solid var(--line); }
+  .mono, code { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--gold); }
+  code { background: var(--surface); padding: 2px 6px; border-radius: 3px; }
+  pre { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; overflow-x: auto; margin: 10px 0 16px; font-family: 'DM Mono', monospace; font-size: 12px; line-height: 1.7; color: var(--text); }
+  pre .kw { color: var(--accent); }
+  pre .str { color: var(--green); }
+  pre .com { color: var(--text3); font-style: italic; }
+  ul, ol { margin: 0 0 14px 22px; }
+  li { color: var(--text); margin: 4px 0; font-size: 14px; }
+  li strong { color: var(--text); }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 13px; }
+  th { text-align: left; background: var(--surface); color: var(--gold); padding: 10px 12px; font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; border-bottom: 1px solid var(--line); font-weight: 500; }
+  td { padding: 10px 12px; border-bottom: 1px solid var(--line); color: var(--text); vertical-align: top; }
+  .callout { background: var(--surface); border-left: 3px solid var(--gold); padding: 14px 18px; margin: 14px 0; font-size: 13px; border-radius: 0 4px 4px 0; }
+  .callout strong { color: var(--gold); }
+  .callout.warn { border-left-color: var(--red); }
+  .callout.warn strong { color: var(--red); }
+  .callout.ok { border-left-color: var(--green); }
+  .callout.ok strong { color: var(--green); }
+  .toc { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 18px 24px; margin: 24px 0 40px; }
+  .toc h4 { margin-top: 0; color: var(--accent); }
+  .toc ol { margin: 0; padding-left: 20px; }
+  .toc li { font-size: 13px; padding: 2px 0; }
+  .toc a { color: var(--text); text-decoration: none; }
+  .toc a:hover { color: var(--accent); }
+  .pill { display: inline-block; padding: 3px 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; font-size: 11px; font-family: 'DM Mono', monospace; color: var(--text2); margin-right: 4px; }
+  .pill.green { color: var(--green); border-color: rgba(29,158,117,0.4); }
+  .pill.gold { color: var(--gold); border-color: rgba(212,150,10,0.4); }
+  .pill.accent { color: var(--accent); border-color: rgba(99,102,241,0.4); }
+  .footer { margin-top: 60px; padding-top: 24px; border-top: 1px solid var(--line); color: var(--text3); font-size: 11px; font-family: 'DM Mono', monospace; text-align: center; letter-spacing: 0.06em; }
+</style>
+</head>
+<body>
+
+<h1>Kofy · Comms Module · Handoff v1</h1>
+<div class="meta">Confidential · For another Claude session · Plug-and-play target</div>
+
+<div class="callout">
+  <strong>What this is.</strong> A self-contained brief so a separate Claude conversation can build Kofy's communications module (email · WhatsApp · SMS) entirely in isolation, then deliver back artifacts that integrate cleanly into the existing warehouse system. Everything you need to know to start, build, and hand back — without ever opening the existing repo — is in this doc.
+</div>
+
+<div class="toc">
+  <h4>Contents</h4>
+  <ol>
+    <li><a href="#mission">Mission</a></li>
+    <li><a href="#kofy">About Kofy (5-minute context)</a></li>
+    <li><a href="#stack">Stack &amp; conventions</a></li>
+    <li><a href="#existing">Existing warehouse module (snapshot)</a></li>
+    <li><a href="#spec">Comms module · what to build</a></li>
+    <li><a href="#contract">Integration contract (plug-and-play)</a></li>
+    <li><a href="#deliverables">Deliverables expected</a></li>
+    <li><a href="#test">Testing checklist before integration</a></li>
+    <li><a href="#defer">Decisions to bounce back to Kafay</a></li>
+  </ol>
+</div>
+
+<h2 id="mission">1 · Mission</h2>
+<p>Kofy's warehouse system orchestrates coffee orders through 5 stages, deducts green coffee + packaging inventory automatically, and tracks who-did-what via per-stage firmas. <strong>The missing layer is communication</strong>: the right person needs to be notified at the right moment about the action they own. And the customer needs to know when their order is shipped, ready, delayed, or cancelled.</p>
+<p>Build a <strong>comms module</strong> that subscribes to events fired by the existing apps, dispatches notifications via email · WhatsApp · SMS, logs every send in Notion, and offers a small settings UI so the team can tune which channels carry which triggers.</p>
+<p>Critical: the module must be <strong>fully decoupled</strong>. Existing apps emit events; the comms module listens. Existing apps know nothing about the comms module. Bring back ZERO modifications to existing files (only ADDITIVE event hooks — see §6).</p>
+
+<h2 id="kofy">2 · About Kofy (5-minute context)</h2>
+<p>Kofy.io is a Venezuelan specialty coffee brand based in Caracas. Two product lines: Line 01 (coffee) and Line 02 (milk/dairy). This system is for Line 01 — the warehouse operations of the coffee business.</p>
+<h4>Team (fixed at 4)</h4>
+<table>
+  <thead><tr><th>Name</th><th>Role</th><th>Initials</th></tr></thead>
+  <tbody>
+    <tr><td>Kafay</td><td>Fundadora · founder. Approves everything.</td><td>KL</td></tr>
+    <tr><td>Partner</td><td>Co-fundador · ops · design</td><td>P</td></tr>
+    <tr><td>Leo</td><td>Tostador · head barista · roaster. Owns roasting + camera.</td><td>L</td></tr>
+    <tr><td>Primo (José)</td><td>Soporte · part-time warehouse support</td><td>J</td></tr>
+  </tbody>
+</table>
+<h4>Brand anchor</h4>
+<p>Single word: <strong>conexión</strong>. Every product, communication, decision laddered back to it. Tone is warm, restrained, confident. Spanish primary; English used only for concept labels (e.g. "Track A", "The Game"). <strong>Never</strong> lean on Venezuelan nationalism or political framing. Luxury in restraint.</p>
+
+<h2 id="stack">3 · Stack &amp; conventions</h2>
+<table>
+  <thead><tr><th>Layer</th><th>Detail</th></tr></thead>
+  <tbody>
+    <tr><td>Frontend</td><td>Plain HTML/CSS/JS files. No frameworks, no build step. One file per tool.</td></tr>
+    <tr><td>Hosting</td><td>GitHub Pages, org <code>kofylo</code>, repo <code>kofy-tools</code>. DNS to <code>app.kofy.io</code> via Wix CNAME.</td></tr>
+    <tr><td>Proxy</td><td>Cloudflare Worker at <code>https://kofy-notion-proxy.delicate-surf-529c.workers.dev</code></td></tr>
+    <tr><td>Database</td><td>Notion API. Integration name: <code>Kofy Forms</code>. <code>NOTION_KEY</code> lives in Worker env vars.</td></tr>
+  </tbody>
+</table>
+
+<h4>Worker routes (CRITICAL — not standard Notion paths)</h4>
+<table>
+  <thead><tr><th>Method</th><th>Path</th><th>Action</th></tr></thead>
+  <tbody>
+    <tr><td><code>POST</code></td><td><code>/query</code></td><td>Body: <code>{ database_id, filter? }</code>. Returns <code>{ results: [...] }</code>. NOT <code>/v1/databases/{id}/query</code>.</td></tr>
+    <tr><td><code>POST</code></td><td><code>/pages</code></td><td>Body: <code>{ parent: { database_id }, properties }</code>. Creates a page.</td></tr>
+    <tr><td><code>PATCH</code></td><td><code>/pages/:id</code></td><td>Body: <code>{ properties }</code>. Updates a page. Use <code>{ archived: true }</code> to soft-delete.</td></tr>
+    <tr><td><code>PATCH</code></td><td><code>/database/:id</code></td><td>Singular. Body: <code>{ properties }</code>. Updates database schema. Returns full schema in response — use this to read schema (no GET).</td></tr>
+  </tbody>
+</table>
+
+<h4>Design tokens</h4>
+<pre>--bg:      <span class="str">#0A0A0F</span>     <span class="com">/* page background */</span>
+--surface: <span class="str">#111118</span>     <span class="com">/* card background */</span>
+--gold:    <span class="str">#D4960A</span>     <span class="com">/* highlights, eyebrows */</span>
+--green:   <span class="str">#1D9E75</span>     <span class="com">/* success, done states */</span>
+--text:    <span class="str">#E8E8F0</span>     <span class="com">/* primary text */</span>
+--text2:   <span class="str">#9898B0</span>     <span class="com">/* secondary text */</span>
+--text3:   <span class="str">#5A5A70</span>     <span class="com">/* muted/labels */</span>
+
+<span class="com">/* per-tool accent — pick a NEW one for comms */</span>
+--accent (calendar):  #7C4A96   <span class="com">/* purple */</span>
+--accent (footage):   #6366F1   <span class="com">/* indigo */</span>
+--accent (warehouse): #D97757   <span class="com">/* coffee */</span>
+--accent (comms):     <span class="kw">TBD</span> <span class="com">— suggest something like teal #2BB59E or violet #8B5CF6</span></pre>
+
+<p>Fonts (Google): <code>DM Serif Display</code> (headings) + <code>DM Mono</code> (labels, code, IDs) + <code>Lato</code> (body).</p>
+
+<h2 id="existing">4 · Existing warehouse module (snapshot)</h2>
+<p>Eight HTML files already exist in the workspace. The comms module doesn't modify them — only emits events from them (additive, see §6). Listed so you know what data is flowing in the system.</p>
+<table>
+  <thead><tr><th>File</th><th>Role</th></tr></thead>
+  <tbody>
+    <tr><td><code>warehouse-ordenes.html</code></td><td>Management Kanban. Create orders, advance stages (with cascade firma), cancel/archive. Auto-deduct green (FIFO) on CV stage. Auto-deduct packaging on E stage. B2B pre-fill.</td></tr>
+    <tr><td><code>warehouse-inventario.html</code></td><td>Coffee &amp; packaging inventory. Add/edit/deactivate origens, quintales, empaques. Read-only stock status.</td></tr>
+    <tr><td><code>warehouse-talent.html</code></td><td>"Piso" — simplified phone-first app for Leo/Primo. Their task queue. Cascade firma. No uso UI (auto-deduct).</td></tr>
+    <tr><td><code>warehouse-yo.html</code> ("The Game")</td><td>Per-member gamification: points, levels, activity. View-only.</td></tr>
+    <tr><td><code>warehouse-miembros.html</code></td><td>Team CRUD. Seed/add/edit the 4 members.</td></tr>
+    <tr><td><code>warehouse-setup.html</code></td><td>One-click installer. Configures all DB schemas via PATCH. Seeds test data. Hosts migrations.</td></tr>
+    <tr><td><code>warehouse-print.html</code></td><td>Printable order sheets and green coffee registry sheets. URL params <code>?type=order&amp;id=…</code> or <code>?type=origen&amp;id=…</code>.</td></tr>
+    <tr><td><code>warehouse-arquitectura.html</code>, <code>warehouse-notion-schema.html</code></td><td>Reference docs.</td></tr>
+  </tbody>
+</table>
+
+<h4>Notion DBs (7 core + 1 optional + 1 you'll add)</h4>
+<table>
+  <thead><tr><th>DB</th><th>Title prop</th><th>Key fields (for comms)</th></tr></thead>
+  <tbody>
+    <tr><td>Miembros</td><td>Nombre</td><td>Rol, Iniciales, Activo, Email* · WhatsApp* · SMS* (you may add)</td></tr>
+    <tr><td>Clientes</td><td>Nombre / Razón Social</td><td>Cédula/RIF, Teléfono, Email, Dirección, Tipo, B2B, Pedido estándar, Cadencia días</td></tr>
+    <tr><td>Orígenes</td><td>ID Origen</td><td>Caficultor, Hacienda, Varietal, MSNM, Proceso, Activo, KG remanente origen (rollup)</td></tr>
+    <tr><td>Quintales</td><td>ID Quintal</td><td>Origen (rel), Fecha de compra, KG iniciales, KG usados (rollup), KG remanente (formula)</td></tr>
+    <tr><td>Órdenes</td><td>Order ID</td><td>Cliente (rel), Fechas, 5×{checkbox+firma+date}, Cancelada+razón+firma+fecha, Notas tostador/QC</td></tr>
+    <tr><td>Items de Orden</td><td>Item ID</td><td>Orden (rel), Presentación, Tostado, Cantidad, Grano/Molido, Origen (rel)</td></tr>
+    <tr><td>Usos de Café Verde</td><td>Uso ID</td><td>Quintal (rel), KG usados, Orden (rel), Firma (rel), Fecha</td></tr>
+    <tr><td>Empaque (optional)</td><td>Nombre / Diseño</td><td>Tipo, Tamaño, Bind, Stock actual, Umbral bajo, Activo</td></tr>
+    <tr><td class="mono" style="color: var(--accent);">Notificaciones (NEW)</td><td>(you'll define)</td><td>(you'll define — see §5.3)</td></tr>
+  </tbody>
+</table>
+
+<h4>Patterns to preserve</h4>
+<ul>
+  <li><strong>Persona selector</strong> — at boot, every HTML checks <code>localStorage["kofy_warehouse_persona_v1"]</code>. If absent, shows overlay with the 4 Miembros chips. Once picked, all firmas are auto-attributed. Comms module reads the same key.</li>
+  <li><strong>Cascade firma</strong> — signing stage N marks all unsigned earlier stages with same persona/date in one PATCH.</li>
+  <li><strong>Smart refresh</strong> — every app polls every 15-30s, but skips if a modal is open or focus is on an input/select/textarea.</li>
+  <li><strong>Mobile-first</strong> — bottom-sheet modals, large tap targets (44px min), <code>viewport-fit=cover</code>, safe-area insets.</li>
+  <li><strong>Notion-as-source-of-truth</strong> — no client-side cache that diverges. Polling re-reads.</li>
+</ul>
+
+<h2 id="spec">5 · Comms module · what to build</h2>
+
+<h3>5.1 · Channels &amp; recommended providers</h3>
+<table>
+  <thead><tr><th>Channel</th><th>Recommended provider</th><th>Why</th></tr></thead>
+  <tbody>
+    <tr><td>Email</td><td><strong>Resend</strong> (or Mailgun)</td><td>Modern API, generous free tier, simple. Resend has 100/day free, Kofy can stay there.</td></tr>
+    <tr><td>WhatsApp</td><td><strong>Twilio WhatsApp API</strong></td><td>WhatsApp Business API directly is slow approval; Twilio is faster onboarding. For Kafay's volume, Twilio works for v1.</td></tr>
+    <tr><td>SMS</td><td><strong>Twilio SMS</strong></td><td>Same provider as WhatsApp = one API to learn, one set of credentials.</td></tr>
+  </tbody>
+</table>
+<div class="callout warn">
+  <strong>Decision point.</strong> Before coding, ask Kafay to (a) sign up for Resend + Twilio (or alternatives), (b) get an approved WhatsApp sender ID, (c) provide a "from" email address verified on the chosen domain. Don't build assuming credentials exist — fail gracefully when they don't.
+</div>
+
+<h3>5.2 · Trigger catalog</h3>
+<p>These are the events the comms module should respond to. Match them to the event names you'll see in §6 (the integration contract).</p>
+<table>
+  <thead><tr><th>#</th><th>Trigger</th><th>Default recipient</th><th>Default channels</th><th>Message intent</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td>New order created</td><td>Leo</td><td>WhatsApp</td><td>"Nueva orden PETIT-3003 · 12 × 1 KG CM · ETA 2026-05-20. Tostar."</td></tr>
+    <tr><td>2</td><td>Order advanced to Café Verde</td><td>Leo</td><td>WhatsApp</td><td>"Verde apartado para PETIT-3003. Listo para tostar."</td></tr>
+    <tr><td>3</td><td>Order advanced to Listo p/ envío</td><td>Customer + Partner</td><td>Email + WhatsApp</td><td>"Tu pedido PETIT-3003 está listo · acordemos entrega."</td></tr>
+    <tr><td>4</td><td>Order delivered</td><td>Customer</td><td>Email</td><td>"Recibido. Gracias. ¿Cómo te fue con el café?"</td></tr>
+    <tr><td>5</td><td>Order cancelled</td><td>Customer + Kafay</td><td>Email + WhatsApp</td><td>"Tu pedido PETIT-3003 fue cancelado: {razón}."</td></tr>
+    <tr><td>6</td><td>Origen stock below threshold (10 kg default)</td><td>Kafay</td><td>WhatsApp</td><td>"MG-MC-CM bajo: 8.5 kg quedan. Hora de comprar."</td></tr>
+    <tr><td>7</td><td>Packaging stock below threshold</td><td>Kafay</td><td>WhatsApp</td><td>"Bolsas CM · 250g bajas: 7 quedan."</td></tr>
+    <tr><td>8</td><td>B2B cadence reached (e.g. PETIT every 10 days)</td><td>Kafay + Partner</td><td>WhatsApp</td><td>"PETIT no ha ordenado en 12 días. ¿Confirmamos?"</td></tr>
+    <tr><td>9</td><td>Free coffee dispatched (future)</td><td>Kafay</td><td>SMS</td><td>"Se entregaron 250g CM como cortesía a {nombre}."</td></tr>
+  </tbody>
+</table>
+
+<h3>5.3 · New Notion DB: Notificaciones</h3>
+<p>Every send (success or failure) logs here for audit + retry.</p>
+<table>
+  <thead><tr><th>Property</th><th>Type</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td>Notification ID</td><td>Title</td><td>Format: <code>NOTIF-{YYYYMMDD}-{NNN}</code></td></tr>
+    <tr><td>Trigger</td><td>Select</td><td>One of the 9 from §5.2, plus "Otro"</td></tr>
+    <tr><td>Channel</td><td>Select</td><td>email · whatsapp · sms</td></tr>
+    <tr><td>Recipient name</td><td>Text</td><td>Resolved at send time</td></tr>
+    <tr><td>Recipient address</td><td>Text</td><td>The email/phone the message went to</td></tr>
+    <tr><td>Body sent</td><td>Text</td><td>The rendered message body (after template substitution)</td></tr>
+    <tr><td>Status</td><td>Select</td><td>pending · sent · failed · skipped</td></tr>
+    <tr><td>Provider response</td><td>Text</td><td>Raw JSON from Resend/Twilio for debugging</td></tr>
+    <tr><td>Related Orden</td><td>Relation → Órdenes</td><td>Optional — links the notification to its source order</td></tr>
+    <tr><td>Related Miembro</td><td>Relation → Miembros</td><td>If the recipient was a Miembro</td></tr>
+    <tr><td>Related Cliente</td><td>Relation → Clientes</td><td>If the recipient was a Cliente</td></tr>
+    <tr><td>Triggered by</td><td>Relation → Miembros</td><td>Who caused the trigger (e.g. Leo signing CV)</td></tr>
+    <tr><td>Fecha</td><td>Date</td><td>Timestamp of send</td></tr>
+  </tbody>
+</table>
+
+<h3>5.4 · Worker route extension</h3>
+<p>The existing worker proxies Notion. You'll add a new route that proxies notification providers (keeping API keys server-side).</p>
+<pre><span class="kw">POST</span> /notify
+<span class="com">// Body:</span>
+{
+  <span class="str">"channel"</span>: <span class="str">"email"</span> | <span class="str">"whatsapp"</span> | <span class="str">"sms"</span>,
+  <span class="str">"to"</span>:      <span class="str">"alice@example.com"</span> | <span class="str">"+58412..."</span>,
+  <span class="str">"template"</span>: <span class="str">"order_ready_customer"</span>,    <span class="com">// see 5.5</span>
+  <span class="str">"data"</span>:     { orderId, customerName, items, ... },
+  <span class="str">"meta"</span>:     {                                  <span class="com">// for the Notion log</span>
+    trigger: <span class="str">"order_advanced_L"</span>,
+    relatedOrden: <span class="str">"abc-page-id"</span>,
+    triggeredBy: <span class="str">"leo-page-id"</span>
+  }
+}
+
+<span class="com">// Response:</span>
+{ status: <span class="str">"sent"</span> | <span class="str">"failed"</span>, notifId: <span class="str">"NOTIF-..."</span>, error?: <span class="str">"..."</span> }</pre>
+<p>Worker env vars needed: <code>RESEND_API_KEY</code>, <code>TWILIO_ACCOUNT_SID</code>, <code>TWILIO_AUTH_TOKEN</code>, <code>TWILIO_WA_FROM</code>, <code>TWILIO_SMS_FROM</code>, <code>NOTIFICACIONES_DB_ID</code>, <code>FROM_EMAIL</code>.</p>
+
+<h3>5.5 · Template system</h3>
+<p>Templates live as constants in the comms module HTML (or in a separate <code>kofy-comms-templates.js</code>). Variable substitution with <code>{var}</code> syntax. Spanish primary. Tone: warm, restrained, conexión-aligned (see §2).</p>
+<pre>{
+  order_created_leo: {
+    channel: <span class="str">"whatsapp"</span>,
+    body: <span class="str">"Nueva orden {orderId} de {clientName}. Pedido: {itemsSummary}. ETA {eta}."</span>
+  },
+  order_ready_customer: {
+    channel: <span class="str">"email"</span>,
+    subject: <span class="str">"Tu pedido {orderId} está listo"</span>,
+    body: <span class="str">"Hola {clientName},\n\nTu pedido ya está empacado y listo para enviarse. ..."</span>
+  },
+  stock_low_kafay: {
+    channel: <span class="str">"whatsapp"</span>,
+    body: <span class="str">"{origenId} en {kgRemanente} kg. Hora de reponer."</span>
+  },
+  <span class="com">// ... etc</span>
+}</pre>
+
+<h3>5.6 · Settings UI (warehouse-comms.html)</h3>
+<p>Single HTML following the warehouse module patterns (persona selector at boot, dark theme, brief design tokens, smart refresh). Contains:</p>
+<ul>
+  <li><strong>Trigger matrix</strong> — table of the 9 triggers × the 3 channels. Each cell: checkbox (enabled), recipient picker. Saved to Notion as a settings page or to <code>localStorage</code> for v1.</li>
+  <li><strong>Recipient management</strong> — when adding/editing a Miembro or Cliente, the team can record email + WhatsApp + SMS. (Suggest adding these 3 fields to Miembros and Clientes via a small migration.)</li>
+  <li><strong>Notification log viewer</strong> — last 50 notifications: trigger, channel, recipient, status, body preview, retry button if failed.</li>
+  <li><strong>Test sender</strong> — pick a channel + recipient + template, fire a real notification. Critical for debugging during integration.</li>
+</ul>
+
+<h2 id="contract">6 · Integration contract (plug-and-play)</h2>
+<div class="callout ok">
+  <strong>The whole point of this handoff.</strong> The comms module is self-contained. The only "integration" required when bringing it back is: ensure each existing app fires a <code>CustomEvent</code> at the right moments. The comms module listens to those events and acts. No imports, no dependencies, no shared state.
+</div>
+
+<h3>6.1 · Event bus pattern</h3>
+<p>Existing apps fire events on the global <code>window</code>:</p>
+<pre>window.dispatchEvent(<span class="kw">new</span> <span class="kw">CustomEvent</span>(<span class="str">"kofy:orderCreated"</span>, {
+  detail: {
+    orderId:    <span class="str">"PETIT-3003"</span>,
+    orderPageId:<span class="str">"abc..."</span>,
+    clientId:   <span class="str">"xyz..."</span>,
+    clientName: <span class="str">"PETIT"</span>,
+    items:      [{ presentacion, tostado, cantidad, ... }],
+    eta:        <span class="str">"2026-05-20"</span>,
+    createdBy:  <span class="str">"leo-page-id"</span>
+  }
+}));</pre>
+
+<p>Your <code>warehouse-comms.html</code> (or a tiny <code>kofy-comms-loader.js</code>) listens:</p>
+<pre>window.addEventListener(<span class="str">"kofy:orderCreated"</span>, async (e) => {
+  <span class="kw">const</span> { detail } = e;
+  <span class="kw">if</span> (<span class="kw">!</span>userSettings.triggers.order_created.enabled) <span class="kw">return</span>;
+  <span class="kw">const</span> leo = <span class="kw">await</span> getMemberByName(<span class="str">"Leo"</span>);
+  <span class="kw">await</span> sendNotification({
+    channel: <span class="str">"whatsapp"</span>,
+    to: leo.whatsapp,
+    template: <span class="str">"order_created_leo"</span>,
+    data: detail,
+    meta: { trigger: <span class="str">"order_created"</span>, relatedOrden: detail.orderPageId, triggeredBy: detail.createdBy }
+  });
+});</pre>
+
+<h3>6.2 · Event catalog (what the existing apps WILL emit after integration)</h3>
+<table>
+  <thead><tr><th>Event name</th><th>Fired by</th><th>Fired when</th><th>Detail payload</th></tr></thead>
+  <tbody>
+    <tr><td><code>kofy:orderCreated</code></td><td>ordenes</td><td>createOrder() success</td><td>orderId, orderPageId, clientId, clientName, items[], eta, createdBy</td></tr>
+    <tr><td><code>kofy:orderStageAdvanced</code></td><td>ordenes, talent</td><td>markStageCascade success</td><td>orderId, orderPageId, stages[] (codes signed), persona, isCascade</td></tr>
+    <tr><td><code>kofy:orderCancelled</code></td><td>ordenes</td><td>cancelOrArchiveOrder cancel path</td><td>orderId, orderPageId, razón, persona</td></tr>
+    <tr><td><code>kofy:orderArchived</code></td><td>ordenes</td><td>archive path</td><td>orderId, orderPageId, persona</td></tr>
+    <tr><td><code>kofy:stockLowOrigen</code></td><td>inventario (polling check)</td><td>any origen's KG remanente &lt; UMBRAL_BAJO</td><td>origenId, origenName, kgRemanente, umbral</td></tr>
+    <tr><td><code>kofy:stockLowEmpaque</code></td><td>inventario</td><td>any empaque's stock ≤ umbral</td><td>empaqueId, bind, stock, umbral</td></tr>
+    <tr><td><code>kofy:b2bCadenceReached</code></td><td>(future scheduled check)</td><td>days since last order ≥ cadencia</td><td>clientId, clientName, lastOrderDate, cadencia</td></tr>
+  </tbody>
+</table>
+
+<h3>6.3 · Bootstrap pattern</h3>
+<p>For the comms module to receive events, it must be <strong>loaded</strong> in each app. The cleanest way:</p>
+<pre><span class="com">&lt;!-- At the bottom of each warehouse-*.html, ONE line: --&gt;</span>
+&lt;script src=<span class="str">"kofy-comms-loader.js"</span>&gt;&lt;/script&gt;</pre>
+<p>This loader is a small file (~50 lines) that:</p>
+<ul>
+  <li>Reads <code>localStorage</code> for comms settings (or fetches from Notion settings page)</li>
+  <li>Registers all event listeners</li>
+  <li>Calls the worker <code>/notify</code> route as needed</li>
+  <li>Logs to the Notificaciones DB</li>
+</ul>
+<p>The full settings UI lives in <code>warehouse-comms.html</code>. The lightweight loader runs in every other app to actually dispatch.</p>
+
+<h3>6.4 · What you DO NOT change in existing apps</h3>
+<div class="callout warn">
+  <strong>Do not modify any existing file's business logic.</strong> The integration is one-line per hook point (a single <code>window.dispatchEvent</code> call) and the loader <code>&lt;script&gt;</code> tag. That's it. If you find yourself rewriting <code>markStageCascade</code> or <code>createOrder</code> to "make comms work", stop — that's a signal the event payload is wrong, not the integration.
+</div>
+
+<h2 id="deliverables">7 · Deliverables expected</h2>
+<ol>
+  <li><strong><code>warehouse-comms.html</code></strong> — settings UI + log viewer + test sender. Mobile-first. Persona selector. Dark theme. ~600-900 lines.</li>
+  <li><strong><code>kofy-comms-loader.js</code></strong> — lightweight event-bus loader injected in every warehouse app. Pure JS, no dependencies. ~80-150 lines.</li>
+  <li><strong><code>kofy-comms-worker-patch.md</code></strong> — instructions for Kafay to add the <code>/notify</code> route to the existing Cloudflare Worker. Include the JS to paste, env vars needed, deploy steps.</li>
+  <li><strong>Setup additions</strong> — a snippet to add to <code>warehouse-setup.html</code> that (a) creates the Notificaciones DB schema, (b) migrates Miembros + Clientes to add email/WhatsApp/SMS fields.</li>
+  <li><strong>Event-hook patch list</strong> — a markdown file naming EXACTLY which one line goes into which existing file at which approximate line. Kafay applies these manually when reintegrating.</li>
+  <li><strong><code>kofy-comms-integration-notes.md</code></strong> — short notes for me (the warehouse Claude) on anything tricky.</li>
+</ol>
+
+<h2 id="test">8 · Testing checklist before integration</h2>
+<ol>
+  <li>Worker <code>/notify</code> route returns 200 with a "fake" sandbox call — no real provider yet.</li>
+  <li>Notificaciones DB schema created in Notion.</li>
+  <li>Settings UI loads, persona selector works, design matches.</li>
+  <li>Test sender successfully sends one email + one WhatsApp + one SMS to Kafay's own contacts (real-world live test).</li>
+  <li>Manually fire <code>window.dispatchEvent(new CustomEvent("kofy:orderCreated", { detail: {...mock} }))</code> in console — observe the loader log a notification to Notion and call <code>/notify</code>.</li>
+  <li>Failure cases handled gracefully: no credentials → status "skipped" with reason; invalid recipient → status "failed" with provider error; rate limit → retry queue (or just log and move on).</li>
+  <li>Smart refresh respected (no clobbering form input on poll).</li>
+  <li>Mobile screenshot: settings UI usable on iPhone-sized viewport.</li>
+</ol>
+
+<h2 id="defer">9 · Decisions to bounce back to Kafay</h2>
+<ol>
+  <li><strong>Provider accounts:</strong> Has Kafay set up Resend + Twilio? What's the "from" email and WhatsApp sender ID?</li>
+  <li><strong>Recipient policy:</strong> Should customer notifications go to phone primarily (WhatsApp) or email primarily? Venezuelan customers heavy WhatsApp users.</li>
+  <li><strong>Cadence checker:</strong> B2B cadence (#8 trigger) needs a scheduled job (cron). Cloudflare Workers support cron triggers. Add to worker, or punt to v2?</li>
+  <li><strong>Customer portal:</strong> Kafay mentioned wanting a read-only HTML where customer sees their order status. Worth bundling with comms (the customer link in emails would point there) or separate?</li>
+  <li><strong>Templates editorial:</strong> Kafay should write the actual copy of the messages — the templates above are placeholders. Conexión-aligned voice. Spanish primary.</li>
+  <li><strong>Compliance:</strong> WhatsApp messages outside the 24h window require pre-approved templates. Plan for that?</li>
+</ol>
+
+<div class="footer">
+  Kofy · Comms Module Handoff v1 · For parallel session · Bring back deliverables from §7 · Plug back via §6
+</div>
+
+</body>
+</html>

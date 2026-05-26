@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Kofy · Miembros</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Mono:wght@400;500&family=Lato:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0A0A0F; --surface: #111118; --surface-2: #1A1A24;
+    --line: #25252F; --line-2: #353545;
+    --accent: #D97757; --accent-soft: rgba(217,119,87,0.12);
+    --gold: #D4960A; --green: #1D9E75; --red: #D9534F;
+    --text: #E8E8F0; --text2: #9898B0; --text3: #5A5A70;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    background: var(--bg); color: var(--text);
+    font-family: 'Lato', -apple-system, system-ui, sans-serif;
+    line-height: 1.45; min-height: 100vh;
+  }
+  body { padding-bottom: 60px; }
+  h1, h2 { font-family: 'DM Serif Display', Georgia, serif; font-weight: 400; letter-spacing: -0.01em; }
+  .mono { font-family: 'DM Mono', monospace; }
+
+  header.top {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(10,10,15,0.96); backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--line);
+    padding-top: calc(14px + env(safe-area-inset-top));
+    padding-bottom: 14px; padding-left: 18px; padding-right: 18px;
+  }
+  .top-row { display: flex; align-items: center; gap: 12px; max-width: 600px; margin: 0 auto; }
+  .brand { display: flex; align-items: center; gap: 8px; flex: 1; }
+  .brand .logo { font-size: 22px; }
+  .brand .name { font-family: 'DM Serif Display', serif; font-size: 18px; color: var(--text); }
+  .brand .sub { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text3); letter-spacing: 0.18em; text-transform: uppercase; margin-left: 6px; }
+  .nav a { color: var(--text2); text-decoration: none; padding: 6px 10px; font-size: 11px; font-family: 'DM Mono', monospace; letter-spacing: 0.06em; border-radius: 4px; }
+  .nav a:hover { color: var(--text); }
+  .nav { display: flex; gap: 2px; }
+
+  main { max-width: 600px; margin: 0 auto; padding: 22px 18px; }
+
+  .intro { color: var(--text2); font-size: 14px; margin-bottom: 24px; line-height: 1.55; }
+  .intro strong { color: var(--text); font-weight: 700; }
+
+  /* Section heading */
+  .sec-head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    margin: 28px 0 14px; padding-bottom: 8px;
+    border-bottom: 1px solid var(--line);
+  }
+  .sec-title { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--text); }
+  .sec-count {
+    font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text2);
+    background: var(--surface-2); padding: 3px 10px; border-radius: 12px;
+  }
+
+  /* Member rows */
+  .member-list { display: flex; flex-direction: column; gap: 8px; }
+  .member {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 10px; padding: 14px 16px;
+    transition: border-color 0.15s;
+  }
+  .member.inactive { opacity: 0.5; }
+  .m-avatar {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: var(--accent-soft); color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'DM Mono', monospace; font-weight: 700; font-size: 14px;
+    flex: 0 0 auto;
+  }
+  .m-info { flex: 1; min-width: 0; }
+  .m-name { font-family: 'DM Serif Display', serif; font-size: 17px; color: var(--text); line-height: 1.2; }
+  .m-rol { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 3px; }
+  .m-badge {
+    font-size: 10px; padding: 3px 9px; border-radius: 10px;
+    letter-spacing: 0.08em; font-weight: 700; font-family: 'DM Mono', monospace;
+  }
+  .m-badge.active { background: rgba(29,158,117,0.15); color: var(--green); }
+  .m-badge.inactive { background: rgba(89,89,112,0.2); color: var(--text3); }
+
+  .empty-state {
+    background: var(--surface); border: 1px dashed var(--line-2);
+    border-radius: 10px; padding: 36px 24px; text-align: center;
+  }
+  .empty-state .ic { font-size: 36px; opacity: 0.5; margin-bottom: 10px; }
+  .empty-state .msg { font-family: 'DM Serif Display', serif; font-size: 18px; color: var(--text2); }
+  .empty-state .sub { font-size: 13px; color: var(--text3); margin-top: 6px; }
+
+  /* Buttons */
+  .btn {
+    background: var(--surface-2); border: 1px solid var(--line-2); color: var(--text);
+    padding: 12px 18px; border-radius: 8px; font-family: 'Lato', sans-serif;
+    font-size: 14px; font-weight: 700; letter-spacing: 0.02em;
+    cursor: pointer; min-height: 44px; -webkit-appearance: none;
+    transition: background 0.15s, border-color 0.15s, transform 0.1s;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn-primary { background: var(--accent); border-color: var(--accent); color: #1a0c06; }
+  .btn-primary:active { background: #c46645; }
+  .btn-ghost { background: transparent; color: var(--text2); }
+  .btn-block { width: 100%; }
+  .btn-lg { padding: 16px; font-size: 16px; min-height: 56px; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* Seed banner */
+  .seed-banner {
+    background: linear-gradient(135deg, var(--surface) 0%, var(--surface-2) 100%);
+    border: 1px solid var(--accent); border-radius: 12px;
+    padding: 18px 20px; margin: 16px 0;
+    display: flex; align-items: center; gap: 14px;
+    position: relative; overflow: hidden;
+  }
+  .seed-banner::before {
+    content: ""; position: absolute; top: -50px; right: -50px;
+    width: 160px; height: 160px;
+    background: radial-gradient(circle, var(--accent-soft), transparent 70%);
+  }
+  .sb-text { flex: 1; position: relative; }
+  .sb-title { font-family: 'DM Serif Display', serif; font-size: 18px; color: var(--text); margin-bottom: 3px; }
+  .sb-sub { font-size: 12px; color: var(--text2); }
+  .sb-btn { position: relative; }
+
+  /* Form */
+  .form-block {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 12px; padding: 20px;
+  }
+  .field { margin-bottom: 14px; }
+  .field label {
+    display: block; font-family: 'DM Mono', monospace; font-size: 11px;
+    color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase;
+    margin-bottom: 6px; font-weight: 500;
+  }
+  .field input, .field select {
+    width: 100%; background: var(--surface-2); color: var(--text);
+    border: 1px solid var(--line-2); padding: 12px 14px; border-radius: 8px;
+    font-size: 16px; font-family: 'Lato', sans-serif; -webkit-appearance: none;
+    min-height: 50px;
+  }
+  .field input:focus, .field select:focus { border-color: var(--accent); outline: none; }
+  .field-hint { font-size: 11px; color: var(--text3); margin-top: 4px; font-family: 'DM Mono', monospace; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  /* Toast */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: var(--surface); border: 1px solid var(--green);
+    padding: 14px 22px; border-radius: 30px; color: var(--text);
+    font-size: 14px; font-weight: 700; z-index: 300;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    opacity: 0; transition: opacity 0.2s;
+    pointer-events: none; max-width: 90%; text-align: center;
+  }
+  .toast.show { opacity: 1; }
+  .toast.error { border-color: var(--red); }
+
+  .config-warn { background: rgba(217,83,79,0.1); border: 1px solid var(--red); padding: 16px; border-radius: 8px; margin: 20px; color: var(--text); font-size: 14px; }
+
+  .loading-state { color: var(--text3); font-size: 12px; font-family: 'DM Mono', monospace; text-align: center; padding: 24px; }
+  .loading-state::before { content: "◌ "; color: var(--accent); }
+</style>
+</head>
+<body>
+
+<script>
+const CONFIG = {
+  PROXY_URL: "https://kofy-notion-proxy.delicate-surf-529c.workers.dev",
+  DB_MIEMBROS: "3649b62600a080308dc6cf556b0d8c4b",
+};
+
+// 4 miembros default del equipo Kofy
+const SEED_DEFAULTS = [
+  { name: "Kafay",   rol: "Fundadora",   ini: "KL" },
+  { name: "Partner", rol: "Co-fundador", ini: "P"  },
+  { name: "Leo",     rol: "Tostador",    ini: "L"  },
+  { name: "Primo",   rol: "Soporte",     ini: "J"  },
+];
+
+const ROLES = ["Fundadora","Co-fundador","Tostador","Soporte","Barista","Admin"];
+</script>
+
+<header class="top">
+  <div class="top-row">
+    <div class="brand">
+      <span class="logo">☕</span>
+      <span class="name">Kofy <span class="sub">· Miembros</span></span>
+    </div>
+    <nav class="nav">
+      <a href="warehouse-talent.html">Piso</a>
+      <a href="warehouse-ordenes.html">Órdenes</a>
+      <a href="warehouse-inventario.html">Inventario</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <p class="intro">
+    Acá viven las 4 personas del equipo Kofy. <strong>Cada firma del sistema</strong> (etapas de orden, usos de café verde) se vincula a una fila de este DB. Si está vacío, el selector "¿Quién sos?" del app del piso no muestra a nadie. Sembrá los 4 por defecto o agregalos uno por uno abajo.
+  </p>
+
+  <!-- Bulk seed banner -->
+  <div class="seed-banner">
+    <div class="sb-text">
+      <div class="sb-title">Sembrar equipo Kofy</div>
+      <div class="sb-sub">Crea las 4 filas estándar: Kafay · Partner · Leo · Primo. Idempotente — si ya existen, no las duplica.</div>
+    </div>
+    <button class="btn btn-primary sb-btn" id="btn-seed" onclick="seedDefaults()">Sembrar</button>
+  </div>
+
+  <!-- Existing members -->
+  <div class="sec-head">
+    <h2 class="sec-title">Equipo</h2>
+    <span class="sec-count" id="count">—</span>
+  </div>
+  <div id="member-list">
+    <div class="loading-state">cargando…</div>
+  </div>
+
+  <!-- Add new -->
+  <div class="sec-head">
+    <h2 class="sec-title">Agregar miembro</h2>
+  </div>
+  <div class="form-block">
+    <div class="field">
+      <label>Nombre</label>
+      <input type="text" id="f-name" placeholder="Ej: Carlos" autocomplete="off">
+      <div class="field-hint">Como aparece en el selector y en las firmas.</div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Rol</label>
+        <select id="f-rol"></select>
+      </div>
+      <div class="field">
+        <label>Iniciales</label>
+        <input type="text" id="f-ini" maxlength="3" placeholder="Ej: C" autocomplete="off" style="text-transform: uppercase;">
+        <div class="field-hint">1–3 letras. Aparece en el avatar.</div>
+      </div>
+    </div>
+    <button class="btn btn-primary btn-block btn-lg" id="btn-add" onclick="addMiembro()">Agregar →</button>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let STATE = { miembros: [] };
+
+async function notion(endpoint, body, method) {
+  method = method || (body ? "POST" : "GET");
+  const res = await fetch(`${CONFIG.PROXY_URL}${endpoint}`, {
+    method, headers: { "Content-Type": "application/json" },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (!res.ok) {
+    const txt = await res.text();
+    throw new Error(`${res.status}: ${txt.substring(0, 200)}`);
+  }
+  return res.json();
+}
+async function queryDb(id) { return notion(`/query`, { database_id: id }); }
+async function createPage(id, props) { return notion(`/pages`, { parent: { database_id: id }, properties: props }); }
+async function readDb(id) { return notion(`/database/${id}`, { properties: {} }, "PATCH"); }
+
+function readProp(page, name) {
+  const p = page?.properties?.[name];
+  if (!p) return null;
+  switch (p.type) {
+    case "title":     return p.title.map(t => t.plain_text).join("");
+    case "rich_text": return p.rich_text.map(t => t.plain_text).join("");
+    case "select":    return p.select?.name || null;
+    case "checkbox":  return p.checkbox;
+    default: return null;
+  }
+}
+function pageTitle(page) {
+  for (const v of Object.values(page?.properties || {})) {
+    if (v.type === "title") return v.title.map(t => t.plain_text).join("");
+  }
+  return "";
+}
+
+async function findTitlePropName() {
+  const db = await readDb(CONFIG.DB_MIEMBROS);
+  const entry = Object.entries(db.properties).find(([_, p]) => p.type === "title");
+  return entry ? entry[0] : "Nombre";
+}
+
+async function load() {
+  try {
+    const res = await queryDb(CONFIG.DB_MIEMBROS);
+    STATE.miembros = res.results;
+    render();
+  } catch (e) {
+    console.error(e);
+    document.getElementById("member-list").innerHTML = `<div class="empty-state"><div class="ic">⚠</div><div class="msg">Error de conexión</div><div class="sub">${e.message}</div></div>`;
+  }
+}
+
+function render() {
+  const list = document.getElementById("member-list");
+  const count = STATE.miembros.length;
+  document.getElementById("count").textContent = count;
+
+  if (count === 0) {
+    list.innerHTML = `
+      <div class="empty-state">
+        <div class="ic">👥</div>
+        <div class="msg">Sin miembros aún</div>
+        <div class="sub">Sembrá los 4 default arriba o agregá uno desde el formulario abajo.</div>
+      </div>`;
+    return;
+  }
+
+  const sortedMiembros = STATE.miembros.slice().sort((a, b) => {
+    const aActive = readProp(a, "Activo") !== false;
+    const bActive = readProp(b, "Activo") !== false;
+    if (aActive !== bActive) return aActive ? -1 : 1;
+    return pageTitle(a).localeCompare(pageTitle(b));
+  });
+
+  list.innerHTML = `<div class="member-list">${sortedMiembros.map(m => {
+    const name = pageTitle(m) || "—";
+    const rol = readProp(m, "Rol") || "—";
+    const ini = readProp(m, "Iniciales") || name.substring(0, 2).toUpperCase();
+    const active = readProp(m, "Activo") !== false;
+    return `<div class="member ${active ? "" : "inactive"}">
+      <div class="m-avatar">${ini}</div>
+      <div class="m-info">
+        <div class="m-name">${name}</div>
+        <div class="m-rol">${rol}</div>
+      </div>
+      <span class="m-badge ${active ? "active" : "inactive"}">${active ? "ACTIVO" : "INACTIVO"}</span>
+    </div>`;
+  }).join("")}</div>`;
+}
+
+async function seedDefaults() {
+  const btn = document.getElementById("btn-seed");
+  btn.disabled = true;
+  btn.textContent = "Sembrando…";
+  try {
+    const titleName = await findTitlePropName();
+    const have = new Set(STATE.miembros.map(pageTitle));
+    let added = 0, skipped = 0;
+    for (const m of SEED_DEFAULTS) {
+      if (have.has(m.name)) { skipped++; continue; }
+      await createPage(CONFIG.DB_MIEMBROS, {
+        [titleName]: { title: [{ text: { content: m.name } }] },
+        "Rol":       { select: { name: m.rol } },
+        "Iniciales": { rich_text: [{ text: { content: m.ini } }] },
+        "Activo":    { checkbox: true },
+      });
+      added++;
+    }
+    if (added === 0 && skipped > 0) {
+      toast(`Los 4 ya existían — nada que sembrar`);
+    } else {
+      toast(`✓ ${added} agregado(s)${skipped ? ` · ${skipped} ya existía(n)` : ""}`);
+    }
+    await load();
+  } catch (e) {
+    toast("Error: " + e.message, "error");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Sembrar";
+  }
+}
+
+async function addMiembro() {
+  const btn = document.getElementById("btn-add");
+  const name = document.getElementById("f-name").value.trim();
+  const rol = document.getElementById("f-rol").value;
+  const ini = document.getElementById("f-ini").value.trim().toUpperCase();
+  if (!name) { toast("Falta nombre", "error"); return; }
+  if (!ini)  { toast("Faltan iniciales", "error"); return; }
+  const have = new Set(STATE.miembros.map(pageTitle));
+  if (have.has(name)) { toast(`"${name}" ya existe`, "error"); return; }
+
+  btn.disabled = true;
+  btn.textContent = "Agregando…";
+  try {
+    const titleName = await findTitlePropName();
+    await createPage(CONFIG.DB_MIEMBROS, {
+      [titleName]: { title: [{ text: { content: name } }] },
+      "Rol":       { select: { name: rol } },
+      "Iniciales": { rich_text: [{ text: { content: ini } }] },
+      "Activo":    { checkbox: true },
+    });
+    toast(`✓ ${name} agregado`);
+    document.getElementById("f-name").value = "";
+    document.getElementById("f-ini").value = "";
+    await load();
+  } catch (e) {
+    toast("Error: " + e.message, "error");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Agregar →";
+  }
+}
+
+let toastTimer = null;
+function toast(msg, type = "") {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.className = "toast show " + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 3000);
+}
+
+// Boot
+window.addEventListener("DOMContentLoaded", () => {
+  // Populate rol select
+  const sel = document.getElementById("f-rol");
+  sel.innerHTML = ROLES.map(r => `<option value="${r}">${r}</option>`).join("");
+  load();
+});
+</script>
+
+</body>
+</html>

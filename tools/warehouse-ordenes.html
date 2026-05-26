@@ -1,0 +1,1698 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Kofy · Órdenes</title>
+<style>
+  :root {
+    --bg: #0a0610;
+    --surface: #15101f;
+    --surface-2: #1f1830;
+    --surface-3: #2a2138;
+    --line: #2a2138;
+    --ink: #f3e8d4;
+    --ink-mute: #9e8db8;
+    --gold: #f5c842;
+    --plum: #5b3a8f;
+    --plum-soft: #7a52b8;
+    --green: #7fb069;
+    --red: #d9534f;
+    --cream: #f5e6d3;
+    --shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { background: var(--bg); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif; line-height: 1.5; min-height: 100vh; }
+  body { padding-bottom: 100px; }
+
+  /* Header */
+  header.top { position: sticky; top: 0; z-index: 50; background: rgba(10,6,16,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); padding: 14px 20px; }
+  .top-row { display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin: 0 auto; }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand .logo { font-size: 18px; }
+  .brand .name { font-size: 14px; font-weight: 600; color: var(--cream); letter-spacing: 0.04em; }
+  .brand .name .sub { color: var(--ink-mute); font-weight: 400; margin-left: 6px; }
+  .nav { display: flex; gap: 4px; }
+  .nav a { color: var(--ink-mute); text-decoration: none; padding: 6px 10px; font-size: 12px; border-radius: 4px; font-weight: 500; letter-spacing: 0.04em; }
+  .nav a.active { color: var(--gold); background: rgba(245,200,66,0.08); }
+  .nav a:hover { color: var(--cream); }
+
+  /* Container */
+  main { max-width: 1400px; margin: 0 auto; padding: 20px; }
+
+  /* Filter bar */
+  .filterbar { display: flex; gap: 8px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
+  .filterbar .label { font-size: 11px; color: var(--ink-mute); letter-spacing: 0.1em; text-transform: uppercase; }
+  .filterbar select, .filterbar input { background: var(--surface); color: var(--ink); border: 1px solid var(--line); padding: 6px 10px; border-radius: 4px; font-size: 12px; font-family: inherit; }
+  .refresh-state { color: var(--ink-mute); font-size: 11px; margin-left: auto; }
+  .refresh-state.live::before { content: "● "; color: var(--green); }
+  .refresh-state.loading::before { content: "◌ "; color: var(--gold); }
+  .refresh-state.error::before { content: "● "; color: var(--red); }
+
+  /* Kanban */
+  .kanban { display: grid; grid-template-columns: repeat(6, minmax(220px, 1fr)); gap: 12px; overflow-x: auto; padding-bottom: 16px; }
+  .col { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 12px; min-height: 400px; }
+  .col-head { display: flex; align-items: center; gap: 8px; padding-bottom: 12px; border-bottom: 1px solid var(--line); margin-bottom: 12px; }
+  .col-icon { font-size: 18px; }
+  .col-title { font-size: 12px; color: var(--cream); font-weight: 600; letter-spacing: 0.04em; flex: 1; }
+  .col-count { font-size: 11px; color: var(--ink-mute); background: var(--surface-2); padding: 2px 8px; border-radius: 10px; font-family: ui-monospace, monospace; }
+  .cards { display: flex; flex-direction: column; gap: 8px; }
+  .card { background: var(--surface-2); border: 1px solid var(--line); border-radius: 6px; padding: 12px; cursor: pointer; transition: transform 0.1s, border-color 0.1s; }
+  .card:hover { border-color: var(--plum-soft); transform: translateY(-1px); }
+  .card-id { font-family: ui-monospace, monospace; font-size: 11px; color: var(--gold); margin-bottom: 4px; font-weight: 600; }
+  .card-client { font-size: 13px; color: var(--cream); margin-bottom: 6px; font-weight: 500; }
+  .card-meta { font-size: 10px; color: var(--ink-mute); display: flex; justify-content: space-between; }
+  .card-eta.late { color: var(--red); font-weight: 600; }
+  .card.cancelled { opacity: 0.5; border-color: rgba(217,83,79,0.4); }
+  .card.cancelled .card-client { text-decoration: line-through; }
+  .empty { color: var(--ink-mute); font-size: 12px; text-align: center; padding: 20px 0; font-style: italic; }
+
+  @media (max-width: 900px) {
+    .kanban { grid-template-columns: 1fr; }
+    main { padding: 16px; }
+  }
+
+  /* FAB */
+  .fab { position: fixed; bottom: 24px; right: 24px; width: 56px; height: 56px; border-radius: 50%; background: var(--gold); color: var(--bg); border: none; font-size: 28px; cursor: pointer; box-shadow: var(--shadow); z-index: 40; font-weight: 300; }
+  .fab:hover { transform: scale(1.05); }
+
+  /* Modal */
+  .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); z-index: 100; display: none; align-items: center; justify-content: center; padding: 20px; }
+  .modal-bg.open { display: flex; }
+  .modal { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 24px; max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow); }
+  .modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+  .modal-title { font-size: 18px; color: var(--cream); font-weight: 700; }
+  .modal-id { font-family: ui-monospace, monospace; font-size: 11px; color: var(--gold); margin-top: 4px; }
+  .close { background: transparent; border: none; color: var(--ink-mute); font-size: 22px; cursor: pointer; padding: 4px 8px; }
+  .close:hover { color: var(--cream); }
+
+  /* Form */
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 11px; color: var(--gold); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px; font-weight: 600; }
+  .field input, .field select, .field textarea { width: 100%; background: var(--surface-2); color: var(--ink); border: 1px solid var(--line); padding: 10px 12px; border-radius: 4px; font-size: 14px; font-family: inherit; }
+  .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--plum-soft); outline: none; }
+  .field textarea { resize: vertical; min-height: 60px; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 600px) { .field-row { grid-template-columns: 1fr; } }
+
+  /* Items grid */
+  .items-block { margin: 16px 0; }
+  .items-block h4 { font-size: 11px; color: var(--gold); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; font-weight: 600; }
+  .item-row { display: grid; grid-template-columns: 1fr 1fr 80px 1fr 1fr auto; gap: 6px; margin-bottom: 6px; align-items: center; }
+  .item-row select, .item-row input { background: var(--surface-2); color: var(--ink); border: 1px solid var(--line); padding: 8px; border-radius: 4px; font-size: 12px; font-family: inherit; }
+  .item-row .rm { background: transparent; border: none; color: var(--red); font-size: 18px; cursor: pointer; padding: 4px; }
+  .add-item { background: var(--surface-2); border: 1px dashed var(--plum-soft); color: var(--plum-soft); padding: 8px; border-radius: 4px; cursor: pointer; font-size: 12px; width: 100%; margin-top: 4px; font-family: inherit; }
+  @media (max-width: 600px) { .item-row { grid-template-columns: 1fr 1fr; } .item-row .rm { grid-column: span 2; } }
+
+  /* Status ladder in detail view */
+  .stages { margin: 16px 0; }
+  .stage-item { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 6px; margin-bottom: 8px; cursor: pointer; transition: border-color 0.1s; }
+  .stage-item:hover { border-color: var(--plum-soft); }
+  .stage-item.done { border-color: var(--green); background: rgba(127,176,105,0.06); }
+  .stage-check { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--line); display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+  .stage-item.done .stage-check { background: var(--green); border-color: var(--green); color: var(--bg); }
+  .stage-info { flex: 1; }
+  .stage-name { font-size: 13px; color: var(--cream); font-weight: 600; }
+  .stage-meta { font-size: 11px; color: var(--ink-mute); margin-top: 2px; }
+  .stage-icon { font-size: 18px; }
+
+  /* Buttons */
+  .btn-row { display: flex; gap: 8px; margin-top: 20px; justify-content: flex-end; }
+  .btn { background: var(--plum); color: var(--cream); border: none; padding: 10px 18px; border-radius: 4px; font-size: 13px; cursor: pointer; font-weight: 600; font-family: inherit; letter-spacing: 0.04em; }
+  .btn:hover { background: var(--plum-soft); }
+  .btn.primary { background: var(--gold); color: var(--bg); }
+  .btn.primary:hover { background: #ffd863; }
+  .btn.ghost { background: transparent; color: var(--ink-mute); }
+  .btn.ghost:hover { color: var(--cream); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* Toast */
+  .toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: var(--surface); border: 1px solid var(--line); padding: 12px 20px; border-radius: 6px; box-shadow: var(--shadow); color: var(--ink); font-size: 13px; z-index: 200; opacity: 0; transition: opacity 0.2s; }
+  .toast.show { opacity: 1; }
+  .toast.success { border-color: var(--green); }
+  .toast.error { border-color: var(--red); }
+
+  /* Config warning */
+  .config-warn { background: rgba(217,83,79,0.1); border: 1px solid var(--red); padding: 16px; border-radius: 6px; margin: 20px; color: var(--cream); font-size: 14px; }
+  .config-warn code { background: var(--surface); padding: 2px 6px; border-radius: 3px; color: var(--gold); font-family: ui-monospace, monospace; font-size: 12px; }
+
+  /* ═══ v2 · Persona selector ═══ */
+  .picker-bg { position: fixed; inset: 0; z-index: 200; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 28px; gap: 24px; }
+  .picker-bg.hidden { display: none; }
+  .picker-title { font-size: 28px; color: var(--cream); text-align: center; font-weight: 700; letter-spacing: -0.02em; }
+  .picker-sub { color: var(--ink-mute); font-size: 14px; text-align: center; max-width: 320px; }
+  .picker-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; width: 100%; max-width: 360px; }
+  .pchip { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 22px 14px; text-align: center; cursor: pointer; transition: transform 0.1s, border-color 0.15s, background 0.15s; min-height: 110px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; font-family: inherit; color: var(--ink); }
+  .pchip:hover { border-color: var(--gold); background: rgba(245,200,66,0.05); }
+  .pchip:active { transform: scale(0.97); }
+  .pchip .avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--surface-2); border: 2px solid var(--line); display: flex; align-items: center; justify-content: center; font-family: ui-monospace, monospace; font-weight: 700; font-size: 14px; color: var(--gold); }
+  .pchip .nm { font-size: 16px; color: var(--cream); font-weight: 600; }
+  .pchip .role { font-size: 10px; color: var(--ink-mute); letter-spacing: 0.1em; text-transform: uppercase; }
+
+  /* Persona chip en el header */
+  .persona-chip { display: flex; align-items: center; gap: 8px; background: rgba(245,200,66,0.1); border: 1px solid rgba(245,200,66,0.3); padding: 6px 12px 6px 6px; border-radius: 20px; cursor: pointer; font-family: inherit; color: var(--ink); font-size: 12px; font-weight: 600; }
+  .persona-chip:hover { background: rgba(245,200,66,0.18); }
+  .persona-chip .dot { width: 22px; height: 22px; border-radius: 50%; background: var(--gold); color: var(--bg); display: flex; align-items: center; justify-content: center; font-family: ui-monospace, monospace; font-weight: 700; font-size: 11px; }
+  .persona-chip .swap { color: var(--ink-mute); font-size: 10px; font-weight: 400; }
+
+  /* Cascade banner en stage modal */
+  .cascade-banner { background: rgba(245,200,66,0.06); border: 1px solid rgba(245,200,66,0.3); border-radius: 6px; padding: 10px 14px; margin: 8px 0 14px; font-size: 12px; color: var(--ink); line-height: 1.5; }
+  .cascade-banner strong { color: var(--gold); }
+
+  /* v2 · Advanced filters */
+  .adv-filter-bar { display: none; flex-direction: column; gap: 10px; background: var(--surface); border: 1px solid var(--line); padding: 12px 14px; border-radius: 6px; margin-bottom: 16px; }
+  .adv-filter-bar.open { display: flex; }
+  .adv-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .adv-label { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); font-weight: 600; flex: 0 0 90px; }
+  .adv-pickers { display: flex; gap: 6px; flex-wrap: wrap; flex: 1; min-width: 0; }
+  .tag-pick { font-family: ui-monospace, monospace; font-size: 11px; letter-spacing: 0.04em; background: var(--surface-2); border: 1px solid var(--line); color: var(--ink-mute); padding: 5px 10px; border-radius: 4px; cursor: pointer; font-family: inherit; transition: background 0.1s, border-color 0.1s, color 0.1s; }
+  .tag-pick.on { background: rgba(245,200,66,0.15); border-color: var(--gold); color: var(--gold); }
+  .tag-pick:hover { color: var(--ink); border-color: var(--plum-soft); }
+  .adv-row input[type="date"] { background: var(--surface-2); border: 1px solid var(--line); color: var(--ink); padding: 5px 8px; border-radius: 4px; font-size: 12px; font-family: inherit; }
+  .adv-clear { background: transparent; border: none; color: var(--ink-mute); cursor: pointer; font-size: 14px; padding: 0 4px; font-family: inherit; }
+  .adv-clear:hover { color: var(--red); }
+  .adv-clear-all { margin-left: auto; background: transparent; border: 1px solid var(--line); color: var(--ink-mute); padding: 4px 10px; border-radius: 4px; font-size: 11px; cursor: pointer; font-family: inherit; }
+  .adv-clear-all:hover { color: var(--red); border-color: var(--red); }
+
+  /* v2 · Cancelled orders modal */
+  .cancelled-card { background: var(--surface-2); border: 1px solid var(--line); border-left: 3px solid var(--red); border-radius: 6px; padding: 14px 16px; margin-bottom: 10px; }
+  .cancelled-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
+  .cancelled-id { font-family: ui-monospace, monospace; font-size: 11px; color: var(--gold); letter-spacing: 0.04em; font-weight: 600; }
+  .cancelled-client { font-size: 16px; color: var(--cream); font-weight: 600; margin-top: 2px; }
+  .cancelled-meta { font-size: 12px; color: var(--ink); line-height: 1.6; }
+  .cancelled-meta strong { color: var(--cream); font-weight: 600; }
+  .cancelled-meta em { color: var(--ink-mute); font-style: italic; }
+
+  /* Items list in detail modal */
+  .detail-items { background: var(--surface-2); border-left: 2px solid var(--line); padding: 10px 14px; margin: 10px 0 14px; border-radius: 4px; font-size: 13px; }
+  .detail-items .ihead { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; font-weight: 600; }
+  .detail-items .iline { padding: 4px 0; color: var(--ink); }
+  .detail-items .iline .qty { color: var(--cream); font-family: ui-monospace, monospace; font-weight: 700; }
+  .detail-items .iline .ori { color: var(--gold); font-family: ui-monospace, monospace; font-size: 11px; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════
+     CONFIG · pegar DB IDs aquí después de crear los DBs en Notion
+     ═══════════════════════════════════════════════════════ -->
+<script>
+const CONFIG = {
+  PROXY_URL: "https://kofy-notion-proxy.delicate-surf-529c.workers.dev",
+  DB_ORDENES:   "3649b62600a0800ea228d8d8dcf2ada4",
+  DB_ITEMS:     "3649b62600a0806db145c919a7927ac2",
+  DB_CLIENTES:  "3649b62600a08020ae9ed625e57044bb",
+  DB_ORIGENES:  "3649b62600a080b5a056c4a03d3fbc2b",
+  DB_QUINTALES: "3649b62600a080df9a7ac6c932fa9d5b",
+  DB_USOS:      "3649b62600a080108754c2eaadac2455",
+  DB_MIEMBROS:  "3649b62600a080308dc6cf556b0d8c4b",
+  DB_EMPAQUE:   null,  // v2: cargado de localStorage si setup lo configuró
+  REFRESH_MS: 15000,
+};
+// v2: leer DB_EMPAQUE de localStorage (escrito por setup)
+(function loadEmpaqueIdOrdenes() {
+  try {
+    const stored = JSON.parse(localStorage.getItem("kofy_warehouse_db_ids") || "{}");
+    if (stored.DB_ID_EMPAQUE) CONFIG.DB_EMPAQUE = stored.DB_ID_EMPAQUE;
+  } catch {}
+})();
+</script>
+
+<!-- ═══ v2 · Persona picker overlay ═══ -->
+<div class="picker-bg" id="picker">
+  <div class="picker-title">¿Quién sos?</div>
+  <div class="picker-sub">Tu firma queda registrada en cada acción de esta sesión.</div>
+  <div class="picker-grid" id="picker-grid">
+    <div style="grid-column: span 2; color: var(--ink-mute); text-align: center; font-size: 12px;">cargando equipo…</div>
+  </div>
+</div>
+
+<header class="top">
+  <div class="top-row">
+    <div class="brand">
+      <span class="logo">☕</span>
+      <span class="name">Kofy <span class="sub">· Órdenes</span></span>
+    </div>
+    <nav class="nav">
+      <a href="warehouse-ordenes.html" class="active">Órdenes</a>
+      <a href="warehouse-inventario.html">Inventario</a>
+      <a href="warehouse-yo.html">The Game</a>
+    </nav>
+    <button class="persona-chip" id="persona-chip" onclick="changePersona()" style="display:none; margin-left: 10px;">
+      <span class="dot" id="persona-dot">—</span>
+      <span><span id="persona-name">—</span> <span class="swap">cambiar</span></span>
+    </button>
+  </div>
+</header>
+
+<main>
+  <div class="filterbar">
+    <span class="label">Filtrar</span>
+    <select id="filter-client"><option value="">Todos los clientes</option></select>
+    <input type="text" id="filter-search" placeholder="Buscar Order ID…" style="flex: 0 0 180px;">
+    <button id="filter-more" onclick="toggleAdvFilters()" style="background: var(--surface); border: 1px solid var(--line); color: var(--ink-mute); padding: 4px 10px; border-radius: 12px; font-size: 11px; cursor: pointer; font-family: inherit;">+ Filtros</button>
+    <button id="filter-cancelled" onclick="openCancelledModal()" style="background: var(--surface); border: 1px solid var(--line); color: var(--ink-mute); padding: 4px 10px; border-radius: 12px; font-size: 11px; cursor: pointer; font-family: inherit;">🚫 Canceladas</button>
+    <span class="refresh-state" id="refresh-state">conectando…</span>
+  </div>
+
+  <!-- v2 · Advanced filters panel -->
+  <div class="adv-filter-bar" id="adv-filter-bar">
+    <div class="adv-row">
+      <span class="adv-label">Fecha pedido</span>
+      <input type="date" id="adv-date-from" onchange="onDateRangeChange()">
+      <span style="color: var(--ink-mute); font-size: 11px;">→</span>
+      <input type="date" id="adv-date-to" onchange="onDateRangeChange()">
+      <button class="adv-clear" onclick="clearDateRange()" title="Limpiar fechas">×</button>
+      <button class="adv-clear-all" onclick="clearAllAdvFilters()">Limpiar todo</button>
+    </div>
+    <div class="adv-row">
+      <span class="adv-label">Etapa</span>
+      <div class="adv-pickers" id="adv-etapas"></div>
+    </div>
+    <div class="adv-row">
+      <span class="adv-label">Tostado</span>
+      <div class="adv-pickers" id="adv-tostados"></div>
+    </div>
+    <div class="adv-row">
+      <span class="adv-label">Origen</span>
+      <div class="adv-pickers" id="adv-origenes"></div>
+    </div>
+  </div>
+
+  <div class="kanban" id="kanban">
+    <div class="col" data-stage="recibida">
+      <div class="col-head"><span class="col-icon">📥</span><span class="col-title">Recibida</span><span class="col-count" id="count-recibida">0</span></div>
+      <div class="cards" id="cards-recibida"></div>
+    </div>
+    <div class="col" data-stage="cv">
+      <div class="col-head"><span class="col-icon">🌱</span><span class="col-title">Café Verde</span><span class="col-count" id="count-cv">0</span></div>
+      <div class="cards" id="cards-cv"></div>
+    </div>
+    <div class="col" data-stage="t">
+      <div class="col-head"><span class="col-icon">🔥</span><span class="col-title">Tostado</span><span class="col-count" id="count-t">0</span></div>
+      <div class="cards" id="cards-t"></div>
+    </div>
+    <div class="col" data-stage="e">
+      <div class="col-head"><span class="col-icon">📦</span><span class="col-title">Empaquetado</span><span class="col-count" id="count-e">0</span></div>
+      <div class="cards" id="cards-e"></div>
+    </div>
+    <div class="col" data-stage="l">
+      <div class="col-head"><span class="col-icon">🏷️</span><span class="col-title">Listo p/ envío</span><span class="col-count" id="count-l">0</span></div>
+      <div class="cards" id="cards-l"></div>
+    </div>
+    <div class="col" data-stage="en">
+      <div class="col-head"><span class="col-icon">✅</span><span class="col-title">Entregado</span><span class="col-count" id="count-en">0</span></div>
+      <div class="cards" id="cards-en"></div>
+    </div>
+  </div>
+</main>
+
+<button class="fab" id="fab" title="Nueva orden">+</button>
+
+<!-- ═══════════ Modal · Nueva Orden ═══════════ -->
+<div class="modal-bg" id="modal-new">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">Nueva Orden</div>
+        <div class="modal-id" id="preview-order-id">—</div>
+      </div>
+      <button class="close" onclick="closeModal('modal-new')">✕</button>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Cliente</label>
+        <select id="new-client"><option value="">— Seleccionar —</option><option value="__new__">+ Crear nuevo cliente</option></select>
+      </div>
+      <div class="field">
+        <label>Fecha de pedido</label>
+        <input type="date" id="new-date">
+      </div>
+    </div>
+    <div class="field">
+      <label>Fecha entrega est.</label>
+      <input type="date" id="new-eta">
+    </div>
+    <!-- v2 · Café gratis / cortesía -->
+    <div class="field" style="background: rgba(245,200,66,0.05); border: 1px solid rgba(245,200,66,0.2); border-radius: 6px; padding: 12px 14px;">
+      <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-bottom: 0;">
+        <input type="checkbox" id="new-gratis" onchange="onGratisToggle()" style="width: 18px; height: 18px; cursor: pointer; margin: 0;">
+        <span style="color: var(--cream); text-transform: none; letter-spacing: normal; font-size: 13px; font-weight: 600;">🎁 Cortesía · café gratis</span>
+      </label>
+      <div style="font-size: 11px; color: var(--ink-mute); margin-top: 6px; padding-left: 28px;">El inventario se descuenta normal (verde + empaque), pero queda marcado como cortesía para reportes.</div>
+      <div id="gratis-razon-wrap" style="display: none; padding-left: 28px; margin-top: 8px;">
+        <input type="text" id="new-gratis-razon" placeholder="Razón / contexto (ej: muestra para cliente nuevo)" style="width: 100%; background: var(--surface-2); color: var(--ink); border: 1px solid var(--line); padding: 8px 12px; border-radius: 4px; font-size: 12px; font-family: inherit;">
+      </div>
+    </div>
+    <div id="new-client-extra" style="display:none;">
+      <div class="field-row">
+        <div class="field"><label>Nuevo cliente · nombre</label><input type="text" id="new-client-name" placeholder="Ej: PETIT"></div>
+        <div class="field"><label>Cédula / RIF</label><input type="text" id="new-client-rif" placeholder="J-12345678"></div>
+      </div>
+    </div>
+    <!-- v2 · B2B prefill banner (visible solo si el cliente tiene pedido estándar) -->
+    <div id="b2b-banner" style="display:none; background: rgba(245,200,66,0.08); border: 1px solid rgba(245,200,66,0.35); border-radius: 6px; padding: 12px 14px; margin-bottom: 14px;">
+      <div style="font-size: 12px; color: var(--ink); margin-bottom: 8px;">
+        <strong style="color: var(--gold);">Cliente recurrente</strong> · tiene un pedido estándar guardado (<span id="b2b-count">0</span> items).
+      </div>
+      <button class="btn primary" style="padding: 8px 16px; font-size: 12px;" onclick="usePrefill()">📋 Usar pedido estándar</button>
+    </div>
+    <div class="items-block">
+      <h4>Items</h4>
+      <div id="items-container"></div>
+      <button class="add-item" onclick="addItemRow()">+ Agregar item</button>
+      <!-- v2 · Total green coffee estimado -->
+      <div id="green-banner" style="margin-top: 14px; background: var(--surface-2); border-left: 3px solid var(--green); border-radius: 4px; padding: 12px 14px; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+        <div>
+          <div style="font-size: 10px; color: var(--green); letter-spacing: 0.12em; text-transform: uppercase; font-weight: 600;">Total café verde estimado</div>
+          <div style="font-size: 10px; color: var(--ink-mute); margin-top: 2px;">incluye merma · AN/CM 15% · MT 20%</div>
+        </div>
+        <div style="font-family: ui-monospace, monospace; font-size: 20px; color: var(--cream); font-weight: 700;">
+          <span id="green-kg-total">0.00</span> <span style="color: var(--ink-mute); font-size: 13px;">kg</span>
+        </div>
+      </div>
+    </div>
+    <div class="field">
+      <label>Notas tostador</label>
+      <textarea id="new-notes-tost" placeholder="Cup notes, curva, reposo…"></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn ghost" onclick="closeModal('modal-new')">Cancelar</button>
+      <button class="btn primary" id="btn-create" onclick="createOrder()">Crear orden</button>
+    </div>
+  </div>
+</div>
+
+<!-- v2 · Modal · Órdenes canceladas (vista dedicada) -->
+<div class="modal-bg" id="modal-cancelled">
+  <div class="modal" style="max-width: 720px;">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">🚫 Órdenes canceladas</div>
+        <div class="modal-id" id="cancelled-count">—</div>
+      </div>
+      <button class="close" onclick="closeModal('modal-cancelled')">✕</button>
+    </div>
+    <div id="cancelled-list"></div>
+    <div class="btn-row">
+      <button class="btn ghost" onclick="closeModal('modal-cancelled')">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ Modal · Detalle de Orden ═══════════ -->
+<div class="modal-bg" id="modal-detail">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title" id="detail-client">—</div>
+        <div class="modal-id" id="detail-id">—</div>
+      </div>
+      <button class="close" onclick="closeModal('modal-detail')">✕</button>
+    </div>
+    <div id="detail-body"></div>
+    <div class="stages" id="detail-stages"></div>
+    <div class="btn-row">
+      <button class="btn ghost" onclick="closeModal('modal-detail')">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// Estado global
+// ═══════════════════════════════════════════════════════
+let STATE = {
+  ordenes: [],
+  items: [],
+  clientes: [],
+  miembros: [],
+  origenes: [],
+  quintales: [],
+  usos: [],
+  empaques: [],
+  selectedOrder: null,
+  persona: null,
+  lastAction: 0,
+  hidden: false,
+  // v2 · filtros avanzados
+  advFiltersOpen: false,
+  advFilters: { dateFrom: "", dateTo: "", etapas: [], tostados: [], origenes: [] },
+};
+
+// ═══ v2 · Etapas + Persona ═══
+const STAGES = [
+  { code: "CV", icon: "🌱", name: "Café Verde",       sub: "apartado" },
+  { code: "T",  icon: "🔥", name: "Tostado",          sub: "tostado" },
+  { code: "E",  icon: "📦", name: "Empaquetado",      sub: "bolsas selladas" },
+  { code: "L",  icon: "🏷️", name: "Listo p/ envío",   sub: "QR · etiquetas · caja" },
+  { code: "EN", icon: "✅", name: "Entregado",         sub: "al cliente" },
+];
+const PERSONA_KEY = "kofy_warehouse_persona_v1";
+
+// ═══ v2 · Merma de tostado (green → roasted) ═══
+const ROAST_LOSS = {
+  "AN":      0.15,  // Aurora Nordics · claro
+  "CM":      0.15,  // medio
+  "MT":      0.20,  // oscuro
+  // Grado A y Single O: heredan del "Tostado default" del origen
+};
+const PRESENTACION_KG = {
+  "1 KG":   1,
+  "500g":   0.5,
+  "250g":   0.25,
+  "BOX":    0.12,    // 1 BOX = caja de 10 sachets × 12g = 120g
+  "SACHET": 0.012,   // sachet individual = 12g roasted (ya molido + filtro tela)
+};
+// v2 · Sachets/BOX: siempre molidos, no requieren elegir molienda
+const PRES_AUTO_MOLIDO = new Set(["SACHET", "BOX"]);
+
+function getRoastLossPct(tostado, origenId) {
+  if (ROAST_LOSS[tostado] !== undefined) return ROAST_LOSS[tostado];
+  // Grado A / Single O → leer "Tostado default" del origen
+  if (origenId) {
+    const ori = STATE.origenes.find(x => x.id === origenId);
+    if (ori) {
+      const def = readProp(ori, "Tostado default");
+      if (ROAST_LOSS[def] !== undefined) return ROAST_LOSS[def];
+    }
+  }
+  return 0.15;  // fallback conservador
+}
+
+function greenKgFor(presentacion, tostado, cantidad, origenId) {
+  const presKg = PRESENTACION_KG[presentacion] || 0;
+  const loss = getRoastLossPct(tostado, origenId);
+  const tostadoKg = (cantidad || 0) * presKg;
+  return tostadoKg / (1 - loss);
+}
+
+function greenKgForItem(item) {
+  const oriIds = readProp(item, "Origen") || [];
+  return greenKgFor(
+    readProp(item, "Presentación"),
+    readProp(item, "Tostado"),
+    readProp(item, "Cantidad"),
+    oriIds[0]
+  );
+}
+
+function pageTitle(page) {
+  for (const v of Object.values(page?.properties || {})) {
+    if (v.type === "title") return v.title.map(t => t.plain_text).join("");
+  }
+  return "";
+}
+function loadPersona() { try { return JSON.parse(localStorage.getItem(PERSONA_KEY) || "null"); } catch { return null; } }
+function savePersona(p) { localStorage.setItem(PERSONA_KEY, JSON.stringify(p)); STATE.persona = p; updatePersonaChip(); }
+function updatePersonaChip() {
+  const p = STATE.persona; if (!p) return;
+  const chip = document.getElementById("persona-chip");
+  chip.style.display = "flex";
+  document.getElementById("persona-dot").textContent = p.ini;
+  document.getElementById("persona-name").textContent = p.name;
+}
+function renderPersonaPicker() {
+  const grid = document.getElementById("picker-grid");
+  if (!STATE.miembros.length) {
+    grid.innerHTML = `<div style="grid-column: span 2; color: var(--ink-mute); text-align: center; font-size: 13px;">No hay miembros en Notion.<br>Abrí <a href="warehouse-miembros.html" style="color: var(--gold);">warehouse-miembros.html</a> y sembralos.</div>`;
+    return;
+  }
+  grid.innerHTML = "";
+  STATE.miembros.forEach(m => {
+    const name = pageTitle(m) || readProp(m,"Nombre") || "—";
+    const ini = readProp(m, "Iniciales") || name.substring(0,2).toUpperCase();
+    const rol = readProp(m, "Rol") || "";
+    const chip = document.createElement("button");
+    chip.className = "pchip";
+    chip.innerHTML = `<div class="avatar">${ini}</div><div class="nm">${name}</div><div class="role">${rol}</div>`;
+    chip.onclick = () => {
+      savePersona({ id: m.id, name, ini });
+      document.getElementById("picker").classList.add("hidden");
+    };
+    grid.appendChild(chip);
+  });
+}
+function changePersona() {
+  document.getElementById("picker").classList.remove("hidden");
+  renderPersonaPicker();
+}
+
+// ═══════════════════════════════════════════════════════
+// Notion API (vía Cloudflare Worker)
+// ═══════════════════════════════════════════════════════
+async function notion(endpoint, body, method) {
+  method = method || (body ? "POST" : "GET");
+  const res = await fetch(`${CONFIG.PROXY_URL}${endpoint}`, {
+    method,
+    headers: { "Content-Type": "application/json" },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (!res.ok) throw new Error(`Notion ${res.status}: ${await res.text()}`);
+  return res.json();
+}
+
+async function queryDb(dbId, filter = undefined) {
+  const body = { database_id: dbId };
+  if (filter) body.filter = filter;
+  return notion(`/query`, body);
+}
+
+async function createPage(dbId, properties) {
+  return notion(`/pages`, { parent: { database_id: dbId }, properties });
+}
+
+async function updatePage(pageId, properties) {
+  return notion(`/pages/${pageId}`, { properties }, "PATCH");
+}
+
+// ═══════════════════════════════════════════════════════
+// Helpers · leer propiedades de páginas Notion
+// ═══════════════════════════════════════════════════════
+function readProp(page, name) {
+  const p = page.properties[name];
+  if (!p) return null;
+  switch (p.type) {
+    case "title":      return p.title.map(t => t.plain_text).join("");
+    case "rich_text":  return p.rich_text.map(t => t.plain_text).join("");
+    case "number":     return p.number;
+    case "select":     return p.select?.name || null;
+    case "date":       return p.date?.start || null;
+    case "checkbox":   return p.checkbox;
+    case "relation":   return p.relation.map(r => r.id);
+    case "formula":
+      return p.formula.string ?? p.formula.number ?? p.formula.boolean ?? null;
+    case "rollup":
+      return p.rollup.number ?? p.rollup.array ?? null;
+    default: return null;
+  }
+}
+
+function getStage(o) {
+  if (readProp(o, "EN ✓")) return "en";
+  if (readProp(o, "L ✓"))  return "l";
+  if (readProp(o, "E ✓"))  return "e";
+  if (readProp(o, "T ✓"))  return "t";
+  if (readProp(o, "CV ✓")) return "cv";
+  return "recibida";
+}
+
+// ═══════════════════════════════════════════════════════
+// Carga inicial
+// ═══════════════════════════════════════════════════════
+async function loadAll() {
+  setState("loading");
+  try {
+    const queries = [
+      queryDb(CONFIG.DB_ORDENES),
+      queryDb(CONFIG.DB_ITEMS),
+      queryDb(CONFIG.DB_CLIENTES),
+      queryDb(CONFIG.DB_MIEMBROS),
+      queryDb(CONFIG.DB_ORIGENES),
+      queryDb(CONFIG.DB_QUINTALES),
+      queryDb(CONFIG.DB_USOS),
+    ];
+    if (CONFIG.DB_EMPAQUE) queries.push(queryDb(CONFIG.DB_EMPAQUE));
+    const results = await Promise.all(queries);
+    STATE.ordenes   = results[0].results;
+    STATE.items     = results[1].results;
+    STATE.clientes  = results[2].results;
+    STATE.miembros  = results[3].results;
+    STATE.origenes  = results[4].results;
+    STATE.quintales = results[5].results;
+    STATE.usos      = results[6].results;
+    STATE.empaques  = results[7] ? results[7].results : [];
+    renderKanban();
+    populateDropdowns();
+    setState("live");
+  } catch (e) {
+    console.error(e);
+    setState("error");
+    toast("Error de conexión con Notion. Revisa los DB IDs en CONFIG.", "error");
+  }
+}
+
+function setState(s) {
+  const el = document.getElementById("refresh-state");
+  el.className = "refresh-state " + s;
+  el.textContent = s === "live" ? `sincronizado · ${new Date().toLocaleTimeString("es-VE",{hour:"2-digit",minute:"2-digit"})}` :
+                    s === "loading" ? "actualizando…" :
+                    s === "error" ? "error · revisar config" : "—";
+}
+
+// ═══════════════════════════════════════════════════════
+// Render Kanban
+// ═══════════════════════════════════════════════════════
+// v3 · Change detection: skip re-render if nothing material changed since last call
+// Inspired by calendar.html's pattern. Signature captures order state + filters + persona.
+let _lastKanbanSig = "";
+function _computeKanbanSig() {
+  const ordersSig = STATE.ordenes.map(o => {
+    const stagesBits = STAGES.map(s => readProp(o, `${s.code} ✓`) ? "1" : "0").join("");
+    const c = readProp(o, "Cancelada") ? "C" : "";
+    const g = readProp(o, "Gratis") ? "G" : "";
+    return `${o.id.substring(0,8)}:${stagesBits}${c}${g}`;
+  }).join("|");
+  const filterSig = `${document.getElementById("filter-client")?.value || ""}|${(document.getElementById("filter-search")?.value || "").toLowerCase()}|${JSON.stringify(STATE.advFilters)}`;
+  const personaSig = STATE.persona?.id || "";
+  return ordersSig + "::" + filterSig + "::" + personaSig;
+}
+
+function renderKanban() {
+  // Early-exit if data + filters are unchanged (typical case in polling refresh)
+  const sig = _computeKanbanSig();
+  if (sig === _lastKanbanSig) return;
+  _lastKanbanSig = sig;
+
+  const buckets = { recibida: [], cv: [], t: [], e: [], l: [], en: [] };
+  const filterClient = document.getElementById("filter-client").value;
+  const filterSearch = document.getElementById("filter-search").value.toLowerCase();
+
+  let cancelledCount = 0;
+  const af = STATE.advFilters;
+  // Pre-compute order → items mapping for tostado/origen filtering
+  const itemsForOrder = (oId) => STATE.items.filter(it => (readProp(it,"Orden") || []).includes(oId));
+  STATE.ordenes.forEach(o => {
+    const orderId = readProp(o, "Order ID") || "";
+    const clientIds = readProp(o, "Cliente") || [];
+    const isCancelled = readProp(o, "Cancelada") === true;
+    // v2 · Canceladas SIEMPRE ocultas del Kanban — viven en un modal aparte
+    if (isCancelled) { cancelledCount++; return; }
+    if (filterClient && !clientIds.includes(filterClient)) return;
+    if (filterSearch && !orderId.toLowerCase().includes(filterSearch)) return;
+    // v2 · adv filters
+    if (af.dateFrom) { const fp = readProp(o,"Fecha de pedido"); if (!fp || fp < af.dateFrom) return; }
+    if (af.dateTo)   { const fp = readProp(o,"Fecha de pedido"); if (!fp || fp > af.dateTo)   return; }
+    if (af.etapas.length) {
+      const stage = getStage(o) || "recibida";
+      if (!af.etapas.includes(stage.toLowerCase())) return;
+    }
+    if (af.tostados.length || af.origenes.length) {
+      const its = itemsForOrder(o.id);
+      if (af.tostados.length) {
+        const myTos = new Set(its.map(it => readProp(it, "Tostado")));
+        if (!af.tostados.some(t => myTos.has(t))) return;
+      }
+      if (af.origenes.length) {
+        const myOris = new Set(its.flatMap(it => readProp(it, "Origen") || []));
+        if (!af.origenes.some(oid => myOris.has(oid))) return;
+      }
+    }
+    buckets[getStage(o)].push(o);
+  });
+  // Indicador visual: si algún filtro avanzado está activo, el botón se destaca
+  const advActive = af.dateFrom || af.dateTo || af.etapas.length || af.tostados.length || af.origenes.length;
+  const fmBtn = document.getElementById("filter-more");
+  if (fmBtn) {
+    if (advActive) { fmBtn.style.background = "rgba(245,200,66,0.15)"; fmBtn.style.borderColor = "var(--gold)"; fmBtn.style.color = "var(--gold)"; }
+    else { fmBtn.style.background = "var(--surface)"; fmBtn.style.borderColor = "var(--line)"; fmBtn.style.color = "var(--ink-mute)"; }
+  }
+  // Actualizar el pill con el contador
+  const btn = document.getElementById("filter-cancelled");
+  if (btn) btn.textContent = cancelledCount === 0 ? "🚫 Canceladas" : `🚫 Canceladas (${cancelledCount})`;
+
+  for (const [stage, list] of Object.entries(buckets)) {
+    const container = document.getElementById(`cards-${stage}`);
+    const count = document.getElementById(`count-${stage}`);
+    container.innerHTML = "";
+    count.textContent = list.length;
+    if (list.length === 0) {
+      container.innerHTML = `<div class="empty">—</div>`;
+      continue;
+    }
+    list.forEach(o => container.appendChild(renderCard(o)));
+  }
+}
+
+function renderCard(o) {
+  const orderId = readProp(o, "Order ID") || "—";
+  const clientIds = readProp(o, "Cliente") || [];
+  const client = STATE.clientes.find(c => c.id === clientIds[0]);
+  const clientName = client ? readProp(client, "Nombre / Razón Social") : "—";
+  const eta = readProp(o, "Fecha de entrega estimada");
+  const fecha = readProp(o, "Fecha de pedido");
+  const isCancelled = readProp(o, "Cancelada") === true;
+
+  const card = document.createElement("div");
+  card.className = "card" + (isCancelled ? " cancelled" : "");
+  const isLate = eta && new Date(eta) < new Date() && !readProp(o, "EN ✓") && !isCancelled;
+  const isGratis = readProp(o, "Gratis") === true;
+  card.innerHTML = `
+    ${isCancelled ? `<div style="font-size: 9px; letter-spacing: 0.12em; color: var(--red); font-weight: 700; margin-bottom: 4px;">🚫 CANCELADA</div>` : ""}
+    ${isGratis ? `<div style="font-size: 9px; letter-spacing: 0.12em; color: var(--gold); font-weight: 700; margin-bottom: 4px;">🎁 CORTESÍA</div>` : ""}
+    <div class="card-id">${orderId}</div>
+    <div class="card-client">${clientName}</div>
+    <div class="card-meta">
+      <span>${fecha ? new Date(fecha).toLocaleDateString("es-VE", {day:"2-digit", month:"2-digit"}) : "—"}</span>
+      <span class="card-eta ${isLate ? "late" : ""}">${eta ? "ETA " + new Date(eta).toLocaleDateString("es-VE",{day:"2-digit",month:"2-digit"}) : ""}</span>
+    </div>`;
+  card.onclick = () => openDetail(o);
+  return card;
+}
+
+// ═══════════════════════════════════════════════════════
+// Dropdowns
+// ═══════════════════════════════════════════════════════
+function populateDropdowns() {
+  // Filter
+  const fc = document.getElementById("filter-client");
+  fc.innerHTML = `<option value="">Todos los clientes</option>` +
+    STATE.clientes.map(c => `<option value="${c.id}">${readProp(c,"Nombre / Razón Social") || "—"}</option>`).join("");
+
+  // New order client
+  const nc = document.getElementById("new-client");
+  nc.innerHTML = `<option value="">— Seleccionar —</option>
+    <option value="__new__">+ Crear nuevo cliente</option>` +
+    STATE.clientes.map(c => `<option value="${c.id}">${readProp(c,"Nombre / Razón Social") || "—"}</option>`).join("");
+}
+
+// ═══════════════════════════════════════════════════════
+// Nueva Orden
+// ═══════════════════════════════════════════════════════
+let itemRowCount = 0;
+function addItemRow() {
+  const c = document.getElementById("items-container");
+  const idx = itemRowCount++;
+  const origOpts = STATE.origenes.map(o => `<option value="${o.id}">${readProp(o,"ID Origen") || pageTitle(o)}</option>`).join("");
+  const row = document.createElement("div");
+  row.className = "item-row";
+  row.innerHTML = `
+    <select data-field="presentacion">
+      <option>1 KG</option><option>500g</option><option>250g</option><option>BOX</option><option>SACHET</option>
+    </select>
+    <select data-field="tostado">
+      <option>AN</option><option>CM</option><option>MT</option>
+    </select>
+    <input type="number" data-field="cantidad" placeholder="Qty" min="1" value="1">
+    <select data-field="grano" title="Molienda / uso final">
+      <option>Grano entero</option>
+      <option>Molienda fina</option>
+      <option>Molienda gruesa</option>
+      <option>Espresso profesional</option>
+    </select>
+    <select data-field="origen">
+      <option value="">— Origen —</option>${origOpts}
+    </select>
+    <button class="rm" onclick="this.parentElement.remove(); updateGreenTotal();" title="Quitar">×</button>`;
+  c.appendChild(row);
+  // v2 · Sachet/BOX: molienda automática (siempre molida), oculta el select
+  const presEl = row.querySelector('[data-field="presentacion"]');
+  const moliendaEl = row.querySelector('[data-field="grano"]');
+  function syncMolienda() {
+    if (PRES_AUTO_MOLIDO.has(presEl.value)) {
+      moliendaEl.value = "Molienda fina";
+      moliendaEl.disabled = true;
+      moliendaEl.style.opacity = "0.4";
+      moliendaEl.title = "Sachets/BOX siempre vienen molidos";
+    } else {
+      moliendaEl.disabled = false;
+      moliendaEl.style.opacity = "1";
+      moliendaEl.title = "Molienda / uso final";
+    }
+  }
+  presEl.addEventListener("change", syncMolienda);
+  syncMolienda();  // ejecutar al inicio
+  if (typeof updateGreenTotal === "function") updateGreenTotal();
+}
+
+// v2 · Guardar items de una orden como "pedido estándar" del cliente
+async function saveOrderAsStandard() {
+  const o = STATE.selectedOrder;
+  if (!o) return;
+  const clientIds = readProp(o, "Cliente") || [];
+  if (!clientIds.length) { toast("La orden no tiene cliente", "error"); return; }
+  const client = STATE.clientes.find(c => c.id === clientIds[0]);
+  if (!client) { toast("Cliente no encontrado", "error"); return; }
+  const myItems = STATE.items.filter(it => (readProp(it,"Orden") || []).includes(o.id));
+  if (myItems.length === 0) { toast("La orden no tiene items", "error"); return; }
+  const clientName = pageTitle(client) || readProp(client,"Nombre / Razón Social") || "el cliente";
+  const standard = myItems.map(it => {
+    const oriIds = readProp(it,"Origen") || [];
+    const ori = oriIds.length ? STATE.origenes.find(x => x.id === oriIds[0]) : null;
+    return {
+      p: readProp(it,"Presentación"),
+      t: readProp(it,"Tostado"),
+      q: readProp(it,"Cantidad"),
+      m: readProp(it,"Grano / Molido"),
+      o: ori ? (readProp(ori,"ID Origen") || pageTitle(ori)) : null,
+    };
+  });
+  if (!confirm(`¿Guardar este pedido (${standard.length} items) como estándar para ${clientName}?\n\nLa próxima vez que crees una orden para este cliente, podrás cargarlo con un click.`)) return;
+  try {
+    await updatePage(client.id, {
+      "Pedido estándar": { rich_text: [{ text: { content: JSON.stringify(standard) } }] },
+      "B2B": { checkbox: true },
+    });
+    toast(`✓ Pedido estándar guardado para ${clientName}`, "success");
+    STATE.lastAction = Date.now();
+    await loadAll();
+  } catch (e) {
+    toast("Error: " + e.message + " · ¿corriste la Migración v2 en el setup?", "error");
+  }
+}
+
+document.getElementById("new-client").addEventListener("change", e => {
+  document.getElementById("new-client-extra").style.display = e.target.value === "__new__" ? "block" : "none";
+  updatePreviewId();
+  // v2 · B2B: check si el cliente tiene pedido estándar
+  checkB2BPrefill(e.target.value);
+});
+document.getElementById("new-client-name").addEventListener("input", updatePreviewId);
+document.getElementById("new-date").addEventListener("change", updatePreviewId);
+
+// v2 · Total green coffee en vivo (recalcula al cambiar cualquier item)
+document.getElementById("items-container").addEventListener("input", updateGreenTotal);
+document.getElementById("items-container").addEventListener("change", updateGreenTotal);
+
+function updateGreenTotal() {
+  const rows = document.querySelectorAll("#items-container .item-row");
+  let total = 0;
+  rows.forEach(row => {
+    const pres = row.querySelector('[data-field="presentacion"]').value;
+    const tos = row.querySelector('[data-field="tostado"]').value;
+    const cant = parseFloat(row.querySelector('[data-field="cantidad"]').value) || 0;
+    const oriId = row.querySelector('[data-field="origen"]').value;
+    total += greenKgFor(pres, tos, cant, oriId);
+  });
+  document.getElementById("green-kg-total").textContent = total.toFixed(2);
+}
+
+// v2 · B2B prefill helpers
+function checkB2BPrefill(clientId) {
+  const banner = document.getElementById("b2b-banner");
+  if (!clientId || clientId === "__new__") { banner.style.display = "none"; return; }
+  const c = STATE.clientes.find(x => x.id === clientId);
+  if (!c) { banner.style.display = "none"; return; }
+  const json = readProp(c, "Pedido estándar");
+  if (!json) { banner.style.display = "none"; return; }
+  try {
+    const items = JSON.parse(json);
+    if (!Array.isArray(items) || items.length === 0) { banner.style.display = "none"; return; }
+    document.getElementById("b2b-count").textContent = items.length;
+    banner.style.display = "block";
+  } catch {
+    banner.style.display = "none";
+  }
+}
+
+function usePrefill() {
+  const sel = document.getElementById("new-client").value;
+  const c = STATE.clientes.find(x => x.id === sel);
+  if (!c) return;
+  let items;
+  try { items = JSON.parse(readProp(c, "Pedido estándar") || "[]"); } catch { return; }
+  if (!items.length) return;
+  // Limpiar items existentes y cargar los del estándar
+  document.getElementById("items-container").innerHTML = "";
+  itemRowCount = 0;
+  items.forEach(it => {
+    addItemRow();
+    const row = document.querySelector("#items-container .item-row:last-child");
+    if (it.p) row.querySelector('[data-field="presentacion"]').value = it.p;
+    if (it.t) row.querySelector('[data-field="tostado"]').value = it.t;
+    if (it.q) row.querySelector('[data-field="cantidad"]').value = it.q;
+    if (it.m) row.querySelector('[data-field="grano"]').value = it.m;
+    // Resolver origen por su "ID Origen" (string), no por relation ID
+    if (it.o) {
+      const ori = STATE.origenes.find(x => (readProp(x,"ID Origen") || pageTitle(x)) === it.o);
+      if (ori) row.querySelector('[data-field="origen"]').value = ori.id;
+    }
+  });
+  updateGreenTotal();
+  toast(`✓ Pedido estándar cargado (${items.length} items)`, "success");
+}
+
+function updatePreviewId() {
+  const sel = document.getElementById("new-client").value;
+  const date = document.getElementById("new-date").value;
+  let name = "—";
+  if (sel === "__new__") {
+    name = document.getElementById("new-client-name").value.toUpperCase().trim() || "—";
+  } else if (sel) {
+    const c = STATE.clientes.find(x => x.id === sel);
+    name = c ? (readProp(c,"Nombre / Razón Social") || "—").toUpperCase() : "—";
+  }
+  const dm = date ? date.substring(8,10) + date.substring(5,7) : "DDMM";
+  document.getElementById("preview-order-id").textContent = `${name}-${dm}`;
+}
+
+async function createOrder() {
+  const btn = document.getElementById("btn-create");
+  btn.disabled = true;
+  try {
+    let clientId = document.getElementById("new-client").value;
+
+    // Crear cliente nuevo si hace falta
+    if (clientId === "__new__") {
+      const cname = document.getElementById("new-client-name").value.trim();
+      const rif = document.getElementById("new-client-rif").value.trim();
+      if (!cname) throw new Error("Falta nombre del cliente nuevo");
+      const newClient = await createPage(CONFIG.DB_CLIENTES, {
+        "Nombre / Razón Social": { title: [{ text: { content: cname } }] },
+        ...(rif ? { "Cédula / RIF": { rich_text: [{ text: { content: rif } }] } } : {}),
+      });
+      clientId = newClient.id;
+      STATE.clientes.push(newClient);
+    }
+    if (!clientId) throw new Error("Selecciona o crea un cliente");
+
+    const date = document.getElementById("new-date").value;
+    const eta  = document.getElementById("new-eta").value;
+    const notes = document.getElementById("new-notes-tost").value;
+    const gratis = document.getElementById("new-gratis").checked;
+    const gratisRazon = document.getElementById("new-gratis-razon").value.trim();
+    const orderId = document.getElementById("preview-order-id").textContent;
+
+    if (!date) throw new Error("Falta fecha de pedido");
+
+    // Crear orden
+    const order = await createPage(CONFIG.DB_ORDENES, {
+      "Order ID": { title: [{ text: { content: orderId } }] },
+      "Cliente": { relation: [{ id: clientId }] },
+      "Fecha de pedido": { date: { start: date } },
+      ...(eta ? { "Fecha de entrega estimada": { date: { start: eta } } } : {}),
+      ...(notes ? { "Notas tostador": { rich_text: [{ text: { content: notes } }] } } : {}),
+      ...(gratis ? { "Gratis": { checkbox: true } } : {}),
+      ...(gratis && gratisRazon ? { "Razón gratis": { rich_text: [{ text: { content: gratisRazon } }] } } : {}),
+    });
+
+    // Crear items
+    const itemRows = document.querySelectorAll("#items-container .item-row");
+    let idx = 1;
+    for (const row of itemRows) {
+      const presentacion = row.querySelector('[data-field="presentacion"]').value;
+      const tostado = row.querySelector('[data-field="tostado"]').value;
+      const cantidad = parseInt(row.querySelector('[data-field="cantidad"]').value) || 0;
+      const grano = row.querySelector('[data-field="grano"]').value;
+      const origenId = row.querySelector('[data-field="origen"]').value;
+      if (!cantidad) continue;
+      await createPage(CONFIG.DB_ITEMS, {
+        "Item ID": { title: [{ text: { content: `${orderId}-ITEM-${idx}` } }] },
+        "Orden": { relation: [{ id: order.id }] },
+        "Presentación": { select: { name: presentacion } },
+        "Tostado": { select: { name: tostado } },
+        "Cantidad": { number: cantidad },
+        "Grano / Molido": { select: { name: grano } },
+        ...(origenId ? { "Origen": { relation: [{ id: origenId }] } } : {}),
+      });
+      idx++;
+    }
+
+    toast(`Orden ${orderId} creada`, "success");
+    // comms: kofy:orderCreated
+    {
+      const _c = STATE.clientes.find(c => c.id === clientId);
+      const _cName = _c ? (readProp(_c,"Nombre / Razón Social") || pageTitle(_c)) : "";
+      const _its = [...document.querySelectorAll("#items-container .item-row")].map(r => ({
+        presentacion: r.querySelector('[data-field="presentacion"]').value,
+        tostado:      r.querySelector('[data-field="tostado"]').value,
+        cantidad:     parseInt(r.querySelector('[data-field="cantidad"]').value) || 0
+      }));
+      window.dispatchEvent(new CustomEvent("kofy:orderCreated", { detail: {
+        orderId, orderPageId: order.id, clientId,
+        clientName: _cName, items: _its,
+        eta: document.getElementById("new-eta").value || null,
+        createdBy: STATE.persona?.id || null
+      }}));
+    }
+    closeModal("modal-new");
+    STATE.lastAction = Date.now();
+    await loadAll();
+  } catch (e) {
+    toast(e.message, "error");
+    console.error(e);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// Detalle + avanzar etapa
+// ═══════════════════════════════════════════════════════
+function openDetail(o) {
+  STATE.selectedOrder = o;
+  const orderId = readProp(o, "Order ID") || pageTitle(o) || "—";
+  const clientIds = readProp(o, "Cliente") || [];
+  const client = STATE.clientes.find(c => c.id === clientIds[0]);
+  const clientName = client ? (readProp(client,"Nombre / Razón Social") || pageTitle(client)) : "—";
+  const clientRif = client ? readProp(client, "Cédula / RIF") : null;
+  document.getElementById("detail-client").textContent = clientName;
+  document.getElementById("detail-id").textContent = orderId;
+
+  const fecha = readProp(o,"Fecha de pedido");
+  const eta = readProp(o,"Fecha de entrega estimada");
+  const notesT = readProp(o,"Notas tostador");
+  const notesQC = readProp(o,"Notas QC");
+  const isGratisDetail = readProp(o, "Gratis") === true;
+  const razonGratis = readProp(o, "Razón gratis");
+
+  // Items de esta orden
+  const myItems = STATE.items.filter(it => (readProp(it,"Orden") || []).includes(o.id));
+  const totalGreen = myItems.reduce((s, it) => s + greenKgForItem(it), 0);
+  const itemsHtml = myItems.length
+    ? `<div class="detail-items">
+        <div class="ihead">Items (${myItems.length})</div>
+        ${myItems.map(it => {
+          const qty = readProp(it,"Cantidad") || 0;
+          const pres = readProp(it,"Presentación") || "—";
+          const tos = readProp(it,"Tostado") || "—";
+          const gm = readProp(it,"Grano / Molido") || readProp(it,"Molienda") || "—";
+          const oriIds = readProp(it,"Origen") || [];
+          const ori = oriIds.length ? STATE.origenes.find(x => x.id === oriIds[0]) : null;
+          const oriName = ori ? (readProp(ori,"ID Origen") || pageTitle(ori)) : "—";
+          const green = greenKgForItem(it).toFixed(2);
+          return `<div class="iline"><span class="qty">${qty} ×</span> ${pres} · ${tos} · ${gm} · <span class="ori">${oriName}</span> <span style="color: var(--green); font-family: ui-monospace, monospace; font-size: 11px; margin-left: 4px;">→ ${green} kg verdes</span></div>`;
+        }).join("")}
+        <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; font-size: 12px; align-items: baseline;">
+          <span style="color: var(--gold); letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600;">Total café verde necesario</span>
+          <span style="color: var(--cream); font-family: ui-monospace, monospace; font-weight: 700; font-size: 14px;">${totalGreen.toFixed(2)} kg</span>
+        </div>
+      </div>
+      <div style="display: flex; gap: 8px; margin: 8px 0 14px; flex-wrap: wrap;">
+        <a href="warehouse-print.html?type=order&id=${o.id}" target="_blank" class="btn ghost" style="flex: 1; min-width: 140px; text-align: center; text-decoration: none; font-size: 12px;">🖨 Imprimir hoja</a>
+        ${clientIds.length && myItems.length ? `<button class="btn ghost" style="flex: 2; min-width: 200px; font-size: 12px;" onclick="saveOrderAsStandard()">💾 Guardar como pedido estándar</button>` : ""}
+        <button class="btn ghost" style="flex: 1; min-width: 140px; font-size: 12px; color: var(--red); border-color: rgba(217,83,79,0.4);" onclick="cancelOrArchiveOrder()">${STAGES.some(s => readProp(o, s.code + " ✓")) ? "🚫 Cancelar orden" : "🗑 Archivar orden"}</button>
+      </div>`
+    : "";
+
+  document.getElementById("detail-body").innerHTML = `
+    ${isGratisDetail ? `<div style="background: rgba(245,200,66,0.1); border: 1px solid rgba(245,200,66,0.35); border-radius: 6px; padding: 10px 14px; margin-bottom: 12px;">
+      <div style="font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); font-weight: 700;">🎁 CORTESÍA · café gratis</div>
+      ${razonGratis ? `<div style="font-size: 12px; color: var(--ink); margin-top: 4px;"><em>"${razonGratis}"</em></div>` : ""}
+    </div>` : ""}
+    <div style="font-size:13px; color:var(--ink-mute); margin-bottom: 10px; line-height: 1.7;">
+      ${clientRif ? `<div>RIF: <span style="color: var(--ink); font-family: ui-monospace, monospace;">${clientRif}</span></div>` : ""}
+      <div>Pedido: ${fecha || "—"} · ETA: ${eta || "—"}</div>
+    </div>
+    ${itemsHtml}
+    ${notesT ? `<div style="background:var(--surface-2); padding:10px 14px; border-radius:4px; font-size:13px; color:var(--ink); margin-bottom: 10px; border-left: 3px solid var(--gold);"><div style="font-size: 10px; color: var(--gold); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 4px;">notas tostador</div>${notesT}</div>` : ""}
+    ${notesQC ? `<div style="background:var(--surface-2); padding:10px 14px; border-radius:4px; font-size:13px; color:var(--ink); margin-bottom: 10px; border-left: 3px solid var(--green);"><div style="font-size: 10px; color: var(--green); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 4px;">notas QC</div>${notesQC}</div>` : ""}
+  `;
+
+  // Cascade banner si hay etapas saltadas
+  const firstPending = STAGES.findIndex(s => !readProp(o, `${s.code} ✓`));
+  const cascadeWarn = firstPending > 0 && firstPending < STAGES.length
+    ? `<div class="cascade-banner">Etapa actual: <strong>${STAGES[firstPending-1].icon} ${STAGES[firstPending-1].name}</strong>. Si saltás a una etapa más adelante, las intermedias se firman a tu nombre.</div>`
+    : "";
+
+  const container = document.getElementById("detail-stages");
+  container.innerHTML = cascadeWarn;
+  STAGES.forEach((s, i) => {
+    const done = readProp(o, `${s.code} ✓`);
+    const fechaS = readProp(o, `${s.code} fecha`);
+    const firmaIds = readProp(o, `${s.code} firma`) || [];
+    const firma = firmaIds.length ? (STATE.miembros.find(m => m.id === firmaIds[0])) : null;
+    const firmaName = firma ? (pageTitle(firma) || readProp(firma,"Nombre")) : null;
+
+    const div = document.createElement("div");
+    div.className = "stage-item" + (done ? " done" : "");
+    div.innerHTML = `
+      <div class="stage-check">${done ? "✓" : ""}</div>
+      <div class="stage-icon">${s.icon}</div>
+      <div class="stage-info">
+        <div class="stage-name">${s.name}</div>
+        <div class="stage-meta">${done ? `Firmó ${firmaName || "—"} · ${fechaS || ""}` : (i === firstPending ? "→ siguiente · toca para firmar" : "pendiente · toca para saltar acá")}</div>
+      </div>`;
+    if (!done) {
+      div.onclick = () => markStageCascade(o, s.code);
+    }
+    container.appendChild(div);
+  });
+  openModal("modal-detail");
+}
+
+// v2 · Remanente de un quintal (kg iniciales − suma de usos)
+function quintalRemanente(qId) {
+  const q = STATE.quintales.find(x => x.id === qId);
+  if (!q) return 0;
+  const ki = readProp(q, "KG iniciales") || 0;
+  const used = STATE.usos.filter(u => (readProp(u,"Quintal") || []).includes(qId))
+                .reduce((s,u) => s + (readProp(u,"KG usados") || 0), 0);
+  return Math.round((ki - used) * 100) / 100;
+}
+
+// v2 · FIFO: para una orden, calcula qué quintales se consumirían y en qué cantidades
+// Agrupa items por origen, computa kg verdes necesarios por origen (con merma),
+// y asigna FIFO (más viejo primero) entre los quintales activos.
+function planGreenDeductionForOrder(o) {
+  const myItems = STATE.items.filter(it => (readProp(it,"Orden") || []).includes(o.id));
+  if (myItems.length === 0) return { allocations: [], insufficiencies: [], total: 0 };
+
+  // Agrupar kg verdes por origen
+  const byOrigen = {};
+  myItems.forEach(it => {
+    const oriIds = readProp(it,"Origen") || [];
+    if (!oriIds.length) return;
+    const oriId = oriIds[0];
+    if (!byOrigen[oriId]) byOrigen[oriId] = 0;
+    byOrigen[oriId] += greenKgForItem(it);
+  });
+
+  const allocations = [];
+  const insufficiencies = [];
+  let total = 0;
+
+  for (const [oriId, needKg] of Object.entries(byOrigen)) {
+    const ori = STATE.origenes.find(x => x.id === oriId);
+    const oriName = ori ? (readProp(ori,"ID Origen") || pageTitle(ori) || "—") : "—";
+    // Quintales del origen, FIFO por fecha de compra ascendente, con remanente > 0
+    const cands = STATE.quintales
+      .filter(q => (readProp(q,"Origen") || []).includes(oriId))
+      .map(q => ({ q, fecha: readProp(q,"Fecha de compra") || "9999-99-99", remanente: quintalRemanente(q.id) }))
+      .filter(x => x.remanente > 0.01)
+      .sort((a,b) => a.fecha.localeCompare(b.fecha));
+
+    let remaining = needKg;
+    for (const x of cands) {
+      if (remaining <= 0.01) break;
+      const take = Math.min(remaining, x.remanente);
+      const takeRounded = Math.round(take * 100) / 100;
+      allocations.push({
+        origenName: oriName,
+        quintal: x.q,
+        quintalName: pageTitle(x.q),
+        kg: takeRounded,
+        fecha: x.fecha,
+      });
+      remaining -= take;
+      total += takeRounded;
+    }
+    if (remaining > 0.01) {
+      insufficiencies.push({ origenName: oriName, missing: Math.round(remaining * 100) / 100 });
+    }
+  }
+
+  return { allocations, insufficiencies, total: Math.round(total * 100) / 100 };
+}
+
+// v2 · Ejecuta la deducción: crea un registro Uso por cada allocation
+async function executeGreenDeduction(plan, orderId, orderIdStr) {
+  let seq = STATE.usos.filter(u => (readProp(u,"Orden") || []).includes(orderId)).length;
+  let first = true;
+  for (const a of plan.allocations) {
+    // v3 · 350ms delay between sequential PATCHes to avoid Notion rate limits (calendar pattern)
+    if (!first) await new Promise(r => setTimeout(r, 350));
+    first = false;
+    seq++;
+    const usoId = `USO-${orderIdStr}-${String(seq).padStart(3,"0")}`;
+    await createPage(CONFIG.DB_USOS, {
+      "Uso ID":    { title: [{ text: { content: usoId } }] },
+      "Quintal":   { relation: [{ id: a.quintal.id }] },
+      "KG usados": { number: a.kg },
+      "Orden":     { relation: [{ id: orderId }] },
+      "Firma":     { relation: [{ id: STATE.persona.id }] },
+      "Fecha":     { date: { start: new Date().toISOString().substring(0,10) } },
+    });
+  }
+}
+
+// v2 · Resuelve el bind de empaque para un item
+function resolveBindForItem(item) {
+  const pres = readProp(item, "Presentación");
+  const tos = readProp(item, "Tostado");
+  const oriIds = readProp(item, "Origen") || [];
+  const ori = oriIds.length ? STATE.origenes.find(x => x.id === oriIds[0]) : null;
+  const oriName = ori ? (readProp(ori,"ID Origen") || pageTitle(ori) || "") : "";
+  // Heurística Grado A: nombre del origen contiene GA, G-A o "Grado A"
+  const isGradoA = /\b(grado\s*a|g-?a)\b/i.test(oriName);
+  if (isGradoA) return "Grado A · 500g Craft";
+  if (pres === "1 KG") return "1 KG · Trilaminated";
+  if (!pres || !tos) return null;
+  return `${tos} · ${pres}`;
+}
+
+// Computa qué empaques se descontarían y cuánto, para los items de una orden
+function previewPackagingFor(o) {
+  if (!CONFIG.DB_EMPAQUE) return null;
+  const myItems = STATE.items.filter(it => (readProp(it,"Orden") || []).includes(o.id));
+  const bindCounts = {};  // bindString → totalCount
+  myItems.forEach(it => {
+    const bind = resolveBindForItem(it);
+    const qty = readProp(it, "Cantidad") || 0;
+    if (!bind || qty <= 0) return;
+    bindCounts[bind] = (bindCounts[bind] || 0) + qty;
+    // v2 · BOX consume además 10 sachets del mismo tostado (caja de 10)
+    const pres = readProp(it, "Presentación");
+    const tos = readProp(it, "Tostado");
+    if (pres === "BOX" && tos) {
+      const sachetBind = `${tos} · SACHET`;
+      bindCounts[sachetBind] = (bindCounts[sachetBind] || 0) + qty * 10;
+    }
+  });
+  // Match contra empaques
+  const result = [];
+  for (const [bind, count] of Object.entries(bindCounts)) {
+    const emp = STATE.empaques.find(e =>
+      readProp(e,"Bind") === bind && readProp(e,"Activo") !== false
+    );
+    if (emp) {
+      const stock = readProp(emp,"Stock actual") || 0;
+      result.push({ bind, count, empaque: emp, stock, newStock: stock - count, found: true });
+    } else {
+      result.push({ bind, count, found: false });
+    }
+  }
+  return result;
+}
+
+// Ejecuta la deducción real
+async function executePackagingDeduction(preview) {
+  let first = true;
+  for (const row of preview) {
+    if (!row.found || !row.empaque) continue;
+    // v3 · 350ms delay between sequential PATCHes (calendar pattern)
+    if (!first) await new Promise(r => setTimeout(r, 350));
+    first = false;
+    await updatePage(row.empaque.id, {
+      "Stock actual": { number: Math.max(0, row.newStock) }
+    });
+  }
+}
+
+// v2 · Cancelar orden o archivarla (según si tiene etapas firmadas)
+async function cancelOrArchiveOrder() {
+  const o = STATE.selectedOrder;
+  if (!o) return;
+  if (!STATE.persona) { toast("Selecciona persona primero", "error"); return; }
+  const orderIdStr = pageTitle(o) || readProp(o,"Order ID") || "esta orden";
+  const anyStageSigned = STAGES.some(s => readProp(o, `${s.code} ✓`));
+
+  if (!anyStageSigned) {
+    // No etapas → archivar (eliminar de Notion)
+    if (!confirm(`¿Eliminar ${orderIdStr}?\n\nNo tiene etapas firmadas — no se afecta inventario. La orden se archiva (Notion la oculta pero no la destruye).`)) return;
+    try {
+      // Archivar items primero
+      const myItems = STATE.items.filter(it => (readProp(it,"Orden") || []).includes(o.id));
+      for (const it of myItems) {
+        await notion(`/pages/${it.id}`, { archived: true }, "PATCH");
+      }
+      // Archivar orden
+      await notion(`/pages/${o.id}`, { archived: true }, "PATCH");
+      toast(`✓ ${orderIdStr} archivada`, "success");
+      closeModal("modal-detail");
+      STATE.lastAction = Date.now();
+      await loadAll();
+    } catch (e) {
+      toast("Error: " + e.message, "error");
+    }
+    return;
+  }
+
+  // Tiene etapas firmadas → cancelar (marca cancelada, deducciones permanecen)
+  const stages = STAGES.filter(s => readProp(o, `${s.code} ✓`)).map(s => `${s.icon} ${s.name}`).join(", ");
+  const cvDone = readProp(o, "CV ✓");
+  const tDone = readProp(o, "T ✓");
+  const eDone = readProp(o, "E ✓");
+
+  let lossNote = "";
+  if (eDone) lossNote = "Café verde + bolsas ya consumidas — no se devuelven al inventario.";
+  else if (tDone) lossNote = "Café verde + tostado ya consumidos — no se devuelven al inventario.";
+  else if (cvDone) lossNote = "Café verde ya apartado — ver opciones abajo.";
+
+  const razon = prompt(`Cancelar ${orderIdStr}\n\nEtapas ya firmadas: ${stages}\n${lossNote}\n\nRazón de cancelación:`);
+  if (razon === null) return;
+  if (!razon.trim()) { toast("Falta razón", "error"); return; }
+
+  // Si solo CV firmada (apartado pero no tostado), preguntar si devolver café verde
+  let returnGreen = false;
+  if (cvDone && !tDone) {
+    returnGreen = confirm("El café verde fue apartado pero NO tostado todavía.\n\n¿Devolver el café verde al inventario? (Borra los registros de Uso de esta orden)");
+  }
+
+  try {
+    const today = new Date().toISOString().substring(0,10);
+    await updatePage(o.id, {
+      "Cancelada":         { checkbox: true },
+      "Razón cancelación": { rich_text: [{ text: { content: razon.trim() } }] },
+      "Firma cancelación": { relation: [{ id: STATE.persona.id }] },
+      "Fecha cancelación": { date: { start: today } },
+    });
+    if (returnGreen) {
+      // Archivar todos los usos asociados a esta orden — devuelve los kg al stock
+      const myUsos = STATE.usos.filter(u => (readProp(u,"Orden") || []).includes(o.id));
+      for (const u of myUsos) {
+        await notion(`/pages/${u.id}`, { archived: true }, "PATCH");
+      }
+      toast(`✓ ${orderIdStr} cancelada · ${myUsos.length} usos revertidos`, "success");
+    } else {
+      toast(`✓ ${orderIdStr} cancelada`, "success");
+    }
+    // comms: kofy:orderCancelled
+    {
+      const _cIds = readProp(o, "Cliente") || [];
+      const _c    = STATE.clientes.find(c => c.id === _cIds[0]);
+      window.dispatchEvent(new CustomEvent("kofy:orderCancelled", { detail: {
+        orderId:     orderIdStr,
+        orderPageId: o.id,
+        clientId:    _cIds[0] || null,
+        clientName:  _c ? (readProp(_c,"Nombre / Razón Social") || pageTitle(_c)) : "",
+        razon:       razon.trim(),
+        persona:     STATE.persona?.id || null
+      }}));
+    }
+    closeModal("modal-detail");
+    STATE.lastAction = Date.now();
+    await loadAll();
+  } catch (e) {
+    toast("Error: " + e.message + " · ¿corriste la migración 'Órdenes para cancelaciones' en setup?", "error");
+  }
+}
+
+// Cascade firma: si saltás a etapa N, todas las anteriores no firmadas se firman a tu nombre
+async function markStageCascade(o, targetCode) {
+  if (!STATE.persona) { toast("Selecciona persona primero", "error"); return; }
+  const targetIdx = STAGES.findIndex(s => s.code === targetCode);
+  if (targetIdx < 0) return;
+  const toMark = [];
+  for (let i = 0; i <= targetIdx; i++) {
+    const s = STAGES[i];
+    if (!readProp(o, `${s.code} ✓`)) toMark.push(s);
+  }
+  if (toMark.length === 0) { toast("Esa etapa ya estaba firmada"); return; }
+  if (toMark.length > 1) {
+    const names = toMark.map(s => `${s.icon} ${s.name}`).join(", ");
+    if (!confirm(`Vas a firmar ${toMark.length} etapas en cascada:\n\n${names}\n\nTodas quedan a tu nombre (${STATE.persona.name}) con fecha de hoy. ¿Seguro?`)) return;
+  }
+
+  // v2 · Si "Café Verde" (CV) está en las etapas a marcar, computar plan FIFO de
+  // deducción de café verde y confirmar.
+  let greenPlan = null;
+  const willMarkCV = toMark.some(s => s.code === "CV");
+  if (willMarkCV) {
+    greenPlan = planGreenDeductionForOrder(o);
+    if (greenPlan.allocations.length > 0 || greenPlan.insufficiencies.length > 0) {
+      const allocLines = greenPlan.allocations.map(a =>
+        `  · ${a.kg} kg de ${a.quintalName}  (compra ${a.fecha.substring(0,10)})`
+      ).join("\n");
+      const insufLines = greenPlan.insufficiencies.map(i =>
+        `  ⚠ ${i.origenName}: faltan ${i.missing} kg — no hay suficiente en quintales`
+      ).join("\n");
+      const lines = [allocLines, insufLines].filter(Boolean).join("\n");
+      const anyInsuf = greenPlan.insufficiencies.length > 0;
+      const msg = `Apartar café verde (FIFO · más viejo primero) para esta orden:\n\n${lines}\n\nTotal: ${greenPlan.total} kg verdes${anyInsuf ? "\n\n⚠ Hay insuficiencias. Se firma la etapa y se descuenta lo que haya, pero quedan unidades sin café asignado." : ""}\n\n¿Continuar?`;
+      if (!confirm(msg)) return;
+    }
+  }
+
+  // v2 · Si "Empaquetado" (E) está en las etapas a marcar Y hay empaque configurado,
+  // computar y confirmar la deducción de empaque antes de firmar.
+  let pkgPreview = null;
+  const willMarkE = toMark.some(s => s.code === "E");
+  if (willMarkE && CONFIG.DB_EMPAQUE) {
+    pkgPreview = previewPackagingFor(o);
+    if (pkgPreview && pkgPreview.length > 0) {
+      const lines = pkgPreview.map(r => {
+        if (!r.found) return `  ⚠ ${r.bind}: ${r.count} unidades — NO HAY empaque registrado con ese bind`;
+        const warn = r.newStock < 0 ? `  ⚠ stock insuficiente (${r.stock})` : "";
+        return `  · ${r.bind}: ${r.count} unidades · ${pageTitle(r.empaque)} (stock: ${r.stock} → ${r.newStock})${warn}`;
+      }).join("\n");
+      const anyMissing = pkgPreview.some(r => !r.found || r.newStock < 0);
+      const msg = `Empaquetar va a deducir:\n\n${lines}\n\n${anyMissing ? "⚠ Hay binds sin empaque o stock insuficiente. ¿Continuar igual?" : "¿Continuar?"}`;
+      if (!confirm(msg)) return;
+    }
+  }
+
+  const today = new Date().toISOString().substring(0,10);
+  const props = {};
+  toMark.forEach(s => {
+    props[`${s.code} ✓`]     = { checkbox: true };
+    props[`${s.code} firma`] = { relation: [{ id: STATE.persona.id }] };
+    props[`${s.code} fecha`] = { date: { start: today } };
+  });
+  try {
+    await updatePage(o.id, props);
+    const orderIdStr = pageTitle(o) || readProp(o,"Order ID") || "ORDEN";
+    // v2 · Ejecutar deducción de café verde (FIFO) si fue confirmada
+    if (greenPlan && greenPlan.allocations.length > 0) {
+      await executeGreenDeduction(greenPlan, o.id, orderIdStr);
+    }
+    // v2 · Ejecutar deducción de empaque si fue confirmada
+    if (pkgPreview && pkgPreview.length > 0) {
+      await executePackagingDeduction(pkgPreview);
+    }
+    // Toast resumen
+    const parts = [`✓ ${toMark.length} etapa${toMark.length>1?"s":""} firmada${toMark.length>1?"s":""} por ${STATE.persona.name}`];
+    if (greenPlan && greenPlan.allocations.length > 0) {
+      parts.push(`${greenPlan.total} kg verdes apartados`);
+    }
+    if (pkgPreview) {
+      const dedunits = pkgPreview.filter(r => r.found).reduce((s,r) => s + r.count, 0);
+      if (dedunits > 0) parts.push(`${dedunits} unidades de empaque deducidas`);
+    }
+    toast(parts.join(" · "), "success");
+    // comms: kofy:orderStageAdvanced
+    {
+      const _cIds = readProp(o, "Cliente") || [];
+      const _c    = STATE.clientes.find(c => c.id === _cIds[0]);
+      window.dispatchEvent(new CustomEvent("kofy:orderStageAdvanced", { detail: {
+        orderId:     pageTitle(o) || readProp(o,"Order ID") || "—",
+        orderPageId: o.id,
+        clientId:    _cIds[0] || null,
+        clientName:  _c ? (readProp(_c,"Nombre / Razón Social") || pageTitle(_c)) : "",
+        stages:      toMark.map(s => s.code),
+        persona:     STATE.persona?.id || null,
+        isCascade:   toMark.length > 1
+      }}));
+    }
+    STATE.lastAction = Date.now();
+    await loadAll();
+    const refreshed = STATE.ordenes.find(x => x.id === o.id);
+    if (refreshed) openDetail(refreshed);
+  } catch (e) {
+    toast(e.message, "error");
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// Modales · helpers
+// ═══════════════════════════════════════════════════════
+function openModal(id) { document.getElementById(id).classList.add("open"); }
+function closeModal(id) { document.getElementById(id).classList.remove("open"); }
+
+document.getElementById("fab").onclick = () => {
+  itemRowCount = 0;
+  document.getElementById("items-container").innerHTML = "";
+  addItemRow();
+  document.getElementById("new-date").value = new Date().toISOString().substring(0,10);
+  document.getElementById("new-client").value = "";
+  document.getElementById("new-client-extra").style.display = "none";
+  document.getElementById("b2b-banner").style.display = "none";
+  document.getElementById("new-gratis").checked = false;
+  document.getElementById("new-gratis-razon").value = "";
+  document.getElementById("gratis-razon-wrap").style.display = "none";
+  updatePreviewId();
+  updateGreenTotal();
+  openModal("modal-new");
+};
+function onGratisToggle() {
+  const checked = document.getElementById("new-gratis").checked;
+  document.getElementById("gratis-razon-wrap").style.display = checked ? "block" : "none";
+}
+
+document.getElementById("filter-client").onchange = renderKanban;
+document.getElementById("filter-search").oninput = renderKanban;
+
+// v2 · Filtros avanzados (tag-pickers + date range)
+function toggleAdvFilters() {
+  STATE.advFiltersOpen = !STATE.advFiltersOpen;
+  const panel = document.getElementById("adv-filter-bar");
+  panel.classList.toggle("open", STATE.advFiltersOpen);
+  document.getElementById("filter-more").textContent = STATE.advFiltersOpen ? "− Filtros" : "+ Filtros";
+  if (STATE.advFiltersOpen) populateAdvPickers();
+}
+
+function populateAdvPickers() {
+  // Etapa
+  const etapasC = document.getElementById("adv-etapas");
+  const opts = [
+    { code: "recibida", label: "📥 Recibida" },
+    ...STAGES.map(s => ({ code: s.code.toLowerCase(), label: `${s.icon} ${s.name}` })),
+  ];
+  etapasC.innerHTML = opts.map(o =>
+    `<button class="tag-pick ${STATE.advFilters.etapas.includes(o.code) ? "on" : ""}" onclick="togglePicker('etapas', '${o.code}', this)">${o.label}</button>`
+  ).join("");
+  // Tostados
+  document.getElementById("adv-tostados").innerHTML = ["AN","CM","MT"].map(t =>
+    `<button class="tag-pick ${STATE.advFilters.tostados.includes(t) ? "on" : ""}" onclick="togglePicker('tostados', '${t}', this)">${t}</button>`
+  ).join("");
+  // Origenes activos
+  const oriC = document.getElementById("adv-origenes");
+  const activos = STATE.origenes.filter(o => readProp(o, "Activo") !== false);
+  if (activos.length === 0) {
+    oriC.innerHTML = `<span style="font-size: 11px; color: var(--ink-mute); font-style: italic;">Sin orígenes activos</span>`;
+  } else {
+    oriC.innerHTML = activos.map(o => {
+      const oid = readProp(o, "ID Origen") || pageTitle(o) || "—";
+      return `<button class="tag-pick ${STATE.advFilters.origenes.includes(o.id) ? "on" : ""}" onclick="togglePicker('origenes', '${o.id}', this)">${oid}</button>`;
+    }).join("");
+  }
+  document.getElementById("adv-date-from").value = STATE.advFilters.dateFrom;
+  document.getElementById("adv-date-to").value = STATE.advFilters.dateTo;
+}
+
+function togglePicker(dim, val, btn) {
+  const arr = STATE.advFilters[dim];
+  const idx = arr.indexOf(val);
+  if (idx >= 0) arr.splice(idx, 1); else arr.push(val);
+  btn.classList.toggle("on");
+  renderKanban();
+}
+
+function onDateRangeChange() {
+  STATE.advFilters.dateFrom = document.getElementById("adv-date-from").value;
+  STATE.advFilters.dateTo   = document.getElementById("adv-date-to").value;
+  renderKanban();
+}
+function clearDateRange() {
+  STATE.advFilters.dateFrom = ""; STATE.advFilters.dateTo = "";
+  document.getElementById("adv-date-from").value = "";
+  document.getElementById("adv-date-to").value = "";
+  renderKanban();
+}
+function clearAllAdvFilters() {
+  STATE.advFilters = { dateFrom: "", dateTo: "", etapas: [], tostados: [], origenes: [] };
+  populateAdvPickers();
+  renderKanban();
+}
+// v2 · openCancelledModal — abrir vista dedicada de canceladas
+function openCancelledModal() {
+  const cancelled = STATE.ordenes.filter(o => readProp(o, "Cancelada") === true);
+  document.getElementById("cancelled-count").textContent =
+    cancelled.length === 0 ? "ninguna" : `${cancelled.length} orden${cancelled.length === 1 ? "" : "es"}`;
+  const list = document.getElementById("cancelled-list");
+  if (cancelled.length === 0) {
+    list.innerHTML = `<div class="empty" style="padding: 40px 0; text-align: center; color: var(--ink-mute); font-size: 14px;">🎉 Ninguna orden cancelada todavía.</div>`;
+  } else {
+    // Ordenar por Fecha cancelación descendente (las más recientes arriba)
+    const sorted = cancelled.slice().sort((a,b) => {
+      const fa = readProp(a, "Fecha cancelación") || "";
+      const fb = readProp(b, "Fecha cancelación") || "";
+      return fb.localeCompare(fa);
+    });
+    list.innerHTML = sorted.map(o => renderCancelledCard(o)).join("");
+  }
+  openModal("modal-cancelled");
+}
+
+function renderCancelledCard(o) {
+  const orderId = pageTitle(o) || readProp(o, "Order ID") || "—";
+  const clientIds = readProp(o, "Cliente") || [];
+  const client = STATE.clientes.find(c => c.id === clientIds[0]);
+  const clientName = client ? (readProp(client, "Nombre / Razón Social") || pageTitle(client)) : "—";
+  const razon = readProp(o, "Razón cancelación") || "(sin razón)";
+  const firmaIds = readProp(o, "Firma cancelación") || [];
+  const firma = firmaIds.length ? STATE.miembros.find(m => m.id === firmaIds[0]) : null;
+  const firmaName = firma ? (pageTitle(firma) || readProp(firma, "Nombre")) : "—";
+  const fechaCancel = readProp(o, "Fecha cancelación");
+  // Etapas firmadas antes de la cancelación
+  const stagesDone = STAGES.filter(s => readProp(o, `${s.code} ✓`));
+  const stagesText = stagesDone.length > 0
+    ? stagesDone.map(s => `${s.icon} ${s.name}`).join(" → ")
+    : "ninguna (estaba en Recibida)";
+  // Si fue reactivada antes
+  const reactFirmaIds = readProp(o, "Reactivada · firma") || [];
+  const reactFecha = readProp(o, "Reactivada · fecha");
+  const reactFirma = reactFirmaIds.length ? STATE.miembros.find(m => m.id === reactFirmaIds[0]) : null;
+  const reactNote = reactFirma ? `<div style="margin-top: 6px; color: var(--gold); font-size: 11px; font-style: italic;">Reactivada antes por ${pageTitle(reactFirma)} el ${reactFecha || ""}</div>` : "";
+
+  return `
+    <div class="cancelled-card">
+      <div class="cancelled-head">
+        <div style="flex: 1; min-width: 0;">
+          <div class="cancelled-id">${orderId}</div>
+          <div class="cancelled-client">${clientName}</div>
+        </div>
+        <button class="btn primary" style="white-space: nowrap; font-size: 12px; padding: 8px 14px;" onclick="reactivateOrder('${o.id}')">↻ Reactivar</button>
+      </div>
+      <div class="cancelled-meta">
+        <div>Cancelada por <strong>${firmaName}</strong>${fechaCancel ? ` · ${fechaCancel}` : ""}</div>
+        <div style="margin-top: 4px;">Razón: <em>"${razon}"</em></div>
+        <div style="margin-top: 4px; color: var(--ink-mute);">Etapas firmadas antes: ${stagesText}</div>
+        ${reactNote}
+      </div>
+    </div>
+  `;
+}
+
+async function reactivateOrder(orderId) {
+  if (!STATE.persona) { toast("Selecciona persona primero", "error"); return; }
+  const o = STATE.ordenes.find(x => x.id === orderId);
+  if (!o) return;
+  const orderIdStr = pageTitle(o) || readProp(o, "Order ID") || "esta orden";
+  if (!confirm(`¿Reactivar ${orderIdStr}?\n\nLa orden vuelve al Kanban en la etapa donde estaba antes de cancelarse. El historial de cancelación se preserva como referencia.\n\nQuedará registrado que ${STATE.persona.name} la reactivó hoy.`)) return;
+  try {
+    const today = new Date().toISOString().substring(0,10);
+    await updatePage(orderId, {
+      "Cancelada":          { checkbox: false },
+      "Reactivada · firma": { relation: [{ id: STATE.persona.id }] },
+      "Reactivada · fecha": { date: { start: today } },
+    });
+    toast(`✓ ${orderIdStr} reactivada por ${STATE.persona.name}`, "success");
+    closeModal("modal-cancelled");
+    STATE.lastAction = Date.now();
+    await loadAll();
+  } catch (e) {
+    toast("Error: " + e.message + " · ¿corriste otra vez la migración de cancelaciones?", "error");
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// Toast
+// ═══════════════════════════════════════════════════════
+function toast(msg, type = "") {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.className = "toast show " + type;
+  setTimeout(() => t.classList.remove("show"), 3000);
+}
+
+// ═══════════════════════════════════════════════════════
+// Auto-refresh adaptativo (mismo patrón que el calendario)
+// ═══════════════════════════════════════════════════════
+document.addEventListener("visibilitychange", () => {
+  STATE.hidden = document.hidden;
+  if (!document.hidden) loadAll();
+});
+
+// v2 · Smart refresh: no piso lo que estás tipeando ni un modal abierto
+function shouldSkipRefresh() {
+  if (document.querySelector(".modal-bg.open")) return true;
+  const f = document.activeElement;
+  if (f && (f.tagName === "INPUT" || f.tagName === "TEXTAREA" || f.tagName === "SELECT")) return true;
+  return false;
+}
+setInterval(() => {
+  if (STATE.hidden) return;
+  if (Date.now() - STATE.lastAction < 30000) return;
+  if (shouldSkipRefresh()) return;
+  loadAll();
+}, CONFIG.REFRESH_MS);
+
+// ═══════════════════════════════════════════════════════
+// Boot
+// ═══════════════════════════════════════════════════════
+window.addEventListener("DOMContentLoaded", async () => {
+  if (CONFIG.DB_ORDENES.startsWith("PEGAR_")) {
+    document.querySelector("main").innerHTML = `
+      <div class="config-warn">
+        <strong>⚠ Config incompleta.</strong> Edita el bloque <code>CONFIG</code> al inicio de este archivo y pega los DB IDs de Notion. Guía: <code>warehouse-notion-schema.html</code>.
+      </div>`;
+    return;
+  }
+  await loadAll();
+  // v2: persona check
+  const stored = loadPersona();
+  if (stored && STATE.miembros.find(m => m.id === stored.id)) {
+    STATE.persona = stored;
+    updatePersonaChip();
+    document.getElementById("picker").classList.add("hidden");
+  } else {
+    renderPersonaPicker();
+  }
+});
+</script>
+<script src="kofy-comms-loader.js"></script>
+</body>
+</html>

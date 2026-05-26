@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kofy · Warehouse · Notion Schema</title>
+<style>
+  :root {
+    --bg: #0a0610;
+    --surface: #15101f;
+    --surface-2: #1f1830;
+    --line: #2a2138;
+    --ink: #f3e8d4;
+    --ink-mute: #9e8db8;
+    --gold: #f5c842;
+    --plum: #5b3a8f;
+    --plum-soft: #7a52b8;
+    --green: #7fb069;
+    --red: #d9534f;
+    --cream: #f5e6d3;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--bg); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif; line-height: 1.55; }
+  body { padding: 32px 20px 80px; max-width: 1100px; margin: 0 auto; }
+
+  .head { border-bottom: 1px solid var(--line); padding-bottom: 24px; margin-bottom: 32px; }
+  .eyebrow { color: var(--gold); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 600; margin-bottom: 8px; }
+  h1 { font-size: 32px; font-weight: 700; color: var(--cream); letter-spacing: -0.02em; margin-bottom: 8px; }
+  .sub { color: var(--ink-mute); font-size: 15px; max-width: 720px; }
+
+  h2 { font-size: 13px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); margin: 48px 0 16px; font-weight: 600; }
+  h3 { font-size: 18px; color: var(--cream); margin-bottom: 8px; font-weight: 600; }
+  p { color: var(--ink-mute); margin-bottom: 12px; }
+  p strong { color: var(--ink); font-weight: 600; }
+  code { font-family: ui-monospace, "JetBrains Mono", "SF Mono", monospace; font-size: 13px; color: var(--gold); background: var(--surface); padding: 2px 6px; border-radius: 3px; }
+
+  .db-block { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 24px; margin-bottom: 24px; }
+  .db-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; padding-bottom: 16px; border-bottom: 1px solid var(--line); flex-wrap: wrap; gap: 12px; }
+  .db-title { font-size: 20px; color: var(--cream); font-weight: 700; }
+  .db-num { font-size: 11px; color: var(--plum-soft); letter-spacing: 0.12em; font-weight: 600; }
+  .db-desc { color: var(--ink-mute); font-size: 14px; margin-bottom: 16px; }
+
+  table.props { width: 100%; border-collapse: collapse; margin: 12px 0 16px; font-size: 13px; }
+  table.props th { text-align: left; padding: 8px 10px; background: var(--surface-2); color: var(--gold); font-weight: 600; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; border-bottom: 1px solid var(--line); }
+  table.props td { padding: 10px 10px; border-bottom: 1px solid var(--line); color: var(--ink); vertical-align: top; }
+  table.props td.pname { font-weight: 600; color: var(--cream); }
+  table.props td.ptype { color: var(--plum-soft); font-family: ui-monospace, monospace; font-size: 12px; white-space: nowrap; }
+  table.props td.pcfg { color: var(--ink-mute); font-size: 12px; }
+  table.props tr.key td { background: rgba(245,200,66,0.06); }
+
+  .sample { background: var(--surface-2); border-left: 3px solid var(--green); padding: 14px 16px; border-radius: 4px; margin-top: 12px; font-size: 13px; }
+  .sample-lbl { color: var(--green); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 600; margin-bottom: 8px; }
+  .sample-row { color: var(--ink); margin: 4px 0; }
+  .sample-row strong { color: var(--cream); }
+
+  .dbid-slot { display: flex; align-items: center; gap: 12px; background: rgba(245,200,66,0.06); border: 1px dashed rgba(245,200,66,0.3); padding: 12px 16px; border-radius: 4px; margin-top: 16px; font-family: ui-monospace, monospace; font-size: 12px; flex-wrap: wrap; }
+  .dbid-slot .lbl { color: var(--gold); font-weight: 600; flex: 0 0 auto; }
+  .dbid-slot input { flex: 1; min-width: 200px; background: var(--bg); color: var(--ink); border: 1px solid var(--line); padding: 8px 10px; border-radius: 3px; font-family: ui-monospace, monospace; font-size: 12px; }
+  .dbid-slot input:focus { outline: none; border-color: var(--gold); }
+  .dbid-slot input.filled { border-color: var(--green); color: var(--cream); }
+  .dbid-slot .status { font-size: 11px; color: var(--ink-mute); }
+  .dbid-slot .status.ok { color: var(--green); }
+
+  /* Generator */
+  .generator { background: var(--surface); border: 1px solid var(--gold); border-radius: 8px; padding: 24px; margin-top: 24px; }
+  .generator h3 { color: var(--gold); margin-bottom: 12px; }
+  .gen-progress { font-size: 13px; color: var(--ink-mute); margin-bottom: 16px; }
+  .gen-progress strong { color: var(--cream); font-family: ui-monospace, monospace; }
+  .gen-code { background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 16px; font-family: ui-monospace, monospace; font-size: 12px; line-height: 1.7; color: var(--ink); white-space: pre; overflow-x: auto; position: relative; }
+  .gen-code .placeholder-line { color: var(--red); }
+  .gen-code .filled-line { color: var(--green); }
+  .gen-btns { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+  .gen-btn { background: var(--gold); color: var(--bg); border: none; padding: 10px 16px; border-radius: 4px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; letter-spacing: 0.04em; }
+  .gen-btn:hover { background: #ffd863; }
+  .gen-btn.secondary { background: var(--plum); color: var(--cream); }
+  .gen-btn.ghost { background: transparent; color: var(--ink-mute); border: 1px solid var(--line); }
+  .gen-toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--surface); border: 1px solid var(--green); padding: 12px 20px; border-radius: 6px; color: var(--cream); font-size: 13px; z-index: 100; opacity: 0; transition: opacity 0.2s; pointer-events: none; }
+  .gen-toast.show { opacity: 1; }
+
+  .callout { background: var(--surface-2); border-left: 3px solid var(--gold); padding: 16px 20px; border-radius: 4px; margin: 16px 0; }
+  .callout-lbl { color: var(--gold); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 600; margin-bottom: 6px; }
+  .callout p { color: var(--ink); font-size: 13px; margin-bottom: 0; }
+
+  ol.steps { padding-left: 0; list-style: none; counter-reset: stepc; }
+  ol.steps > li { counter-increment: stepc; padding: 12px 0 12px 44px; position: relative; border-bottom: 1px solid var(--line); color: var(--ink); font-size: 14px; }
+  ol.steps > li::before { content: counter(stepc); position: absolute; left: 0; top: 12px; width: 28px; height: 28px; background: var(--plum); color: var(--cream); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; font-family: ui-monospace, monospace; }
+  ol.steps > li:last-child { border-bottom: none; }
+
+  .foot { margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--line); color: var(--ink-mute); font-size: 12px; }
+
+  @media (max-width: 720px) {
+    table.props { font-size: 12px; }
+    table.props th, table.props td { padding: 6px 6px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="head">
+  <div class="eyebrow">Kofy · Sistema Interno</div>
+  <h1>Warehouse · Notion Schema</h1>
+  <p class="sub">Guía de creación de los 7 DBs en Notion. Crea cada uno en orden — algunas relations dependen de DBs anteriores. Cuando termines un DB, pega su <strong>Database ID</strong> en la casilla amarilla. Esos IDs van al archivo de config de los HTMLs.</p>
+</header>
+
+<div class="callout">
+  <div class="callout-lbl">Orden de creación · importa</div>
+  <p>Miembros → Clientes → Orígenes → Quintales → Órdenes → Items de Orden → Usos de Café Verde. Cada DB con relations apunta a uno creado antes.</p>
+</div>
+
+<!-- DB 07 - Miembros -->
+<div class="db-block">
+  <div class="db-head">
+    <div>
+      <div class="db-num">DB 07 · empezar aquí</div>
+      <div class="db-title">Miembros</div>
+    </div>
+  </div>
+  <div class="db-desc">Cuatro filas fijas. Crear primero porque todas las firmas del sistema apuntan aquí.</div>
+  <table class="props">
+    <thead><tr><th>Propiedad</th><th>Tipo</th><th>Configuración</th></tr></thead>
+    <tbody>
+      <tr class="key"><td class="pname">Nombre</td><td class="ptype">Title</td><td class="pcfg">Propiedad por defecto. Ej: Kafay, Partner, Leo, Primo</td></tr>
+      <tr><td class="pname">Rol</td><td class="ptype">Select</td><td class="pcfg">Opciones: Fundadora · Co-fundador · Tostador · Soporte</td></tr>
+      <tr><td class="pname">Iniciales</td><td class="ptype">Text</td><td class="pcfg">Para firmas rápidas. Ej: KL, P, L, J</td></tr>
+      <tr><td class="pname">Activo</td><td class="ptype">Checkbox</td><td class="pcfg">Default: ✅</td></tr>
+    </tbody>
+  </table>
+  <div class="sample">
+    <div class="sample-lbl">Seed · 4 filas</div>
+    <div class="sample-row"><strong>Kafay</strong> · Fundadora · KL · ✅</div>
+    <div class="sample-row"><strong>Partner</strong> · Co-fundador · P · ✅</div>
+    <div class="sample-row"><strong>Leo</strong> · Tostador · L · ✅</div>
+    <div class="sample-row"><strong>Primo</strong> · Soporte · J · ✅ <em style="color:var(--ink-mute);">(José)</em></div>
+  </div>
+  <div class="dbid-slot"><span class="lbl">DB_ID_MIEMBROS =</span><input type="text" data-key="DB_ID_MIEMBROS" placeholder="32 caracteres del Database ID de Notion"><span class="status" data-status="DB_ID_MIEMBROS"></span></div>
+</div>
+
+<!-- DB 03 - Clientes -->
+<div class="db-block">
+  <div class="db-head">
+    <div>
+      <div class="db-num">DB 03</div>
+      <div class="db-title">Clientes</div>
+    </div>
+  </div>
+  <div class="db-desc">Cada persona o razón social a la que se le ha vendido café. Se reutiliza entre órdenes — si ya existe el cliente, la nueva orden se vincula a la fila existente.</div>
+  <table class="props">
+    <thead><tr><th>Propiedad</th><th>Tipo</th><th>Configuración</th></tr></thead>
+    <tbody>
+      <tr class="key"><td class="pname">Nombre / Razón Social</td><td class="ptype">Title</td><td class="pcfg">Propiedad por defecto. Ej: PETIT, YULLI, ORIGEN</td></tr>
+      <tr><td class="pname">Cédula / RIF</td><td class="ptype">Text</td><td class="pcfg">Ej: J-838220919, V-12345678</td></tr>
+      <tr><td class="pname">Tipo</td><td class="ptype">Select</td><td class="pcfg">Opciones: Persona · Empresa · Café · Restaurante · Hotel</td></tr>
+      <tr><td class="pname">Teléfono</td><td class="ptype">Phone</td><td class="pcfg">WhatsApp preferido</td></tr>
+      <tr><td class="pname">Email</td><td class="ptype">Email</td><td class="pcfg">Opcional</td></tr>
+      <tr><td class="pname">Dirección</td><td class="ptype">Text</td><td class="pcfg">Para envíos MRW</td></tr>
+      <tr><td class="pname">Notas</td><td class="ptype">Text</td><td class="pcfg">Preferencias, historia, contacto interno</td></tr>
+    </tbody>
+  </table>
+  <div class="sample">
+    <div class="sample-lbl">Sample · del PDF</div>
+    <div class="sample-row"><strong>PETIT</strong> · J-838220919 · Empresa</div>
+  </div>
+  <div class="dbid-slot"><span class="lbl">DB_ID_CLIENTES =</span><input type="text" data-key="DB_ID_CLIENTES" placeholder="32 caracteres del Database ID de Notion"><span class="status" data-status="DB_ID_CLIENTES"></span></div>
+</div>
+
+<!-- DB 04 - Origenes -->
+<div class="db-block">
+  <div class="db-head">
+    <div>
+      <div class="db-num">DB 04</div>
+      <div class="db-title">Orígenes</div>
+    </div>
+  </div>
+  <div class="db-desc">Un origen = caficultor + varietal + (tostado default si aplica). El header del registro de café verde en papel.</div>
+  <table class="props">
+    <thead><tr><th>Propiedad</th><th>Tipo</th><th>Configuración</th></tr></thead>
+    <tbody>
+      <tr class="key"><td class="pname">ID Origen</td><td class="ptype">Title</td><td class="pcfg">Patrón: INICIALES_CAFICULTOR-INICIALES_VARIETAL-TOSTADO. Ej: MG-MC-CM</td></tr>
+      <tr><td class="pname">Caficultor</td><td class="ptype">Text</td><td class="pcfg">Ej: Maria Guerra</td></tr>
+      <tr><td class="pname">Hacienda</td><td class="ptype">Text</td><td class="pcfg">Ej: La Comarca</td></tr>
+      <tr><td class="pname">Varietal</td><td class="ptype">Text</td><td class="pcfg">Ej: Monteclaro</td></tr>
+      <tr><td class="pname">MSNM</td><td class="ptype">Number</td><td class="pcfg">Metros sobre nivel del mar. Ej: 1680</td></tr>
+      <tr><td class="pname">Proceso</td><td class="ptype">Select</td><td class="pcfg">Opciones: Lavado · Honey · Natural · Anaeróbico</td></tr>
+      <tr><td class="pname">Tostado default</td><td class="ptype">Select</td><td class="pcfg">Opciones: AN · CM · MT · Grado A · Single O · (ninguno)</td></tr>
+      <tr><td class="pname">Notas</td><td class="ptype">Text</td><td class="pcfg">Cup notes, historia, contacto</td></tr>
+      <tr><td class="pname">Activo</td><td class="ptype">Checkbox</td><td class="pcfg">Default: ✅</td></tr>
+    </tbody>
+  </table>
+  <div class="sample">
+    <div class="sample-lbl">Sample · del PDF</div>
+    <div class="sample-row"><strong>MG-MC-CM</strong> · Maria Guerra · La Comarca · Monteclaro · 1680 MSNM · CM</div>
+  </div>
+  <div class="dbid-slot"><span class="lbl">DB_ID_ORIGENES =</span><input type="text" data-key="DB_ID_ORIGENES" placeholder="32 caracteres del Database ID de Notion"><span class="status" data-status="DB_ID_ORIGENES"></span></div>
+</div>
+
+<!-- DB 05 - Quintales -->
+<div class="db-block">
+  <div class="db-head">
+    <div>
+      <div class="db-num">DB 05</div>
+      <div class="db-title">Quintales</div>
+    </div>
+  </div>
+  <div class="db-desc">Cada saco físico de café verde. Un origen puede tener N quintales. Cuando entra una compra de 138 kg dividida en 3 sacos, se crean 3 filas A/B/C.</div>
+  <table class="props">
+    <thead><tr><th>Propiedad</th><th>Tipo</th><th>Configuración</th></tr></thead>
+    <tbody>
+      <tr class="key"><td class="pname">ID Quintal</td><td class="ptype">Title</td><td class="pcfg">Patrón: IDORIGEN-DDMM-LETRA. Ej: MG-MC-CM-2603-A</td></tr>
+      <tr><td class="pname">Origen</td><td class="ptype">Relation</td><td class="pcfg">→ Orígenes (DB 04). Single select.</td></tr>
+      <tr><td class="pname">Letra</td><td class="ptype">Select</td><td class="pcfg">Opciones: A · B · C · D · E · F</td></tr>
+      <tr><td class="pname">Fecha de compra</td><td class="ptype">Date</td><td class="pcfg">Ej: 26.03.2026</td></tr>
+      <tr><td class="pname">KG iniciales</td><td class="ptype">Number</td><td class="pcfg">Decimal, 1 dígito. Ej: 46</td></tr>
+      <tr><td class="pname">KG usados</td><td class="ptype">Rollup</td><td class="pcfg">Sum de Usos.KG donde Quintal = este</td></tr>
+      <tr><td class="pname">KG remanente</td><td class="ptype">Formula</td><td class="pcfg"><code>prop("KG iniciales") - prop("KG usados")</code></td></tr>
+      <tr><td class="pname">Status</td><td class="ptype">Formula</td><td class="pcfg"><code>if(prop("KG remanente") &lt;= 0.5, "Agotado", "Activo")</code></td></tr>
+      <tr><td class="pname">Costo total ($)</td><td class="ptype">Number</td><td class="pcfg">Opcional. Para márgenes.</td></tr>
+    </tbody>
+  </table>
+  <div class="sample">
+    <div class="sample-lbl">Sample · del PDF (3 filas, mismo origen)</div>
+    <div class="sample-row"><strong>MG-MC-CM-2603-A</strong> · A · 26.03.2026 · 46 kg</div>
+    <div class="sample-row"><strong>MG-MC-CM-2603-B</strong> · B · 26.03.2026 · 46 kg</div>
+    <div class="sample-row"><strong>MG-MC-CM-2603-C</strong> · C · 26.03.2026 · 46 kg</div>
+    <div class="sample-row" style="margin-top:8px; color:var(--ink-mute);"><em>Total origen = 138 kg (coincide con KG INICIALES del papel)</em></div>
+  </div>
+  <div class="dbid-slot"><span class="lbl">DB_ID_QUINTALES =</span><input type="text" data-key="DB_ID_QUINTALES" placeholder="32 caracteres del Database ID de Notion"><span class="status" data-status="DB_ID_QUINTALES"></span></div>
+</div>
+
+<!-- DB 01 - Ordenes -->
+<div class="db-block">
+  <div class="db-head">
+    <div>
+      <div class="db-num">DB 01 · principal</div>
+      <div class="db-title">Órdenes</div>
+    </div>
+  </div>
+  <div class="db-desc">La fila madre. Una por pedido. Las 5 etapas viven aquí como columnas independientes (más fácil de filtrar que un solo status).</div>
+  <table class="props">
+    <thead><tr><th>Propiedad</th><th>Tipo</th><th>Configuración</th></tr></thead>
+    <tbody>
+      <tr class="key"><td class="pname">Order ID</td><td class="ptype">Title</td><td class="pcfg">Patrón: NOMBRECLIENTE-DDMM. Ej: PETIT-3003</td></tr>
+      <tr><td class="pname">Cliente</td><td class="ptype">Relation</td><td class="pcfg">→ Clientes (DB 03)</td></tr>
+      <tr><td class="pname">Fecha de pedido</td><td class="ptype">Date</td><td class="pcfg">Día que entra el pedido</td></tr>
+      <tr><td class="pname">Fecha de entrega estimada</td><td class="ptype">Date</td><td class="pcfg">ETA acordado con cliente</td></tr>
+      <tr><td class="pname">Número de tostados</td><td class="ptype">Number</td><td class="pcfg">Cuántas batches de tostado requiere. Para Leo.</td></tr>
+      <tr><td class="pname">Etapa actual</td><td class="ptype">Formula</td><td class="pcfg">Devuelve la última etapa marcada — ver fórmula al final.</td></tr>
+      <tr><td class="pname">Notas QC</td><td class="ptype">Text</td><td class="pcfg">Control de calidad post-tostado.</td></tr>
+      <tr><td class="pname">Notas tostador</td><td class="ptype">Text</td><td class="pcfg">Para Leo: cup notes, reposo, curva.</td></tr>
+      <tr style="background: rgba(127,176,105,0.06);"><td class="pname" colspan="3" style="color:var(--green); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;">Las 5 etapas · cada una con 3 propiedades</td></tr>
+      <tr><td class="pname">CV ✓</td><td class="ptype">Checkbox</td><td class="pcfg">Café Verde apartado</td></tr>
+      <tr><td class="pname">CV firma</td><td class="ptype">Relation</td><td class="pcfg">→ Miembros (DB 07)</td></tr>
+      <tr><td class="pname">CV fecha</td><td class="ptype">Date</td><td class="pcfg">—</td></tr>
+      <tr><td class="pname">T ✓</td><td class="ptype">Checkbox</td><td class="pcfg">Tostado completado</td></tr>
+      <tr><td class="pname">T firma</td><td class="ptype">Relation</td><td class="pcfg">→ Miembros</td></tr>
+      <tr><td class="pname">T fecha</td><td class="ptype">Date</td><td class="pcfg">—</td></tr>
+      <tr><td class="pname">E ✓</td><td class="ptype">Checkbox</td><td class="pcfg">Empaquetado</td></tr>
+      <tr><td class="pname">E firma</td><td class="ptype">Relation</td><td class="pcfg">→ Miembros</td></tr>
+      <tr><td class="pname">E fecha</td><td class="ptype">Date</td><td class="pcfg">—</td></tr>
+      <tr><td class="pname">L ✓</td><td class="ptype">Checkbox</td><td class="pcfg">Listo p/ envío (etiquetas, caja, QR)</td></tr>
+      <tr><td class="pname">L firma</td><td class="ptype">Relation</td><td class="pcfg">→ Miembros</td></tr>
+      <tr><td class="pname">L fecha</td><td class="ptype">Date</td><td class="pcfg">—</td></tr>
+      <tr><td class="pname">EN ✓</td><td class="ptype">Checkbox</td><td class="pcfg">Entregado</td></tr>
+      <tr><td class="pname">EN firma</td><td class="ptype">Relation</td><td class="pcfg">→ Miembros</td></tr>
+      <tr><td class="pname">EN fecha</td><td class="ptype">Date</td><td class="pcfg">—</td></tr>
+    </tbody>
+  </table>
+  <div class="callout">
+    <div class="callout-lbl">Fórmula · Etapa actual</div>
+    <p style="font-family: ui-monospace, monospace; font-size: 12px;">if(prop("EN ✓"), "🎉 Entregado", if(prop("L ✓"), "🏷️ Listo p/ envío", if(prop("E ✓"), "📦 Empaquetado", if(prop("T ✓"), "🔥 Tostado", if(prop("CV ✓"), "🌱 Café Verde", "📥 Recibida")))))</p>
+  </div>
+  <div class="sample">
+    <div class="sample-lbl">Sample · del PDF</div>
+    <div class="sample-row"><strong>PETIT-3003</strong> · → PETIT · 30.03.2026 · ETA — · #tostados —</div>
+    <div class="sample-row">Notas tostador: <em>"Notas florales, dulce. Reposo de 3 días. Tostado de X grados…"</em></div>
+  </div>
+  <div class="dbid-slot"><span class="lbl">DB_ID_ORDENES =</span><input type="text" data-key="DB_ID_ORDENES" placeholder="32 caracteres del Database ID de Notion"><span class="status" data-status="DB_ID_ORDENES"></span></div>
+</div>
+
+<!-- DB 02 - Items de Orden -->
+<div class="db-block">
+  <div class="db-head">
+    <div>
+      <div class="db-num">DB 02</div>
+      <div class="db-title">Items de Orden</div>
+    </div>
+  </div>
+  <div class="db-desc">Cada línea del pedido. Una orden de 5 presentaciones distintas = 5 filas aquí.</div>
+  <table class="props">
+    <thead><tr><th>Propiedad</th><th>Tipo</th><th>Configuración</th></tr></thead>
+    <tbody>
+      <tr class="key"><td class="pname">Item ID</td><td class="ptype">Title</td><td class="pcfg">Auto: OrderID-ITEM-N. Ej: PETIT-3003-ITEM-1</td></tr>
+      <tr><td class="pname">Orden</td><td class="ptype">Relation</td><td class="pcfg">→ Órdenes (DB 01)</td></tr>
+      <tr><td class="pname">Presentación</td><td class="ptype">Select</td><td class="pcfg">Opciones: 1 KG · 500g · 250g · BOX · SACHET</td></tr>
+      <tr><td class="pname">Tostado</td><td class="ptype">Select</td><td class="pcfg">Opciones: AN · CM · MT · Grado A · Single O</td></tr>
+      <tr><td class="pname">Cantidad</td><td class="ptype">Number</td><td class="pcfg">Unidades de esa presentación</td></tr>
+      <tr><td class="pname">Grano / Molido</td><td class="ptype">Select</td><td class="pcfg">Opciones: Grano · Molido</td></tr>
+      <tr><td class="pname">Origen</td><td class="ptype">Relation</td><td class="pcfg">→ Orígenes (DB 04)</td></tr>
+      <tr><td class="pname">KG estimados</td><td class="ptype">Formula</td><td class="pcfg">if(Presentación = "1 KG", Cantidad × 1, if(Presentación = "500g", Cantidad × 0.5, …))</td></tr>
+    </tbody>
+  </table>
+  <div class="sample">
+    <div class="sample-lbl">Sample · del PDF</div>
+    <div class="sample-row"><strong>PETIT-3003-ITEM-1</strong> · 1 KG · CM · 12 · Grano · → MG-MC-CM</div>
+  </div>
+  <div class="dbid-slot"><span class="lbl">DB_ID_ITEMS =</span><input type="text" data-key="DB_ID_ITEMS" placeholder="32 caracteres del Database ID de Notion"><span class="status" data-status="DB_ID_ITEMS"></span></div>
+</div>
+
+<!-- DB 06 - Usos -->
+<div class="db-block">
+  <div class="db-head">
+    <div>
+      <div class="db-num">DB 06 · libro mayor</div>
+      <div class="db-title">Usos de Café Verde</div>
+    </div>
+  </div>
+  <div class="db-desc">Cada fila = un evento "se sacaron X kg del quintal Y para la orden Z, firmado por W el día F". El corazón de la trazabilidad e inventario.</div>
+  <table class="props">
+    <thead><tr><th>Propiedad</th><th>Tipo</th><th>Configuración</th></tr></thead>
+    <tbody>
+      <tr class="key"><td class="pname">Uso ID</td><td class="ptype">Title</td><td class="pcfg">Patrón: USO-ORDERID-NNN. Ej: USO-PETIT-3003-001</td></tr>
+      <tr><td class="pname">Quintal</td><td class="ptype">Relation</td><td class="pcfg">→ Quintales (DB 05)</td></tr>
+      <tr><td class="pname">KG usados</td><td class="ptype">Number</td><td class="pcfg">Decimal. Ej: 15, 2.5, 28.5</td></tr>
+      <tr><td class="pname">Orden</td><td class="ptype">Relation</td><td class="pcfg">→ Órdenes (DB 01)</td></tr>
+      <tr><td class="pname">Firma</td><td class="ptype">Relation</td><td class="pcfg">→ Miembros (DB 07)</td></tr>
+      <tr><td class="pname">Fecha</td><td class="ptype">Date</td><td class="pcfg">Día del apartado</td></tr>
+      <tr><td class="pname">Origen (rollup)</td><td class="ptype">Rollup</td><td class="pcfg">De Quintal → Origen. Útil para reportes.</td></tr>
+    </tbody>
+  </table>
+  <div class="sample">
+    <div class="sample-lbl">Sample · del PDF (4 filas)</div>
+    <div class="sample-row"><strong>USO-PETIT-3003-001</strong> · → MG-MC-CM-2603-A · 15 kg · → PETIT-3003 · Primo · 30.03.2026</div>
+    <div class="sample-row"><strong>USO-YULLI-3103-001</strong> · → MG-MC-CM-2603-A · 2.5 kg · → YULLI-3103 · Leo · 02.04.2026</div>
+    <div class="sample-row"><strong>USO-ORIGEN-0404-001</strong> · → MG-MC-CM-2603-A · 28.5 kg · → ORIGEN-0404 · Primo · 04.04.2026</div>
+    <div class="sample-row"><strong>USO-ORIGEN-0404-002</strong> · → MG-MC-CM-2603-B · 1.5 kg · → ORIGEN-0404 · Primo · 04.04.2026</div>
+  </div>
+  <div class="dbid-slot"><span class="lbl">DB_ID_USOS =</span><input type="text" data-key="DB_ID_USOS" placeholder="32 caracteres del Database ID de Notion"><span class="status" data-status="DB_ID_USOS"></span></div>
+</div>
+
+<h2>Rollups que vuelven al Origen</h2>
+<p>Una vez que Quintales tiene KG remanente como formula, agrega estas propiedades a <strong>Orígenes</strong>:</p>
+<table class="props">
+  <thead><tr><th>Propiedad en Orígenes</th><th>Tipo</th><th>Configuración</th></tr></thead>
+  <tbody>
+    <tr><td class="pname">Quintales (rel)</td><td class="ptype">Relation (inverso)</td><td class="pcfg">Ya se creó al hacer Quintales → Origen. Asegúrate de que se muestre en ambos lados.</td></tr>
+    <tr><td class="pname">KG total origen</td><td class="ptype">Rollup</td><td class="pcfg">Quintales → KG iniciales · Sum</td></tr>
+    <tr><td class="pname">KG remanente origen</td><td class="ptype">Rollup</td><td class="pcfg">Quintales → KG remanente · Sum</td></tr>
+    <tr><td class="pname">Stock</td><td class="ptype">Formula</td><td class="pcfg"><code>if(prop("KG remanente origen") &lt; 10, "🔴 Bajo", if(prop("KG remanente origen") &lt; 25, "🟡 Medio", "🟢 OK"))</code></td></tr>
+  </tbody>
+</table>
+
+<h2>Después de crear los DBs</h2>
+<ol class="steps">
+  <li>Pega los 7 DB_IDs en la sección amarilla de cada bloque (este HTML te sirve de referencia).</li>
+  <li>Crea las 4 filas de Miembros con los seed values de arriba.</li>
+  <li>Crea el cliente <code>PETIT</code> en Clientes (con RIF J-838220919).</li>
+  <li>Crea el origen <code>MG-MC-CM</code> en Orígenes con los datos del PDF.</li>
+  <li>Crea los 3 quintales <code>MG-MC-CM-2603-A/B/C</code> con 46 kg cada uno.</li>
+  <li>Crea la orden <code>PETIT-3003</code> con el item de 12 × 1 KG · CM · Grano · MG-MC-CM.</li>
+  <li>Crea los 4 usos del PDF para verificar que los rollups de remanente bajan correctamente (138 → 123 → 120.5 → 92 → 90.5).</li>
+  <li>Comparte los DB_IDs y comparte los DBs con la integración del Cloudflare Worker (la misma que ya usa el calendario).</li>
+  <li>Avísame y construyo / wired los HTMLs.</li>
+</ol>
+
+<div class="callout">
+  <div class="callout-lbl">Truco · compartir con integración</div>
+  <p>En cada DB: <strong>···</strong> arriba a la derecha → <em>Connections</em> → agrega la integración de Notion que ya usa el calendario. Los HTMLs heredan el mismo token y proxy.</p>
+</div>
+
+<h2>Generador del bloque CONFIG</h2>
+<div class="generator">
+  <h3>Pega esto en los 3 front-ends</h3>
+  <div class="gen-progress">Llenados: <strong id="gen-count">0/7</strong> · Cuando lleguen a 7 verás el bloque listo. Los IDs se guardan automáticamente en este navegador.</div>
+  <div class="gen-code" id="gen-code">// Llena los inputs arriba para generar el bloque CONFIG</div>
+  <div class="gen-btns">
+    <button class="gen-btn" id="btn-copy">📋 Copiar al portapapeles</button>
+    <button class="gen-btn secondary" id="btn-load">↻ Recargar desde almacenamiento</button>
+    <button class="gen-btn ghost" id="btn-clear">🗑 Borrar todos los IDs</button>
+  </div>
+  <p style="color: var(--ink-mute); font-size: 12px; margin-top: 14px;">
+    Reemplaza el bloque <code>const CONFIG = { … }</code> al inicio de <code>warehouse-ordenes.html</code>, <code>warehouse-inventario.html</code>, y <code>warehouse-yo.html</code> con este. Cada archivo usa solo los IDs que necesita, pero copiar el bloque completo a los tres es seguro.
+  </p>
+</div>
+
+<div class="gen-toast" id="gen-toast">Copiado al portapapeles ✓</div>
+
+<div class="foot">
+  Kofy · Warehouse v1 · Notion Schema · Mayo 2026
+</div>
+
+<script>
+const STORAGE_KEY = "kofy_warehouse_db_ids";
+const KEYS = ["DB_ID_MIEMBROS","DB_ID_CLIENTES","DB_ID_ORIGENES","DB_ID_QUINTALES","DB_ID_ORDENES","DB_ID_ITEMS","DB_ID_USOS"];
+
+function loadStored() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
+  catch { return {}; }
+}
+function save(state) { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function normalize(id) {
+  // Notion DB IDs son 32 hex; aceptamos con o sin guiones y los limpiamos
+  return (id || "").trim().replace(/[^a-f0-9]/gi, "").toLowerCase();
+}
+
+function refresh() {
+  const state = loadStored();
+  let filled = 0;
+  KEYS.forEach(k => {
+    const inp = document.querySelector(`input[data-key="${k}"]`);
+    const status = document.querySelector(`span[data-status="${k}"]`);
+    if (!inp) return;
+    const val = state[k] || "";
+    if (inp.value !== val) inp.value = val;
+    const norm = normalize(val);
+    const ok = norm.length === 32;
+    inp.classList.toggle("filled", ok);
+    if (status) {
+      if (!val) { status.textContent = ""; status.className = "status"; }
+      else if (ok) { status.textContent = "✓"; status.className = "status ok"; filled++; }
+      else { status.textContent = `${norm.length}/32 hex`; status.className = "status"; }
+    } else if (ok) filled++;
+  });
+  document.getElementById("gen-count").textContent = `${filled}/7`;
+  renderCode(state, filled);
+}
+
+function renderCode(state, filled) {
+  const lines = [
+    "const CONFIG = {",
+    `  PROXY_URL: "https://kofy-notion-proxy.delicate-surf-529c.workers.dev",`,
+  ];
+  KEYS.forEach(k => {
+    const norm = normalize(state[k]);
+    const ok = norm.length === 32;
+    const value = ok ? `"${norm}"` : `"PEGAR_${k}"`;
+    const cls = ok ? "filled-line" : "placeholder-line";
+    lines.push(`<span class="${cls}">  ${k.padEnd(15)}: ${value},</span>`);
+  });
+  lines.push(`  REFRESH_MS: 15000,`);
+  lines.push("};");
+  document.getElementById("gen-code").innerHTML = lines.join("\n");
+}
+
+document.addEventListener("input", e => {
+  if (!e.target.matches("input[data-key]")) return;
+  const key = e.target.dataset.key;
+  const state = loadStored();
+  state[key] = e.target.value;
+  save(state);
+  refresh();
+});
+
+document.getElementById("btn-copy").onclick = () => {
+  const state = loadStored();
+  const lines = [
+    "const CONFIG = {",
+    `  PROXY_URL: "https://kofy-notion-proxy.delicate-surf-529c.workers.dev",`,
+  ];
+  KEYS.forEach(k => {
+    const norm = normalize(state[k]);
+    const value = norm.length === 32 ? `"${norm}"` : `"PEGAR_${k}"`;
+    lines.push(`  ${k.padEnd(15)}: ${value},`);
+  });
+  lines.push(`  REFRESH_MS: 15000,`);
+  lines.push(`  // inventory only — umbral de stock bajo (kg)`);
+  lines.push(`  UMBRAL_BAJO: 10,`);
+  lines.push(`  UMBRAL_MEDIO: 25,`);
+  lines.push("};");
+  const text = lines.join("\n");
+  navigator.clipboard.writeText(text).then(() => {
+    const t = document.getElementById("gen-toast");
+    t.classList.add("show");
+    setTimeout(() => t.classList.remove("show"), 1800);
+  });
+};
+
+document.getElementById("btn-load").onclick = refresh;
+document.getElementById("btn-clear").onclick = () => {
+  if (!confirm("¿Borrar los 7 DB IDs guardados?")) return;
+  localStorage.removeItem(STORAGE_KEY);
+  refresh();
+};
+
+refresh();
+</script>
+
+</body>
+</html>

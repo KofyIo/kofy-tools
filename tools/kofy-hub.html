@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Kofy · Hub</title>
+<style>
+  :root {
+    --bg: #0a0610;
+    --surface: #15101f;
+    --surface-2: #1f1830;
+    --surface-3: #2a2138;
+    --line: #2a2138;
+    --ink: #f3e8d4;
+    --ink-mute: #9e8db8;
+    --gold: #f5c842;
+    --plum: #5b3a8f;
+    --plum-soft: #7a52b8;
+    --green: #7fb069;
+    --red: #d9534f;
+    --cream: #f5e6d3;
+    --shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { background: var(--bg); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif; line-height: 1.5; min-height: 100vh; }
+  body { padding-bottom: 80px; }
+
+  /* ── Header ── */
+  header.top {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(10,6,16,0.96); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line);
+    padding: 14px 20px;
+  }
+  .top-row {
+    display: flex; justify-content: space-between; align-items: center;
+    max-width: 1400px; margin: 0 auto; gap: 12px; flex-wrap: wrap;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  .brand .logo { font-size: 22px; }
+  .brand .name { font-size: 15px; font-weight: 700; color: var(--cream); letter-spacing: 0.06em; }
+  .brand .name .sub { color: var(--gold); font-weight: 400; margin-left: 8px; font-size: 12px; letter-spacing: 0.16em; }
+
+  .header-right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+  /* ── Persona selector ── */
+  .personas { display: flex; gap: 6px; flex-wrap: wrap; }
+  .persona-btn {
+    background: none; border: 1px solid var(--line);
+    color: var(--ink-mute); padding: 5px 14px;
+    border-radius: 20px; font-size: 12px; font-weight: 500;
+    cursor: pointer; font-family: inherit; letter-spacing: 0.04em;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+  }
+  .persona-btn:hover { border-color: var(--plum-soft); color: var(--cream); }
+  .persona-btn.active { background: var(--gold); border-color: var(--gold); color: var(--bg); font-weight: 700; }
+
+  /* ── View toggle ── */
+  .view-toggle {
+    background: none; border: 1px solid var(--line);
+    color: var(--ink-mute); padding: 5px 12px;
+    border-radius: 6px; font-size: 11px; font-weight: 500;
+    cursor: pointer; font-family: inherit; letter-spacing: 0.06em;
+    transition: border-color 0.15s, color 0.15s;
+    white-space: nowrap; flex-shrink: 0;
+  }
+  .view-toggle:hover { border-color: var(--plum-soft); color: var(--cream); }
+
+  /* ── Main ── */
+  main { max-width: 1400px; margin: 0 auto; padding: 40px 20px; }
+
+  /* ════════════════════════════════════
+     SIMPLIFIED VIEW
+  ════════════════════════════════════ */
+  #viewSimple { display: block; }
+  #viewFull   { display: none; }
+
+  .simple-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+  }
+
+  /* Base card (simplified) */
+  .s-card {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 12px; padding: 24px;
+    display: flex; flex-direction: column; gap: 10px;
+    position: relative; overflow: hidden;
+    transition: border-color 0.15s, transform 0.12s, box-shadow 0.15s, opacity 0.2s;
+  }
+  /* Simple link card */
+  a.s-card:hover {
+    border-color: var(--plum-soft);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 28px rgba(91,58,143,0.22);
+  }
+  a.s-card { text-decoration: none; color: inherit; cursor: pointer; }
+
+  /* Cluster card (Órdenes) — not a link itself */
+  .s-card.cluster { cursor: default; }
+
+  .s-card-icon { font-size: 36px; line-height: 1; margin-bottom: 4px; }
+  .s-card-title { font-size: 18px; font-weight: 700; color: var(--cream); letter-spacing: 0.02em; }
+  .s-card-desc  { font-size: 13px; color: var(--ink-mute); line-height: 1.45; }
+
+  /* Cluster main link */
+  .cluster-main {
+    display: flex; flex-direction: column; gap: 6px;
+    text-decoration: none; color: inherit;
+    padding: 4px 0;
+    border-radius: 6px;
+    transition: opacity 0.12s;
+  }
+  .cluster-main:hover .s-card-title { color: var(--gold); }
+
+  /* Sub-links inside cluster */
+  .cluster-divider {
+    border: none; border-top: 1px solid var(--line);
+    margin: 4px 0;
+  }
+  .cluster-subs { display: flex; gap: 8px; flex-wrap: wrap; }
+  .sub-link {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 12px; color: var(--ink-mute); text-decoration: none;
+    padding: 5px 10px; border-radius: 6px; border: 1px solid var(--line);
+    background: var(--surface-2);
+    transition: border-color 0.12s, color 0.12s, background 0.12s;
+  }
+  .sub-link:hover { border-color: var(--plum-soft); color: var(--cream); background: var(--surface-3); }
+  .sub-link .sub-icon { font-size: 14px; }
+
+  /* Persona dim on simple cards */
+  .s-card.dim { opacity: 0.14; }
+  .s-card.dim a { pointer-events: none; }
+
+  /* Chips on simple cards */
+  .s-card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
+  .s-chips { display: flex; gap: 4px; flex-wrap: wrap; }
+  .chip {
+    font-size: 9px; padding: 2px 6px; border-radius: 4px;
+    background: var(--surface-2); color: var(--ink-mute);
+    font-family: ui-monospace, monospace; letter-spacing: 0.04em;
+    transition: background 0.15s, color 0.15s;
+  }
+  .chip.hl { background: rgba(91,58,143,0.35); color: #b49de8; }
+  .badge {
+    font-size: 9px; font-weight: 700; letter-spacing: 0.1em;
+    padding: 2px 7px; border-radius: 4px; flex-shrink: 0; white-space: nowrap;
+  }
+  .badge.live { color: var(--green); background: rgba(127,176,105,0.1); border: 1px solid rgba(127,176,105,0.22); }
+  .badge.soon { color: var(--gold); background: rgba(245,200,66,0.07); border: 1px solid rgba(245,200,66,0.18); }
+
+  /* ════════════════════════════════════
+     FULL / COMPREHENSIVE VIEW
+  ════════════════════════════════════ */
+  .dept { margin-bottom: 52px; }
+  .dept-header {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 18px; padding-bottom: 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  .dept-icon { font-size: 18px; }
+  .dept-name {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--ink-mute);
+  }
+  .dept-count {
+    font-size: 10px; color: var(--ink-mute); background: var(--surface);
+    padding: 2px 8px; border-radius: 10px; font-family: ui-monospace, monospace;
+    margin-left: auto;
+  }
+  .dept-soon-tag {
+    font-size: 9px; font-weight: 700; letter-spacing: 0.12em;
+    color: var(--gold); background: rgba(245,200,66,0.08);
+    padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(245,200,66,0.2);
+    margin-left: auto;
+  }
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 12px;
+  }
+  .card {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 10px; padding: 18px;
+    text-decoration: none; color: inherit;
+    display: flex; flex-direction: column; gap: 8px;
+    position: relative; overflow: hidden;
+    transition: border-color 0.15s, transform 0.12s, box-shadow 0.15s, opacity 0.2s;
+  }
+  a.card:hover {
+    border-color: var(--plum-soft);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 24px rgba(91,58,143,0.22);
+  }
+  .card.coming-soon { opacity: 0.42; cursor: default; pointer-events: none; }
+  .card.dim { opacity: 0.14; transform: none !important; }
+  .card.dim.coming-soon { opacity: 0.08; }
+  .card-icon { font-size: 28px; line-height: 1; margin-bottom: 2px; }
+  .card-title { font-size: 14px; font-weight: 600; color: var(--cream); }
+  .card-desc  { font-size: 12px; color: var(--ink-mute); line-height: 1.45; flex: 1; }
+  .card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; gap: 8px; }
+  .card-chips  { display: flex; gap: 4px; flex-wrap: wrap; }
+  .lock { position: absolute; top: 12px; right: 12px; font-size: 13px; opacity: 0.5; }
+
+  /* ── Footer ── */
+  footer {
+    text-align: center; padding: 20px;
+    font-size: 10px; color: var(--surface-3);
+    letter-spacing: 0.08em; text-transform: uppercase;
+    max-width: 1400px; margin: 0 auto;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 640px) {
+    main { padding: 24px 14px; }
+    .simple-grid { grid-template-columns: 1fr; }
+    .card-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
+    .card { padding: 14px; }
+    .card-icon { font-size: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ────────────────── HEADER ────────────────── -->
+<header class="top">
+  <div class="top-row">
+    <div class="brand">
+      <span class="logo">☕</span>
+      <span class="name">KOFY <span class="sub">HUB</span></span>
+    </div>
+    <div class="header-right">
+      <div class="personas" id="personaSelector">
+        <button class="persona-btn active" data-persona="all">Todos</button>
+        <button class="persona-btn" data-persona="kafay">Kafay</button>
+        <button class="persona-btn" data-persona="partner">Partner</button>
+        <button class="persona-btn" data-persona="leo">Leo</button>
+        <button class="persona-btn" data-persona="primo">Primo</button>
+      </div>
+      <button class="view-toggle" id="viewToggle">Sistema completo ↓</button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- ════════════ SIMPLIFIED VIEW ════════════ -->
+  <div id="viewSimple">
+    <div class="simple-grid">
+
+      <!-- ÓRDENES — cluster card -->
+      <div class="s-card cluster" data-personas="kafay partner primo">
+        <div class="s-card-icon">📦</div>
+        <a class="cluster-main" href="warehouse-ordenes.html">
+          <div class="s-card-title">Órdenes</div>
+          <div class="s-card-desc">Kanban de producción, firma de etapas y despacho</div>
+        </a>
+        <hr class="cluster-divider">
+        <div class="cluster-subs">
+          <a class="sub-link" href="warehouse-inventario.html"><span class="sub-icon">🌱</span> Inventario</a>
+          <a class="sub-link" href="warehouse-yo.html"><span class="sub-icon">🎮</span> The Game</a>
+        </div>
+        <div class="s-card-footer">
+          <div class="s-chips">
+            <span class="chip" data-p="kafay">Kafay</span>
+            <span class="chip" data-p="partner">Partner</span>
+            <span class="chip" data-p="primo">Primo</span>
+          </div>
+          <span class="badge live">EN VIVO</span>
+        </div>
+      </div>
+
+      <!-- TORREFACTORA -->
+      <a class="s-card" href="warehouse-talent.html" data-personas="leo primo">
+        <div class="s-card-icon">🔥</div>
+        <div class="s-card-title">Torrefactora</div>
+        <div class="s-card-desc">App de piso para el equipo — cola de tareas e inventario</div>
+        <div class="s-card-footer">
+          <div class="s-chips">
+            <span class="chip" data-p="leo">Leo</span>
+            <span class="chip" data-p="primo">Primo</span>
+          </div>
+          <span class="badge live">EN VIVO</span>
+        </div>
+      </a>
+
+      <!-- CALENDARIO KPS -->
+      <a class="s-card" href="calendar-v8.html" data-personas="kafay partner leo">
+        <div class="s-card-icon">📅</div>
+        <div class="s-card-title">Calendario KPS</div>
+        <div class="s-card-desc">Sistema de producción de contenido, fases y visualización</div>
+        <div class="s-card-footer">
+          <div class="s-chips">
+            <span class="chip" data-p="kafay">Kafay</span>
+            <span class="chip" data-p="partner">Partner</span>
+            <span class="chip" data-p="leo">Leo</span>
+          </div>
+          <span class="badge live">EN VIVO</span>
+        </div>
+      </a>
+
+      <!-- FOOTAGE -->
+      <a class="s-card" href="footage.html" data-personas="kafay partner leo">
+        <div class="s-card-icon">🎞️</div>
+        <div class="s-card-title">Footage</div>
+        <div class="s-card-desc">Biblioteca de clips, b-roll y capturas por cámara y pillar</div>
+        <div class="s-card-footer">
+          <div class="s-chips">
+            <span class="chip" data-p="kafay">Kafay</span>
+            <span class="chip" data-p="partner">Partner</span>
+            <span class="chip" data-p="leo">Leo</span>
+          </div>
+          <span class="badge live">EN VIVO</span>
+        </div>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- ════════════ FULL / COMPREHENSIVE VIEW ════════════ -->
+  <div id="viewFull">
+
+    <!-- ═══ OPERACIONES ═══ -->
+    <section class="dept">
+      <div class="dept-header">
+        <span class="dept-icon">🏭</span>
+        <span class="dept-name">Operaciones</span>
+        <span class="dept-count">8 activas · 1 próxima</span>
+      </div>
+      <div class="card-grid">
+
+        <a class="card" href="warehouse-ordenes.html" data-personas="kafay partner primo">
+          <div class="card-icon">📦</div>
+          <div class="card-title">Órdenes</div>
+          <div class="card-desc">Kanban de producción, firma de etapas y despacho</div>
+          <div class="card-footer">
+            <div class="card-chips">
+              <span class="chip" data-p="kafay">Kafay</span>
+              <span class="chip" data-p="partner">Partner</span>
+              <span class="chip" data-p="primo">Primo</span>
+            </div>
+            <span class="badge live">EN VIVO</span>
+          </div>
+        </a>
+
+        <a class="card" href="warehouse-inventario.html" data-personas="kafay partner">
+          <div class="card-icon">🌱</div>
+          <div class="card-title">Inventario</div>
+          <div class="card-desc">Granos, quintales, empaque y auditoría de stock</div>
+          <div class="card-footer">
+            <div class="card-chips">
+              <span class="chip" data-p="kafay">Kafay</span>
+              <span class="chip" data-p="partner">Partner</span>
+            </div>
+            <span class="badge live">EN VIVO</span>
+          </div>
+        </a>
+
+        <a class="card" href="warehouse-talent.html" data-personas="leo primo">
+          <div class="card-icon">🔥</div>
+          <div class="card-title">Torrefactora</div>
+          <div class="card-desc">App de piso para el equipo — cola de tareas e inventario</div>
+          <div class="card-footer">
+            <div class="card-chips">
+              <span class="chip" data-p="leo">Leo</span>
+              <span class="chip" data-p="primo">Primo</span>
+            </div>
+            <span class="badge live">EN VIVO</span>
+          </div>
+        </a>
+
+        <a class="card" href="warehouse-yo.html" data-personas="leo primo">
+          <div class="card-icon">🎮</div>
+          <div class="card-title">The Game</div>
+          <div class="card-desc">Puntos por etapa firmada — ciclo de vida del café</div>
+          <div class="card-footer">
+            <div class="card-chips">
+              <span class="chip" data-p="leo">Leo</span>
+              <span class="chip" data-p="primo">Primo</span>
+            </div>
+            <span class="badge live">EN VIVO</span>
+          </div>
+        </a>
+
+        <a class="card" href="warehouse-miembros.html" data-personas="kafay partner">
+          <div class="card-icon">👥</div>
+          <div class="card-title">Miembros</div>
+          <div class="card-desc">Equipo, roles y contactos de notificación</div>
+          <div class="card-footer">
+            <div class="card-chips">
+              <span class="chip" data-p="kafay">Kafay</span>
+              <span class="chip" data-p="partner">Partner</span>
+            </div>
+            <span class="badge live">EN VIVO</span>
+          </div>
+        </a>
+
+        <a class="card" href="warehouse-comms.html" data-personas="kafay partner">
+          <div class="card-icon">📡</div>
+          <div class="card-title">Comms</div>
+          <div class="card-desc">Triggers, destinatarios, plantillas y log de notificaciones</div>
+          <div class="card-footer">
+            <div class="card-chips">
+              <span class="chip" data-p="kafay">Kafay</span>
+              <span class="chip" data-p="partner">Partner</span>
+            </div>
+            <span class="badge live">EN VIVO</span>
+          </div>
+        </a>
+
+        <a class="card" href="warehouse-print.html" data-personas="kafay partner leo primo">
+          <div class="card-icon">🖨️</div>
+          <div class="card-title">Imprimir</div>
+          <div class="card-desc">Hojas de orden y registro de origen imprimibles</div>
+          <div class="card-footer">
+            <div class="card-chips">
+              <span class="chip" data-p="kafay">Kafay</span>
+              <span class="chip" data-p="partner">Partner</span>
+              <span class="chip" data-p="leo">Leo</span>
+              <span class="chip" data-p="primo">Primo</span>
+            </div>
+            <span class="badge live">EN VIVO</span>
+          </div>
+        </a>
+
+        <a class="card" href="warehouse-setup.html" data-personas="partner">
+          <div class="card-icon">⚙️</div>
+          <div class="card-title">Setup DB</div>
+          <div class="card-desc">Instalador de esquema y migraciones en Notion</div>
+          <div class="card-footer">
+            <div class="card-chips">
+              <span class="chip" data-p="partner">Partner</span>
+            </div>
+            <span class="badge live">EN VIVO</span>
+          </div>
+        </a>
+
+        <div class="card coming-soon" data-personas="kafay partner">
+          <span class="lock">🔒</span>
+          <div class="card-icon">📊</div>
+          <div class="card-title">Reportes</div>
+          <div class="card-desc">Vista de reportes diarios y métricas de operación</div>
+          <div class="card-footer">
+            <div class="card-chips">
+              <span class="chip" data-p="kafay">Kafay</span>
+              <span class="chip" data-p="partner">Partner</span>
+            </div>
+            <span class="badge soon">PRÓXIMO</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ═══ CONTENIDO ═══ -->
+    <section class="dept">
+      <div class="dept-header">
+        <span class="dept-icon">🎬</span>
+        <span class="dept-name">Contenido</span>
+        <span class="dept-count">2 activas</span>
+      </div>
+      <div class="card-grid">
+
+        <a class="card" href="calendar-v8.html" data-personas="kafay partner leo">
+          <div class="card-icon">📅</div>
+          <div class="card-title">Calendario KPS</div>
+          <div class="card-desc">Sistema de producción de contenido, fases y visualización</div>
+          <div class="card-footer">
+            <div class="card-chips">
+              <span class="chip" data-p="kafay">Kafay</span>
+              <span class="chip" data-p="partner">Partner</span>
+              <span class="chip" data-p="leo">Leo</span>
+            </div>
+            <span class="badge live">EN VIVO</span>
+          </div>
+        </a>
+
+        <a class="card" href="footage.html" data-personas="kafay partner leo">
+          <div class="card-icon">🎞️</div>
+          <div class="card-title">Footage</div>
+          <div class="card-desc">Biblioteca de clips, b-roll y capturas por cámara y pillar</div>
+          <div class="card-footer">
+            <div class="card-chips">
+              <span class="chip" data-p="kafay">Kafay</span>
+              <span class="chip" data-p="partner">Partner</span>
+              <span class="chip" data-p="leo">Leo</span>
+            </div>
+            <span class="badge live">EN VIVO</span>
+          </div>
+        </a>
+
+      </div>
+    </section>
+
+    <!-- ═══ CLIENTE ═══ -->
+    <section class="dept">
+      <div class="dept-header">
+        <span class="dept-icon">🤝</span>
+        <span class="dept-name">Cliente</span>
+        <span class="dept-count">1 activa · 1 próxima</span>
+      </div>
+      <div class="card-grid">
+
+        <a class="card" href="kofy-ai-test.html" data-personas="kafay partner">
+          <div class="card-icon">🤖</div>
+          <div class="card-title">Kofy AI</div>
+          <div class="card-desc">Consola de respuestas IA — bandeja de entrada y flag de mensajes</div>
+          <div class="card-footer">
+            <div class="card-chips">
+              <span class="chip" data-p="kafay">Kafay</span>
+              <span class="chip" data-p="partner">Partner</span>
+            </div>
+            <span class="badge live">EN VIVO</span>
+          </div>
+        </a>
+
+        <div class="card coming-soon" data-personas="kafay partner">
+          <span class="lock">🔒</span>
+          <div class="card-icon">🏪</div>
+          <div class="card-title">Portal Cliente</div>
+          <div class="card-desc">Historial de pedidos, seguimiento y perfil de cliente</div>
+          <div class="card-footer">
+            <div class="card-chips">
+              <span class="chip" data-p="kafay">Kafay</span>
+              <span class="chip" data-p="partner">Partner</span>
+            </div>
+            <span class="badge soon">PRÓXIMO</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ═══ DINERO ═══ -->
+    <section class="dept">
+      <div class="dept-header">
+        <span class="dept-icon">💰</span>
+        <span class="dept-name">Dinero</span>
+        <span class="dept-soon-tag">PRÓXIMAMENTE</span>
+      </div>
+      <div class="card-grid">
+
+        <div class="card coming-soon" data-personas="kafay partner">
+          <span class="lock">🔒</span>
+          <div class="card-icon">💳</div>
+          <div class="card-title">Cuentas</div>
+          <div class="card-desc">Caja, cuentas bancarias y tasa BCV diaria</div>
+          <div class="card-footer">
+            <div class="card-chips">
+              <span class="chip" data-p="kafay">Kafay</span>
+              <span class="chip" data-p="partner">Partner</span>
+            </div>
+            <span class="badge soon">PRÓXIMO</span>
+          </div>
+        </div>
+
+        <div class="card coming-soon" data-personas="kafay partner">
+          <span class="lock">🔒</span>
+          <div class="card-icon">📈</div>
+          <div class="card-title">Finanzas</div>
+          <div class="card-desc">Ingresos, gastos y flujo de caja</div>
+          <div class="card-footer">
+            <div class="card-chips">
+              <span class="chip" data-p="kafay">Kafay</span>
+              <span class="chip" data-p="partner">Partner</span>
+            </div>
+            <span class="badge soon">PRÓXIMO</span>
+          </div>
+        </div>
+
+        <div class="card coming-soon" data-personas="kafay partner">
+          <span class="lock">🔒</span>
+          <div class="card-icon">🧾</div>
+          <div class="card-title">Productos</div>
+          <div class="card-desc">Catálogo de productos, precios y costos</div>
+          <div class="card-footer">
+            <div class="card-chips">
+              <span class="chip" data-p="kafay">Kafay</span>
+              <span class="chip" data-p="partner">Partner</span>
+            </div>
+            <span class="badge soon">PRÓXIMO</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </div><!-- end #viewFull -->
+
+</main>
+
+<footer>Kofy · SYSTEMS 2.0 · v1</footer>
+
+<script>
+  // ── View toggle ──
+  const viewSimple = document.getElementById('viewSimple');
+  const viewFull   = document.getElementById('viewFull');
+  const toggleBtn  = document.getElementById('viewToggle');
+  let fullVisible  = false;
+
+  toggleBtn.addEventListener('click', () => {
+    fullVisible = !fullVisible;
+    viewSimple.style.display = fullVisible ? 'none'  : 'block';
+    viewFull.style.display   = fullVisible ? 'block' : 'none';
+    toggleBtn.textContent    = fullVisible ? '← Vista simple' : 'Sistema completo ↓';
+    applyPersona(currentPersona);
+  });
+
+  // ── Persona filter ──
+  let currentPersona = 'all';
+  const selector = document.getElementById('personaSelector');
+
+  selector.addEventListener('click', e => {
+    const btn = e.target.closest('.persona-btn');
+    if (!btn) return;
+    document.querySelectorAll('.persona-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentPersona = btn.dataset.persona;
+    applyPersona(currentPersona);
+  });
+
+  function applyPersona(persona) {
+    // Simple view cards
+    document.querySelectorAll('#viewSimple [data-personas]').forEach(card => {
+      const personas = card.dataset.personas || '';
+      const match = persona === 'all' || personas.split(' ').includes(persona);
+      card.classList.toggle('dim', !match);
+      card.querySelectorAll('.chip[data-p]').forEach(chip => {
+        chip.classList.toggle('hl', persona !== 'all' && chip.dataset.p === persona);
+      });
+    });
+    // Full view cards
+    document.querySelectorAll('#viewFull [data-personas]').forEach(card => {
+      const personas = card.dataset.personas || '';
+      const match = persona === 'all' || personas.split(' ').includes(persona);
+      card.classList.toggle('dim', !match);
+      card.querySelectorAll('.chip[data-p]').forEach(chip => {
+        chip.classList.toggle('hl', persona !== 'all' && chip.dataset.p === persona);
+      });
+    });
+  }
+</script>
+
+</body>
+</html>

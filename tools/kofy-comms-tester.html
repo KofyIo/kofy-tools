@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kofy · Comms Tester</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Mono:wght@400;500&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0A0A0F; --surface:#111118; --surface-2:#1A1A24;
+    --line:#25252F; --accent:#2BB59E;
+    --gold:#D4960A; --green:#1D9E75; --red:#D9534F;
+    --text:#E8E8F0; --text2:#9898B0; --text3:#5A5A70;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--text);font-family:'Lato',system-ui,sans-serif;line-height:1.55;min-height:100vh}
+  body{max-width:680px;margin:0 auto;padding:36px 22px 80px}
+  h1{font-family:'DM Serif Display',Georgia,serif;font-weight:400;font-size:30px;margin-bottom:6px}
+  h2{font-family:'DM Serif Display',Georgia,serif;font-weight:400;font-size:18px;color:var(--accent);margin:0 0 14px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+  .sub{color:var(--text2);font-size:13px;margin-bottom:24px;font-family:'DM Mono',monospace;letter-spacing:0.06em;text-transform:uppercase}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:20px;margin-bottom:18px}
+  label{display:block;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text2);margin-bottom:6px}
+  label .hint{text-transform:none;letter-spacing:0;color:var(--text3);font-size:11px;margin-left:6px}
+  input,select,textarea{font-family:inherit;font-size:14px;color:var(--text);background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:11px 13px;width:100%;min-height:44px}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent)}
+  textarea{font-family:'DM Mono',monospace;font-size:12px;min-height:90px;resize:vertical}
+  .field + .field{margin-top:14px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:520px){.grid2{grid-template-columns:1fr}}
+  button{font-family:inherit;font-size:14px;background:var(--accent);color:#06231D;border:none;border-radius:6px;padding:12px 20px;cursor:pointer;font-weight:700;min-height:44px}
+  button:hover{background:#33CCB1}
+  button.ghost{background:transparent;color:var(--text);border:1px solid var(--line);font-weight:400}
+  button.ghost:hover{border-color:var(--accent);color:var(--accent)}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  .row{display:flex;gap:10px;align-items:center;margin-top:14px;flex-wrap:wrap}
+  .result{margin-top:16px}
+  .badge{display:inline-block;padding:4px 11px;border:1px solid var(--line);border-radius:10px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.06em;text-transform:uppercase;margin-right:6px}
+  .badge.ok{color:var(--green);border-color:rgba(29,158,117,.5);background:rgba(29,158,117,.08)}
+  .badge.err{color:var(--red);border-color:rgba(217,83,79,.5);background:rgba(217,83,79,.08)}
+  .badge.warn{color:var(--gold);border-color:rgba(212,150,10,.5)}
+  pre{background:var(--surface-2);border:1px solid var(--line);border-radius:5px;padding:12px 14px;font-family:'DM Mono',monospace;font-size:11px;line-height:1.65;overflow-x:auto;white-space:pre-wrap;word-break:break-word;color:var(--text);margin-top:10px}
+  .muted{color:var(--text2);font-size:13px}
+  .tiny{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;letter-spacing:0.04em}
+  details{margin-top:14px;background:var(--surface-2);border-radius:6px;padding:10px 14px}
+  summary{cursor:pointer;color:var(--text2);font-size:13px}
+  details[open] summary{margin-bottom:8px;color:var(--accent)}
+  .err-msg{color:var(--red);font-size:13px;margin-top:8px;padding:10px 12px;background:rgba(217,83,79,.08);border-left:3px solid var(--red);border-radius:0 4px 4px 0}
+  .ok-msg{color:var(--green);font-size:13px;margin-top:8px;padding:10px 12px;background:rgba(29,158,117,.08);border-left:3px solid var(--green);border-radius:0 4px 4px 0}
+  .nudge{color:var(--gold);font-size:12px;margin-top:6px;font-family:'DM Mono',monospace;letter-spacing:0.04em}
+</style>
+</head>
+<body>
+
+<h1>Comms Tester</h1>
+<div class="sub">One-page worker check · no Notion, no setup</div>
+
+<div class="card">
+  <h2>1 · Health check</h2>
+  <p class="muted" style="margin-bottom:14px">First — confirm the worker is alive and the new code is deployed. Should respond with <code>{ok: true, version: "2.0.0"}</code>.</p>
+
+  <div class="field">
+    <label>Worker URL <span class="hint">(no trailing slash)</span></label>
+    <input id="workerUrl" type="url" value="https://kofy-notion-proxy.delicate-surf-529c.workers.dev">
+  </div>
+
+  <div class="row">
+    <button id="btnHealth" type="button">Check health</button>
+    <button class="ghost" id="btnHealthClear" type="button">Limpiar</button>
+  </div>
+
+  <div class="result" id="healthResult"></div>
+</div>
+
+<div class="card">
+  <h2>2 · Send a test</h2>
+  <p class="muted" style="margin-bottom:14px">Pick a channel, paste your own email or WhatsApp number, click the button. The worker reaches Resend / Twilio for you and tells you what happened.</p>
+
+  <div class="grid2">
+    <div class="field">
+      <label>Channel</label>
+      <select id="channel">
+        <option value="email">Email · via Resend</option>
+        <option value="whatsapp">WhatsApp · via Twilio sandbox</option>
+        <option value="sms">SMS · via Twilio</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Template</label>
+      <select id="template">
+        <option value="order_ready_customer">order_ready_customer</option>
+        <option value="order_created_leo">order_created_leo</option>
+        <option value="order_cv_leo">order_cv_leo</option>
+        <option value="order_delivered">order_delivered</option>
+        <option value="order_cancelled_customer">order_cancelled_customer</option>
+        <option value="stock_low_origen">stock_low_origen</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="field">
+    <label id="toLabel">Destinatario <span class="hint">(email o teléfono +código)</span></label>
+    <input id="to" type="text" placeholder="you@example.com">
+    <div class="nudge" id="toNudge" style="display:none">WhatsApp: este número tiene que haber enviado el "join &lt;código&gt;" a +14155238886 antes.</div>
+  </div>
+
+  <details>
+    <summary>Variables de la plantilla (avanzado)</summary>
+    <textarea id="data">{
+  "orderId": "TEST-1",
+  "clientName": "Primo",
+  "itemsSummary": "12 × 1KG CM",
+  "eta": "hoy",
+  "razon": "—",
+  "origenName": "MG-MC-CM",
+  "kgRemanente": 8.5
+}</textarea>
+  </details>
+
+  <div class="row">
+    <button id="btnSend" type="button">Enviar prueba</button>
+    <span class="tiny" id="status"></span>
+  </div>
+
+  <div class="result" id="sendResult"></div>
+</div>
+
+<div class="card">
+  <h2>3 · ¿Falló algo? Qué buscar</h2>
+  <table style="width:100%;border-collapse:collapse;font-size:13px">
+    <thead>
+      <tr style="text-align:left">
+        <th style="padding:8px 6px;color:var(--gold);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;border-bottom:1px solid var(--line)">Mensaje de error</th>
+        <th style="padding:8px 6px;color:var(--gold);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;border-bottom:1px solid var(--line)">Qué pasó</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td style="padding:10px 6px;border-bottom:1px solid var(--line)"><code>RESEND_API_KEY not set</code></td><td style="padding:10px 6px;border-bottom:1px solid var(--line);color:var(--text2)">La env var no se guardó. Volvé a Cloudflare → Variables → confirmá que aparece.</td></tr>
+      <tr><td style="padding:10px 6px;border-bottom:1px solid var(--line)"><code>TWILIO credentials not set</code></td><td style="padding:10px 6px;border-bottom:1px solid var(--line);color:var(--text2)">Mismo problema con SID/Token.</td></tr>
+      <tr><td style="padding:10px 6px;border-bottom:1px solid var(--line)"><code>TWILIO_WA_FROM not set</code></td><td style="padding:10px 6px;border-bottom:1px solid var(--line);color:var(--text2)">Faltó <code>whatsapp:+14155238886</code> en la env var.</td></tr>
+      <tr><td style="padding:10px 6px;border-bottom:1px solid var(--line)"><code>... has not joined the Sandbox</code></td><td style="padding:10px 6px;border-bottom:1px solid var(--line);color:var(--text2)">Ese teléfono no envió el "join &lt;código&gt;" al +14155238886.</td></tr>
+      <tr><td style="padding:10px 6px;border-bottom:1px solid var(--line)"><code>HTTP 404 / not found</code></td><td style="padding:10px 6px;border-bottom:1px solid var(--line);color:var(--text2)">El worker no se redeployó con el código nuevo. Repetí step 1.</td></tr>
+      <tr><td style="padding:10px 6px"><code>HTTP 401 unauthorized</code> (Twilio)</td><td style="padding:10px 6px;color:var(--text2)">SID o Token mal pegados.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<script>
+  const $ = id => document.getElementById(id);
+
+  function setStatus(t) { $('status').textContent = t || ''; }
+
+  function showBlock(elId, kind, badge, msg, payload) {
+    const root = $(elId);
+    root.innerHTML = '';
+    const wrap = document.createElement('div');
+
+    const bdg = document.createElement('span');
+    bdg.className = 'badge ' + (kind === 'ok' ? 'ok' : kind === 'err' ? 'err' : 'warn');
+    bdg.textContent = badge;
+    wrap.appendChild(bdg);
+
+    if (msg) {
+      const m = document.createElement('div');
+      m.className = kind === 'ok' ? 'ok-msg' : kind === 'err' ? 'err-msg' : 'muted';
+      m.textContent = msg;
+      wrap.appendChild(m);
+    }
+
+    if (payload) {
+      const pre = document.createElement('pre');
+      pre.textContent = typeof payload === 'string' ? payload : JSON.stringify(payload, null, 2);
+      wrap.appendChild(pre);
+    }
+    root.appendChild(wrap);
+  }
+
+  // ---- Health ----
+  $('btnHealth').addEventListener('click', async () => {
+    const url = $('workerUrl').value.trim().replace(/\/$/, '');
+    if (!url) { showBlock('healthResult', 'err', 'Falta URL', 'Pegá la URL del worker arriba.'); return; }
+    setStatus('chequeando…');
+    try {
+      const r = await fetch(url + '/health');
+      const text = await r.text();
+      let j; try { j = JSON.parse(text); } catch { j = text; }
+      const ok = r.ok && j && j.ok === true;
+      showBlock('healthResult',
+        ok ? 'ok' : 'err',
+        ok ? 'OK ' + (j.version || '') : 'HTTP ' + r.status,
+        ok ? 'Worker vivo, código nuevo deployado.' : 'El worker respondió pero no como esperaba el código nuevo. ¿Lo deployaste?',
+        j);
+    } catch (e) {
+      showBlock('healthResult', 'err', 'No alcanzó', 'No se pudo contactar el worker: ' + e.message, null);
+    }
+    setStatus('');
+  });
+
+  $('btnHealthClear').addEventListener('click', () => { $('healthResult').innerHTML = ''; });
+
+  // ---- Channel UI hint ----
+  $('channel').addEventListener('change', () => {
+    const ch = $('channel').value;
+    if (ch === 'email') {
+      $('toLabel').innerHTML = 'Destinatario <span class="hint">(email)</span>';
+      $('to').placeholder = 'you@example.com';
+      $('toNudge').style.display = 'none';
+    } else if (ch === 'whatsapp') {
+      $('toLabel').innerHTML = 'Destinatario <span class="hint">(WhatsApp · +código país y número)</span>';
+      $('to').placeholder = '+58412...';
+      $('toNudge').style.display = 'block';
+    } else {
+      $('toLabel').innerHTML = 'Destinatario <span class="hint">(SMS · +código país)</span>';
+      $('to').placeholder = '+58412...';
+      $('toNudge').style.display = 'none';
+    }
+  });
+
+  // ---- Send ----
+  $('btnSend').addEventListener('click', async () => {
+    const url = $('workerUrl').value.trim().replace(/\/$/, '');
+    const channel = $('channel').value;
+    const template = $('template').value;
+    const to = $('to').value.trim();
+    let data; try { data = JSON.parse($('data').value || '{}'); }
+    catch (e) { return showBlock('sendResult', 'err', 'JSON inválido', e.message); }
+
+    if (!url) return showBlock('sendResult', 'err', 'Falta URL', 'Pegá la URL del worker arriba.');
+    if (!to)  return showBlock('sendResult', 'err', 'Falta destinatario', 'Llená el campo "Destinatario".');
+
+    setStatus('enviando…');
+    $('btnSend').disabled = true;
+    try {
+      const r = await fetch(url + '/notify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          channel, to, template, data,
+          meta: { trigger: 'manual_test', recipientName: 'Tester' }
+        })
+      });
+      const j = await r.json().catch(() => ({}));
+      const ok = r.ok && j.status === 'sent';
+      const skip = j.status === 'skipped';
+      showBlock('sendResult',
+        ok ? 'ok' : skip ? 'warn' : 'err',
+        ok ? 'SENT · ' + (j.notifId || '') :
+        skip ? 'SKIPPED' :
+        'FAILED · ' + (j.error || 'HTTP ' + r.status),
+        ok ? 'Mensaje despachado. Revisá tu inbox / WhatsApp en 5-10 segundos.' :
+        skip ? (j.providerResp?.skipReason || 'Saltado.') :
+        (j.error || 'El worker respondió con error. Ver detalle abajo.'),
+        j);
+    } catch (e) {
+      showBlock('sendResult', 'err', 'No alcanzó', 'Fetch falló: ' + e.message, null);
+    }
+    setStatus('');
+    $('btnSend').disabled = false;
+  });
+</script>
+</body>
+</html>

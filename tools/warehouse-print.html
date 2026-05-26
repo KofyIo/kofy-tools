@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kofy · Imprimir</title>
+<style>
+  /* ═══ Screen styling (dark, preview mode) ═══ */
+  :root {
+    --bg: #0A0A0F; --surface: #111118; --surface-2: #1A1A24;
+    --line: #25252F; --gold: #D4960A; --plum: #5B3A8F;
+    --green: #1D9E75; --text: #E8E8F0; --text2: #9898B0; --text3: #5A5A70;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif; line-height: 1.45; min-height: 100vh; }
+  body { padding: 24px 18px 60px; }
+
+  /* Toolbar */
+  .toolbar { position: sticky; top: 0; z-index: 50; background: var(--bg); padding: 12px 0 16px; border-bottom: 1px solid var(--line); margin-bottom: 24px; display: flex; gap: 8px; align-items: center; max-width: 800px; margin-left: auto; margin-right: auto; }
+  .toolbar h1 { font-size: 14px; font-weight: 600; color: var(--text2); letter-spacing: 0.06em; text-transform: uppercase; flex: 1; }
+  .btn { background: var(--surface-2); border: 1px solid var(--line); color: var(--text); padding: 10px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; }
+  .btn:hover { background: var(--surface); border-color: var(--gold); }
+  .btn.primary { background: var(--gold); color: var(--bg); border-color: var(--gold); }
+  .btn.primary:hover { background: #f0a812; }
+
+  /* The printable page */
+  .page {
+    background: #FAF8F2;
+    color: #1a1410;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 32px 40px;
+    box-shadow: 0 4px 32px rgba(0,0,0,0.4);
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    border-radius: 6px;
+    min-height: 1000px;
+  }
+
+  /* Header banner */
+  .doc-banner { background: #3a1f5b; color: #f5c842; text-align: center; padding: 8px; font-weight: 700; letter-spacing: 0.18em; font-size: 11px; margin-bottom: 24px; border-radius: 2px; }
+
+  /* Field labels (pink/cream box style) */
+  .field-lbl { background: #fae5dd; color: #1a1410; display: inline-block; padding: 4px 14px; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; border-radius: 1px; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 18px; }
+  .field-val { font-size: 16px; padding: 6px 4px; border-bottom: 1px solid #999; min-height: 24px; font-weight: 600; }
+
+  /* Table */
+  table.grid { width: 100%; border-collapse: collapse; margin: 16px 0 24px; }
+  table.grid th { background: #fae5dd; color: #1a1410; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; padding: 8px 10px; text-align: left; border: 1px solid #ccc; }
+  table.grid td { padding: 8px 10px; border: 1px solid #ccc; font-size: 13px; }
+  table.grid .presentacion-cell { font-weight: 700; vertical-align: middle; background: #fff; }
+  table.grid .ts-an { background: #fae5dd; font-weight: 600; }
+  table.grid .ts-cm { background: #c9b3d8; font-weight: 600; }
+  table.grid .ts-mt { background: #3a1f5b; color: #fae5dd; font-weight: 600; }
+  table.grid .ts-grado-a { background: #f5c842; color: #1a1410; font-weight: 600; }
+  table.grid .ts-single-o { background: #e8a87a; font-weight: 600; }
+  table.grid .filled { background: #fff8e1; }
+
+  /* Notes box */
+  .notes-box { background: #fff; border: 1px solid #ccc; padding: 12px; min-height: 100px; font-size: 12px; font-style: italic; color: #555; line-height: 1.55; }
+
+  /* Status table */
+  .status-table { width: 100%; border-collapse: collapse; }
+  .status-table th { background: #fae5dd; padding: 8px; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-align: left; border: 1px solid #ccc; }
+  .status-table td { padding: 12px 8px; border: 1px solid #ccc; font-size: 12px; vertical-align: top; }
+  .status-table .etapa-name { font-weight: 700; }
+  .status-table .check-box { display: inline-block; width: 14px; height: 14px; border: 1.5px solid #1a1410; }
+  .status-table .check-box.checked { background: #1a1410; position: relative; }
+  .status-table .check-box.checked::after { content: "✓"; color: #f5c842; font-size: 11px; font-weight: 700; position: absolute; top: -4px; left: 1px; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 2fr; gap: 24px; margin-top: 24px; }
+  @media (max-width: 600px) { .two-col { grid-template-columns: 1fr; } .field-row { grid-template-columns: 1fr; gap: 14px; } }
+
+  .doc-footer { margin-top: 24px; padding-top: 16px; border-top: 1px solid #ccc; font-size: 10px; color: #888; text-align: center; letter-spacing: 0.08em; }
+
+  .loading, .error { text-align: center; padding: 60px 20px; color: var(--text2); }
+  .error { color: var(--text); }
+  .error h2 { color: #ff8c69; margin-bottom: 12px; }
+
+  /* Origen registro specific */
+  .id-quintales-box { background: #fff; border: 1px solid #ccc; padding: 10px 12px; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.8; min-height: 100px; }
+  .id-quintales-box .tachado { text-decoration: line-through; opacity: 0.6; }
+  .kg-iniciales-box { background: #fff; border: 1px solid #ccc; padding: 12px; font-family: 'Courier New', monospace; font-size: 22px; font-weight: 700; text-align: center; }
+  .kg-iniciales-box .lbl { font-size: 10px; font-weight: 400; color: #555; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px; font-family: inherit; }
+
+  /* ═══ Print mode ═══ */
+  @media print {
+    body { background: white; padding: 0; }
+    .toolbar { display: none; }
+    .page { box-shadow: none; max-width: 100%; margin: 0; padding: 0; border-radius: 0; min-height: auto; }
+    @page { size: A4 portrait; margin: 12mm 14mm; }
+  }
+</style>
+</head>
+<body>
+
+<script>
+const CONFIG = {
+  PROXY_URL: "https://kofy-notion-proxy.delicate-surf-529c.workers.dev",
+  DB_MIEMBROS:  "3649b62600a080308dc6cf556b0d8c4b",
+  DB_CLIENTES:  "3649b62600a08020ae9ed625e57044bb",
+  DB_ORIGENES:  "3649b62600a080b5a056c4a03d3fbc2b",
+  DB_QUINTALES: "3649b62600a080df9a7ac6c932fa9d5b",
+  DB_ORDENES:   "3649b62600a0800ea228d8d8dcf2ada4",
+  DB_ITEMS:     "3649b62600a0806db145c919a7927ac2",
+  DB_USOS:      "3649b62600a080108754c2eaadac2455",
+};
+</script>
+
+<div class="toolbar">
+  <h1 id="toolbar-title">Imprimir</h1>
+  <button class="btn" onclick="history.back()">← Volver</button>
+  <button class="btn primary" onclick="window.print()">🖨 Imprimir</button>
+</div>
+
+<div id="content" class="loading">cargando…</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// API helpers
+// ═══════════════════════════════════════════════════════
+async function notion(endpoint, body, method) {
+  method = method || (body ? "POST" : "GET");
+  const res = await fetch(`${CONFIG.PROXY_URL}${endpoint}`, {
+    method, headers: { "Content-Type": "application/json" },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (!res.ok) throw new Error(`${res.status}`);
+  return res.json();
+}
+async function queryDb(id) { return notion(`/query`, { database_id: id }); }
+
+function readProp(page, name) {
+  const p = page?.properties?.[name];
+  if (!p) return null;
+  switch (p.type) {
+    case "title":     return p.title.map(t => t.plain_text).join("");
+    case "rich_text": return p.rich_text.map(t => t.plain_text).join("");
+    case "number":    return p.number;
+    case "select":    return p.select?.name || null;
+    case "date":      return p.date?.start || null;
+    case "checkbox":  return p.checkbox;
+    case "relation":  return p.relation.map(r => r.id);
+    default: return null;
+  }
+}
+function pageTitle(page) {
+  for (const v of Object.values(page?.properties || {})) {
+    if (v.type === "title") return v.title.map(t => t.plain_text).join("");
+  }
+  return "";
+}
+function fmtDate(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  return d.toLocaleDateString("es-VE", { day: "2-digit", month: "2-digit", year: "2-digit" });
+}
+
+// ═══════════════════════════════════════════════════════
+// Render: ORDER sheet
+// ═══════════════════════════════════════════════════════
+async function renderOrderSheet(orderId) {
+  document.getElementById("toolbar-title").textContent = "Hoja · Nueva Orden";
+  const [ordRes, itRes, cliRes, oriRes, miRes] = await Promise.all([
+    queryDb(CONFIG.DB_ORDENES),
+    queryDb(CONFIG.DB_ITEMS),
+    queryDb(CONFIG.DB_CLIENTES),
+    queryDb(CONFIG.DB_ORIGENES),
+    queryDb(CONFIG.DB_MIEMBROS),
+  ]);
+  const order = ordRes.results.find(o => o.id === orderId || pageTitle(o) === orderId);
+  if (!order) throw new Error("Orden no encontrada: " + orderId);
+
+  const orderIdStr = pageTitle(order) || "—";
+  const clientIds = readProp(order, "Cliente") || [];
+  const client = cliRes.results.find(c => c.id === clientIds[0]);
+  const clientName = client ? pageTitle(client) : "—";
+  const clientRif = client ? readProp(client, "Cédula / RIF") : "";
+  const fecha = readProp(order, "Fecha de pedido");
+  const eta = readProp(order, "Fecha de entrega estimada");
+  const numTost = readProp(order, "Número de tostados");
+  const notesT = readProp(order, "Notas tostador") || "";
+  const notesQC = readProp(order, "Notas QC") || "";
+
+  // Items: agrupar por presentación
+  const myItems = itRes.results.filter(it => (readProp(it,"Orden") || []).includes(order.id));
+  const PRES_LIST = ["1 KG","500g","250g","BOX","SACHET"];
+  const TOS_LIST = ["AN","CM","MT"];
+
+  // Build matrix [pres][tos] = { qty, gm, origen }[]
+  const matrix = {};
+  PRES_LIST.forEach(p => matrix[p] = {});
+
+  myItems.forEach(it => {
+    const pres = readProp(it,"Presentación");
+    const tos = readProp(it,"Tostado");
+    const qty = readProp(it,"Cantidad") || 0;
+    const gm = readProp(it,"Grano / Molido") || "";
+    const oriIds = readProp(it,"Origen") || [];
+    const ori = oriIds.length ? oriRes.results.find(x => x.id === oriIds[0]) : null;
+    const oriName = ori ? (readProp(ori,"ID Origen") || pageTitle(ori)) : "";
+    if (!matrix[pres]) matrix[pres] = {};
+    if (!matrix[pres][tos]) matrix[pres][tos] = [];
+    matrix[pres][tos].push({ qty, gm, oriName });
+  });
+
+  // Stages
+  const STAGES = [
+    { code: "CV", name: "CAFÉ VERDE" },
+    { code: "T",  name: "TOSTADO" },
+    { code: "E",  name: "EMPAQUETADO" },
+    { code: "L",  name: "ETIQUETAS, CAJA ETC (LISTO PARA ENVÍO)" },
+    { code: "EN", name: "ENTREGADO" },
+  ];
+
+  const statusRows = STAGES.map(s => {
+    const done = readProp(order, `${s.code} ✓`);
+    const fechaS = readProp(order, `${s.code} fecha`);
+    const firmaIds = readProp(order, `${s.code} firma`) || [];
+    const firma = firmaIds.length ? miRes.results.find(m => m.id === firmaIds[0]) : null;
+    const firmaName = firma ? pageTitle(firma) : "";
+    return `<tr>
+      <td class="etapa-name">${s.name}</td>
+      <td style="text-align: center;"><span class="check-box ${done ? "checked" : ""}"></span></td>
+      <td>${firmaName}</td>
+      <td>${fmtDate(fechaS)}</td>
+    </tr>`;
+  }).join("");
+
+  // Build presentation/tostado grid rows
+  let gridRows = "";
+  PRES_LIST.forEach((pres, presIdx) => {
+    const tosForPres = ["AN","CM","MT"];
+    tosForPres.forEach((tos, tosIdx) => {
+      const cellData = (matrix[pres] && matrix[pres][tos]) || [];
+      const totalQty = cellData.reduce((s,d) => s + (d.qty || 0), 0);
+      const gms = [...new Set(cellData.map(d => d.gm).filter(Boolean))].join(", ");
+      const oris = [...new Set(cellData.map(d => d.oriName).filter(Boolean))].join(", ");
+      const tsClass = "ts-" + tos.toLowerCase().replace(/\s+/g, "-");
+      const hasData = totalQty > 0;
+      gridRows += `<tr>
+        ${tosIdx === 0 ? `<td class="presentacion-cell" rowspan="${tosForPres.length}">${pres}</td>` : ""}
+        <td class="${tsClass}">${tos}</td>
+        <td class="${hasData ? "filled" : ""}">${hasData ? totalQty : ""}</td>
+        <td class="${hasData ? "filled" : ""}">${gms}</td>
+        <td class="${hasData ? "filled" : ""}">${oris}</td>
+      </tr>`;
+    });
+  });
+
+  const html = `
+    <div class="page">
+      <div class="doc-banner">NUEVA ORDEN</div>
+
+      <div style="margin-bottom: 18px; padding: 8px 14px; background: #c9b3d8; border-radius: 2px; display: inline-block;">
+        <span style="font-size: 11px; color: #3a1f5b; letter-spacing: 0.06em; font-weight: 700;">ORDER ID</span>
+        <span style="font-size: 22px; font-weight: 700; margin-left: 12px;">${orderIdStr}</span>
+      </div>
+
+      <div class="field-row">
+        <div>
+          <span class="field-lbl">NOMBRE / RAZÓN SOCIAL</span>
+          <div class="field-val">${clientName}</div>
+        </div>
+        <div>
+          <span class="field-lbl">FECHA DE PEDIDO</span>
+          <div class="field-val">${fmtDate(fecha)}</div>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div>
+          <span class="field-lbl">CÉDULA / RIF (CUSTOMER ID)</span>
+          <div class="field-val">${clientRif || ""}</div>
+        </div>
+        <div>
+          <span class="field-lbl">FECHA DE ENTREGA ESTIMADA</span>
+          <div class="field-val">${fmtDate(eta)}</div>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 14px;">
+        <span class="field-lbl">NÚMERO DE TOSTADOS</span>
+        <div class="field-val" style="display: inline-block; min-width: 200px; margin-left: 14px;">${numTost || ""}</div>
+      </div>
+
+      <table class="grid">
+        <thead>
+          <tr>
+            <th>PRESENTACIÓN</th>
+            <th>TOSTADO</th>
+            <th>CANTIDAD</th>
+            <th>GRANO/MOLIDO</th>
+            <th>ORIGEN</th>
+          </tr>
+        </thead>
+        <tbody>${gridRows}</tbody>
+      </table>
+
+      <div class="two-col">
+        <div>
+          <span class="field-lbl">NOTAS CONTROL DE CALIDAD</span>
+          <div class="notes-box" style="margin-top: 6px;">${notesQC || notesT || "&nbsp;"}</div>
+        </div>
+        <div>
+          <span class="field-lbl">ESTATUS DE ORDEN</span>
+          <table class="status-table" style="margin-top: 6px;">
+            <thead>
+              <tr><th>ETAPA</th><th style="width: 50px;">CHECK</th><th>FIRMA</th><th>FECHA</th></tr>
+            </thead>
+            <tbody>${statusRows}</tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="doc-footer">Kofy · ${orderIdStr} · impreso el ${fmtDate(new Date().toISOString())}</div>
+    </div>
+  `;
+  document.getElementById("content").outerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════
+// Render: ORIGEN registro
+// ═══════════════════════════════════════════════════════
+async function renderOrigenSheet(origenId) {
+  document.getElementById("toolbar-title").textContent = "Hoja · Registro Café Verde";
+  const [oriRes, quRes, usRes, ordRes, miRes] = await Promise.all([
+    queryDb(CONFIG.DB_ORIGENES),
+    queryDb(CONFIG.DB_QUINTALES),
+    queryDb(CONFIG.DB_USOS),
+    queryDb(CONFIG.DB_ORDENES),
+    queryDb(CONFIG.DB_MIEMBROS),
+  ]);
+
+  const origen = oriRes.results.find(o => o.id === origenId || pageTitle(o) === origenId);
+  if (!origen) throw new Error("Origen no encontrado: " + origenId);
+
+  const idOrigen = pageTitle(origen) || "—";
+  const caf = readProp(origen, "Caficultor") || "—";
+  const hac = readProp(origen, "Hacienda") || "—";
+  const varietal = readProp(origen, "Varietal") || "";
+  const msnm = readProp(origen, "MSNM");
+  const proc = readProp(origen, "Proceso") || "";
+
+  // Quintales de este origen
+  const quintales = quRes.results
+    .filter(q => (readProp(q,"Origen") || []).includes(origen.id))
+    .sort((a,b) => pageTitle(a).localeCompare(pageTitle(b)));
+
+  const kgIniciales = quintales.reduce((s,q) => s + (readProp(q,"KG iniciales") || 0), 0);
+
+  // Calcular remanente por quintal (KG iniciales - sum usos pointing a este quintal)
+  function quintalRemanente(qId) {
+    const ki = (quRes.results.find(x => x.id === qId)?.properties?.["KG iniciales"]?.number) || 0;
+    const used = usRes.results.filter(u => (readProp(u,"Quintal") || []).includes(qId))
+      .reduce((s,u) => s + (readProp(u,"KG usados") || 0), 0);
+    return Math.round((ki - used) * 10) / 10;
+  }
+
+  // Quintales list
+  const fechaCompra = quintales.length ? fmtDate(readProp(quintales[0], "Fecha de compra")) : "";
+  const quintalesList = quintales.map(q => {
+    const id = pageTitle(q);
+    const agotado = quintalRemanente(q.id) <= 0.5;
+    return `<div class="${agotado ? "tachado" : ""}">${id}</div>`;
+  }).join("");
+
+  // Usos del origen (de cualquier quintal de este origen)
+  const myQuintalIds = new Set(quintales.map(q => q.id));
+  const usos = usRes.results
+    .filter(u => (readProp(u,"Quintal") || []).some(qid => myQuintalIds.has(qid)))
+    .sort((a,b) => {
+      const fa = readProp(a,"Fecha") || "";
+      const fb = readProp(b,"Fecha") || "";
+      return fa.localeCompare(fb);
+    });
+
+  // Calcular remanente acumulado por origen para mostrar en cada fila
+  let acumRemanente = kgIniciales;
+  const usosRows = usos.map(u => {
+    const qIds = readProp(u,"Quintal") || [];
+    const q = quintales.find(x => x.id === qIds[0]);
+    const qName = q ? pageTitle(q) : "—";
+    const kg = readProp(u,"KG usados") || 0;
+    const ordIds = readProp(u,"Orden") || [];
+    const orden = ordIds.length ? ordRes.results.find(o => o.id === ordIds[0]) : null;
+    const ordName = orden ? pageTitle(orden) : "—";
+    acumRemanente -= kg;
+    const remDisplay = Math.round(acumRemanente * 10) / 10;
+    const firmaIds = readProp(u,"Firma") || [];
+    const firma = firmaIds.length ? miRes.results.find(m => m.id === firmaIds[0]) : null;
+    const firmaName = firma ? pageTitle(firma) : "—";
+    const fecha = readProp(u,"Fecha");
+    return `<tr>
+      <td style="font-family: 'Courier New', monospace;">${qName}</td>
+      <td style="text-align: center; font-weight: 700;">${kg}</td>
+      <td style="font-family: 'Courier New', monospace;">${ordName}</td>
+      <td style="text-align: center; font-weight: 700;">${remDisplay}</td>
+      <td>${firmaName}</td>
+      <td>${fmtDate(fecha)}</td>
+    </tr>`;
+  }).join("");
+
+  // Filas vacías para escribir a mano (warehouse durante el turno)
+  const emptyRows = Math.max(0, 12 - usos.length);
+  const blankRows = Array.from({length: emptyRows}, () =>
+    `<tr><td>&nbsp;</td><td></td><td></td><td></td><td></td><td></td></tr>`
+  ).join("");
+
+  const html = `
+    <div class="page">
+      <div class="doc-banner">REGISTRO CAFÉ VERDE</div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; margin-bottom: 20px;">
+        <div>
+          <span class="field-lbl" style="background: #c9b3d8; color: #3a1f5b;">ID ORIGEN</span>
+          <div class="field-val" style="font-family: 'Courier New', monospace; font-weight: 700;">${idOrigen}</div>
+        </div>
+        <div>
+          <span class="field-lbl">CAFICULTOR</span>
+          <div class="field-val">${caf}</div>
+        </div>
+        <div>
+          <span class="field-lbl">HACIENDA</span>
+          <div class="field-val">${hac}</div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; margin-bottom: 24px;">
+        <div></div>
+        <div>
+          <span class="field-lbl">VARIETAL</span>
+          <div class="field-val">${varietal}</div>
+        </div>
+        <div>
+          <span class="field-lbl">MSNM</span>
+          <div class="field-val">${msnm || ""}</div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 18px; margin-bottom: 24px;">
+        <div>
+          <span class="field-lbl">ID QUINTALES</span>
+          <div class="id-quintales-box">${quintalesList || "&nbsp;"}</div>
+        </div>
+        <div>
+          <span class="field-lbl">FECHA</span>
+          <div class="field-val" style="margin-top: 4px;">${fechaCompra}</div>
+          <br><br>
+          <span class="field-lbl">PROCESO</span>
+          <div class="field-val" style="margin-top: 4px;">${proc}</div>
+        </div>
+        <div>
+          <div class="kg-iniciales-box">
+            <div class="lbl">KG INICIALES</div>
+            ${kgIniciales}
+          </div>
+        </div>
+      </div>
+
+      <table class="grid">
+        <thead>
+          <tr>
+            <th>ID QUINTAL</th>
+            <th style="width: 70px; text-align: center;">USO (KG)</th>
+            <th>ORDER ID</th>
+            <th style="width: 80px; text-align: center;">REMANENTE</th>
+            <th>FIRMA</th>
+            <th style="width: 80px;">FECHA</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${usosRows}
+          ${blankRows}
+        </tbody>
+      </table>
+
+      <div class="doc-footer">Kofy · ${idOrigen} · impreso el ${fmtDate(new Date().toISOString())} · log físico — al final del turno volcar al sistema</div>
+    </div>
+  `;
+  document.getElementById("content").outerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════
+// Boot · routing
+// ═══════════════════════════════════════════════════════
+window.addEventListener("DOMContentLoaded", async () => {
+  const params = new URLSearchParams(location.search);
+  const type = params.get("type");
+  const id = params.get("id");
+  if (!type || !id) {
+    document.getElementById("content").outerHTML = `
+      <div class="error">
+        <h2>Esta página se abre desde un botón</h2>
+        <p style="margin: 12px 0; color: var(--text2);">No se abre directo — necesita saber qué imprimir.</p>
+        <p style="margin: 8px 0; color: var(--text2);">Para imprimir una orden: <strong style="color: var(--text);">Órdenes → click en la card → "🖨 Imprimir hoja"</strong></p>
+        <p style="margin: 8px 0; color: var(--text2);">Para imprimir una hoja de café verde: <strong style="color: var(--text);">Inventario → expandir un origen → "🖨 Imprimir hoja"</strong></p>
+        <div style="margin-top: 28px; display: flex; gap: 10px; justify-content: center;">
+          <a href="warehouse-ordenes.html" class="btn primary" style="text-decoration: none;">Ir a Órdenes</a>
+          <a href="warehouse-inventario.html" class="btn" style="text-decoration: none;">Ir a Inventario</a>
+        </div>
+      </div>`;
+    return;
+  }
+  try {
+    if (type === "order") await renderOrderSheet(id);
+    else if (type === "origen") await renderOrigenSheet(id);
+    else throw new Error("type inválido: " + type);
+  } catch (e) {
+    document.getElementById("content").outerHTML = `<div class="error"><h2>Error</h2><p>${e.message}</p></div>`;
+  }
+});
+</script>
+
+</body>
+</html>
