@@ -8,7 +8,7 @@ Database: Notion.
 
 ## Commit & deploy rule — ALWAYS do this at the end of every session
 
-When a session ends or a meaningful chunk of work is complete, **commit and push to main**. No exceptions.
+When a session ends or a meaningful chunk of work is complete, **commit AND push to main in the same step**. No exceptions.
 
 ```
 git add <changed files>
@@ -16,11 +16,11 @@ git commit -m "..."
 git push origin main
 ```
 
+**Commit without push = nothing changed.** `app.kofy.io` deploys from GitHub, not from the local machine. A local commit that isn't pushed is invisible to the team and does not go live. Always run all three commands together.
+
 Cloudflare Pages picks up the push automatically and deploys within ~1 minute.
 
-**Why this matters:** the tools run at `app.kofy.io`, not from the local machine. Anything not pushed is invisible to the team. Changes that exist only locally might as well not exist.
-
-**Why Claude Code doesn't do this automatically by default:** Claude is conservative — it won't commit without being told, because it doesn't know if work is finished, if there are secrets in the diff, or if a half-built feature should go live. For this project, the rule overrides that: if the work is done enough to show to Kafay or the team, push it.
+**Why Claude Code doesn't do this automatically by default:** Claude is conservative — it won't commit without being told, because it doesn't know if work is finished, if there are secrets in the diff, or if a half-built feature should go live. For this project, the rule overrides that: if the work is done enough to show to Kafay or the team, commit and push it.
 
 ## Tech stack (do not change)
 - Plain HTML/CSS/JS single-file tools — no framework, no build step

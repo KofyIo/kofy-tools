@@ -11,6 +11,9 @@ Owns **`orders.html`** (was `warehouse-ordenes.html`). This is the main order ma
 `C:\Users\megao\OneDrive\Desktop\SYSTEMS 2.0\tools\orders.html`
 Open directly in browser (no server needed). Backend: Notion via Cloudflare Worker proxy.
 
+## Deploy rule
+Always commit AND push in the same step. `app.kofy.io` deploys from GitHub — a local commit without `git push origin main` is invisible to the team and does not go live.
+
 ## Tech stack (v1 — do NOT change)
 - Plain HTML/CSS/JS, single file, no framework
 - Notion as database (source of truth)

@@ -21,6 +21,9 @@ C:\Users\megao\OneDrive\Desktop\SYSTEMS 2.0\tools\kofy-comms-setup-runner.html
 C:\Users\megao\OneDrive\Desktop\SYSTEMS 2.0\tools\kofy-comms-tester.html
 ```
 
+## Deploy rule
+Always commit AND push in the same step. `app.kofy.io` deploys from GitHub — a local commit without `git push origin main` is invisible to the team and does not go live.
+
 ## Tech stack (v1 — do NOT change)
 - Plain HTML/CSS/JS, single file, no framework
 - Notion as database (comms log in DB_NOTIFICACIONES)
