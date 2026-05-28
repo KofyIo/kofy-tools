@@ -59,7 +59,7 @@ On E: packaging stock deduction
 - B2B prefill (load standard order from client profile)
 - Gratis / cortesía flag
 - Advanced filters: date range, etapa, tostado, origen, tipo (B2B / Retail / Cortesía)
-- 🔥 Cola de Tostado tab — roast queue aggregated by origin + roast profile across all pending orders. Shows kg verde in / kg tostado out per group + grand totals. **Note: user wants this moved to warehouse.html (floor app). Keep it here for now until that session handles it.**
+- ~~🔥 Cola de Tostado tab~~ — removed 2026-05-28. Migrated to warehouse.html.
 - ✏ Edit items — button in order detail modal. Edit OR add new items OR delete/archive existing items post-order. Each existing item has × (soft-delete with ↩ undo). "+ Agregar item" button adds new rows. Save handles all three operations in one pass.
 - Green coffee total estimate in new order modal (live calculation)
 - Auto-refresh every 15s (skips if modal open or user is typing)
@@ -67,8 +67,7 @@ On E: packaging stock deduction
 - Printable order sheets (opens print.html?type=order&id=…)
 
 ## Pending work (priority order)
-1. **Cola de Tostado → move to warehouse.html** — user confirmed this belongs on the floor app (Leo/Primo use it when roasting). Remove the 🔥 tab from orders.html once warehouse.html has it. Full `renderRoastQueue()` logic + CSS + constants are here to copy.
-2. **Orders filters** — user said filters need more improvement. Explore what other filter dimensions would be useful (e.g., filter by persona who signed, filter by ETA window).
+1. **Orders filters** — user said filters need more improvement. Explore what other filter dimensions would be useful (e.g., filter by persona who signed, filter by ETA window).
 
 *Note: the original 14-item Warehouse v2 backlog (2026-05-18) is fully complete as of 2026-05-26. See `docs/warehouse-v2-backlog-status.md`.*
 
