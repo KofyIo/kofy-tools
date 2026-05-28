@@ -168,7 +168,7 @@
           <button class="primary" id="saveUmbral" type="button">Guardar</button>
         </div>
       </div>
-      <p class="muted" style="margin-top:10px;font-size:12px">El umbral por empaque se define por bolsa en <code>warehouse-inventario.html</code>.</p>
+      <p class="muted" style="margin-top:10px;font-size:12px">El umbral por empaque se define por bolsa en <code>inventory.html</code>.</p>
     </div>
   </section>
 
@@ -294,7 +294,7 @@
   const SETTINGS_KEY = 'kofy_comms_settings_v1';
 
   // DB IDs · fallback chain:
-  //   1. window.KOFY_DB_IDS — set inline by warehouse-setup.html in production
+  //   1. window.KOFY_DB_IDS — set inline by setup.html in production
   //   2. localStorage "kofy_comms_setup_v1" — saved by kofy-comms-setup-runner.html
   //   3. nothing — tabs show "DB no configurada" hints
   function readSavedIds() {
@@ -492,7 +492,7 @@
   let miembros = [], clientes = [];
 
   async function loadMiembros() {
-    if (!DB.MIEMBROS) { $('#miembrosList').innerHTML = '<div class="empty">DB Miembros no configurada. Corré <code>warehouse-setup.html</code>.</div>'; return; }
+    if (!DB.MIEMBROS) { $('#miembrosList').innerHTML = '<div class="empty">DB Miembros no configurada. Corré <code>setup.html</code>.</div>'; return; }
     try {
       const { results } = await notionQuery(DB.MIEMBROS);
       miembros = results;
@@ -503,7 +503,7 @@
   }
   function renderMiembros() {
     const root = $('#miembrosList'); root.innerHTML = '';
-    if (!miembros.length) { root.innerHTML = '<div class="empty">Sin miembros. Agregalos en <code>warehouse-miembros.html</code>.</div>'; return; }
+    if (!miembros.length) { root.innerHTML = '<div class="empty">Sin miembros. Agregalos en <code>miembros.html</code>.</div>'; return; }
     miembros.forEach(m => {
       const name = plain(m.properties?.Nombre);
       const ini  = plain(m.properties?.Iniciales);
@@ -618,7 +618,7 @@
   // ---------- Log viewer ----------
   let isPollingLog = false;
   async function loadLog() {
-    if (!DB.NOTIFICACIONES) { $('#logBody').innerHTML = '<div class="empty">DB Notificaciones no configurada. Corré la migración en <code>warehouse-setup.html</code>.</div>'; return; }
+    if (!DB.NOTIFICACIONES) { $('#logBody').innerHTML = '<div class="empty">DB Notificaciones no configurada. Corré la migración en <code>setup.html</code>.</div>'; return; }
     // Skip refresh if user is interacting with a select/input/textarea (smart refresh)
     if (isPollingLog && document.activeElement && /^(INPUT|SELECT|TEXTAREA)$/.test(document.activeElement.tagName)) return;
     try {

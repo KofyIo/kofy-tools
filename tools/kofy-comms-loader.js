@@ -10,8 +10,8 @@
  * the warehouse keeps working unchanged.
  *
  * Settings live in localStorage under "kofy_comms_settings_v1" and are
- * managed from warehouse-comms.html. DB IDs are read from either:
- *   - window.KOFY_DB_IDS  (set inline by warehouse-setup.html), OR
+ * managed from comms.html. DB IDs are read from either:
+ *   - window.KOFY_DB_IDS  (set inline by setup.html), OR
  *   - localStorage "kofy_comms_setup_v1" (written by setup runner)
  * If absent, sensible defaults from §5.2 of the handoff apply.
  * ========================================================================= */
@@ -27,7 +27,7 @@
   const SETUP_KEY     = 'kofy_comms_setup_v1'; // setup-runner config (DB IDs)
 
   // ---- DB IDs · fallback chain --------------------------------------------
-  //   1. window.KOFY_DB_IDS — set inline by warehouse-setup.html in production
+  //   1. window.KOFY_DB_IDS — set inline by setup.html in production
   //   2. localStorage SETUP_KEY — written by kofy-comms-setup-runner.html
   //   3. nothing — loader logs a warning when it needs them
   function _readDbIds() {

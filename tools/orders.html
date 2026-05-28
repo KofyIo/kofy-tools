@@ -189,6 +189,47 @@
   .detail-items .iline { padding: 4px 0; color: var(--ink); }
   .detail-items .iline .qty { color: var(--cream); font-family: ui-monospace, monospace; font-weight: 700; }
   .detail-items .iline .ori { color: var(--gold); font-family: ui-monospace, monospace; font-size: 11px; }
+
+  /* ═══ v3 · View tabs ═══ */
+  .view-tabs { display: flex; gap: 0; border-bottom: 2px solid var(--line); margin-bottom: 16px; }
+  .vtab { background: transparent; border: none; color: var(--ink-mute); font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; padding: 10px 18px; cursor: pointer; font-family: inherit; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: color 0.1s; white-space: nowrap; }
+  .vtab:hover { color: var(--ink); }
+  .vtab.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+  /* ═══ v3 · Roast Queue ═══ */
+  .roast-badge { font-family: ui-monospace, monospace; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 4px; letter-spacing: 0.08em; display: inline-block; }
+  .roast-badge.AN { background: rgba(127,176,105,0.15); color: #7fb069; border: 1px solid rgba(127,176,105,0.3); }
+  .roast-badge.CM { background: rgba(245,200,66,0.12); color: var(--gold); border: 1px solid rgba(245,200,66,0.3); }
+  .roast-badge.MT { background: rgba(91,58,143,0.2); color: var(--plum-soft); border: 1px solid rgba(91,58,143,0.4); }
+  .roast-block { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; margin-bottom: 16px; overflow: hidden; }
+  .roast-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .roast-table th { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); text-align: left; padding: 8px 14px; background: var(--surface-2); border-bottom: 1px solid var(--line); font-weight: 600; }
+  .roast-table th:not(:first-child) { text-align: right; }
+  .roast-table td { padding: 10px 14px; border-bottom: 1px solid var(--line); color: var(--ink); }
+  .roast-table td:not(:first-child) { text-align: right; font-family: ui-monospace, monospace; }
+  .roast-table tr:last-child td { border-bottom: none; }
+  .roast-table tbody tr:hover td { background: rgba(245,200,66,0.03); }
+  .roast-table tfoot td { border-top: 1px solid var(--line); border-bottom: none; color: var(--cream); font-weight: 700; background: rgba(245,200,66,0.04); }
+  .roast-num { font-family: ui-monospace, monospace; font-size: 15px; color: var(--cream); font-weight: 700; }
+  .roast-num-sub { font-size: 10px; color: var(--ink-mute); margin-top: 1px; }
+  .roast-orders { font-size: 10px; color: var(--ink-mute); font-family: ui-monospace, monospace; max-width: 280px; line-height: 1.4; }
+  .roast-grand { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 16px 20px; margin-top: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+  .roast-grand .g-lbl { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-mute); margin-bottom: 4px; }
+  .roast-grand .g-val { font-family: ui-monospace, monospace; font-size: 28px; font-weight: 700; color: var(--cream); }
+  .roast-grand .g-sub { font-size: 11px; color: var(--ink-mute); margin-top: 2px; }
+  .roast-no-orders { background: var(--surface); border: 1px dashed var(--line); border-radius: 8px; padding: 48px; text-align: center; color: var(--ink-mute); font-size: 14px; }
+
+  /* ═══ v3 · Edit items modal ═══ */
+  .edit-item-card { background: var(--surface-2); border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px; margin-bottom: 8px; transition: opacity 0.15s, border-color 0.15s; }
+  .edit-item-card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .edit-item-id { font-family: ui-monospace, monospace; font-size: 10px; color: var(--ink-mute); letter-spacing: 0.06em; text-transform: uppercase; }
+  .edit-item-del { background: transparent; border: none; color: var(--ink-mute); font-size: 16px; cursor: pointer; padding: 0 4px; line-height: 1; font-weight: 400; }
+  .edit-item-del:hover { color: var(--red); }
+  .edit-item-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .edit-item-grid .field { margin-bottom: 0; }
+  @media (max-width: 500px) { .edit-item-grid { grid-template-columns: 1fr; } }
+  .add-edit-item-btn { width: 100%; background: transparent; border: 1px dashed var(--line); color: var(--ink-mute); font-size: 12px; font-weight: 600; font-family: inherit; padding: 10px; border-radius: 6px; cursor: pointer; margin-top: 4px; letter-spacing: 0.04em; }
+  .add-edit-item-btn:hover { border-color: var(--green); color: var(--green); }
 </style>
 </head>
 <body>
@@ -206,7 +247,7 @@ const CONFIG = {
   DB_QUINTALES: "3649b62600a080df9a7ac6c932fa9d5b",
   DB_USOS:      "3649b62600a080108754c2eaadac2455",
   DB_MIEMBROS:  "3649b62600a080308dc6cf556b0d8c4b",
-  DB_EMPAQUE:   null,  // v2: cargado de localStorage si setup lo configuró
+  DB_EMPAQUE:   "3659b62600a08053a953e4a457d44626",
   REFRESH_MS: 15000,
 };
 // v2: leer DB_EMPAQUE de localStorage (escrito por setup)
@@ -234,9 +275,9 @@ const CONFIG = {
       <span class="name">Kofy <span class="sub">· Órdenes</span></span>
     </div>
     <nav class="nav">
-      <a href="warehouse-ordenes.html" class="active">Órdenes</a>
-      <a href="warehouse-inventario.html">Inventario</a>
-      <a href="warehouse-yo.html">The Game</a>
+      <a href="orders.html" class="active">Órdenes</a>
+      <a href="inventory.html">Inventario</a>
+      <a href="game.html">The Game</a>
     </nav>
     <button class="persona-chip" id="persona-chip" onclick="changePersona()" style="display:none; margin-left: 10px;">
       <span class="dot" id="persona-dot">—</span>
@@ -246,6 +287,13 @@ const CONFIG = {
 </header>
 
 <main>
+  <!-- v3 · View tabs -->
+  <div class="view-tabs">
+    <button class="vtab active" id="tab-kanban" onclick="switchTab('kanban')" style="min-width:36px;"></button>
+    <button class="vtab" id="tab-roast" onclick="switchTab('roast')">🔥 Cola de Tostado</button>
+  </div>
+
+  <div id="view-kanban">
   <div class="filterbar">
     <span class="label">Filtrar</span>
     <select id="filter-client"><option value="">Todos los clientes</option></select>
@@ -277,6 +325,10 @@ const CONFIG = {
       <span class="adv-label">Origen</span>
       <div class="adv-pickers" id="adv-origenes"></div>
     </div>
+    <div class="adv-row">
+      <span class="adv-label">Tipo</span>
+      <div class="adv-pickers" id="adv-tipos"></div>
+    </div>
   </div>
 
   <div class="kanban" id="kanban">
@@ -304,6 +356,12 @@ const CONFIG = {
       <div class="col-head"><span class="col-icon">✅</span><span class="col-title">Entregado</span><span class="col-count" id="count-en">0</span></div>
       <div class="cards" id="cards-en"></div>
     </div>
+  </div>
+  </div><!-- /view-kanban -->
+
+  <!-- v3 · Cola de tostado -->
+  <div id="view-roast" style="display:none;">
+    <div id="roast-queue-content"></div>
   </div>
 </main>
 
@@ -418,6 +476,26 @@ const CONFIG = {
   </div>
 </div>
 
+<!-- v3 · Modal · Editar items de una orden -->
+<div class="modal-bg" id="modal-edit-items">
+  <div class="modal" style="max-width: 640px;">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">✏ Editar items</div>
+        <div class="modal-id" id="edit-items-order-id">—</div>
+      </div>
+      <button class="close" onclick="closeModal('modal-edit-items')">✕</button>
+    </div>
+    <p style="font-size: 12px; color: var(--ink-mute); margin-bottom: 14px;">Editá origen, tostado, presentación y cantidad. También podés agregar o eliminar items.</p>
+    <div id="edit-items-body"></div>
+    <button class="add-edit-item-btn" onclick="addNewEditItem()">+ Agregar item</button>
+    <div class="btn-row" style="margin-top:14px;">
+      <button class="btn ghost" onclick="closeModal('modal-edit-items')">Cancelar</button>
+      <button class="btn primary" id="btn-save-items" onclick="saveItemEdits()">Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -439,7 +517,7 @@ let STATE = {
   hidden: false,
   // v2 · filtros avanzados
   advFiltersOpen: false,
-  advFilters: { dateFrom: "", dateTo: "", etapas: [], tostados: [], origenes: [] },
+  advFilters: { dateFrom: "", dateTo: "", etapas: [], tostados: [], origenes: [], tipos: [] },
 };
 
 // ═══ v2 · Etapas + Persona ═══
@@ -517,7 +595,7 @@ function updatePersonaChip() {
 function renderPersonaPicker() {
   const grid = document.getElementById("picker-grid");
   if (!STATE.miembros.length) {
-    grid.innerHTML = `<div style="grid-column: span 2; color: var(--ink-mute); text-align: center; font-size: 13px;">No hay miembros en Notion.<br>Abrí <a href="warehouse-miembros.html" style="color: var(--gold);">warehouse-miembros.html</a> y sembralos.</div>`;
+    grid.innerHTML = `<div style="grid-column: span 2; color: var(--ink-mute); text-align: center; font-size: 13px;">No hay miembros en Notion.<br>Abrí <a href="miembros.html" style="color: var(--gold);">miembros.html</a> y sembralos.</div>`;
     return;
   }
   grid.innerHTML = "";
@@ -655,7 +733,7 @@ function _computeKanbanSig() {
     const g = readProp(o, "Gratis") ? "G" : "";
     return `${o.id.substring(0,8)}:${stagesBits}${c}${g}`;
   }).join("|");
-  const filterSig = `${document.getElementById("filter-client")?.value || ""}|${(document.getElementById("filter-search")?.value || "").toLowerCase()}|${JSON.stringify(STATE.advFilters)}`;
+  const filterSig = `${document.getElementById("filter-client")?.value || ""}|${(document.getElementById("filter-search")?.value || "").toLowerCase()}|${JSON.stringify(STATE.advFilters)}|${STATE.advFilters.tipos.join(",")}`;
   const personaSig = STATE.persona?.id || "";
   return ordersSig + "::" + filterSig + "::" + personaSig;
 }
@@ -700,10 +778,23 @@ function renderKanban() {
         if (!af.origenes.some(oid => myOris.has(oid))) return;
       }
     }
+    if (af.tipos.length) {
+      const isGratis = readProp(o, "Gratis") === true;
+      const clientIds2 = readProp(o, "Cliente") || [];
+      const cli = STATE.clientes.find(c => c.id === clientIds2[0]);
+      const isB2B = cli ? readProp(cli, "B2B") === true : false;
+      const matchTipo = af.tipos.some(t => {
+        if (t === "b2b")      return isB2B;
+        if (t === "cortesia") return isGratis;
+        if (t === "retail")   return !isB2B && !isGratis;
+        return false;
+      });
+      if (!matchTipo) return;
+    }
     buckets[getStage(o)].push(o);
   });
   // Indicador visual: si algún filtro avanzado está activo, el botón se destaca
-  const advActive = af.dateFrom || af.dateTo || af.etapas.length || af.tostados.length || af.origenes.length;
+  const advActive = af.dateFrom || af.dateTo || af.etapas.length || af.tostados.length || af.origenes.length || af.tipos.length;
   const fmBtn = document.getElementById("filter-more");
   if (fmBtn) {
     if (advActive) { fmBtn.style.background = "rgba(245,200,66,0.15)"; fmBtn.style.borderColor = "var(--gold)"; fmBtn.style.color = "var(--gold)"; }
@@ -1071,9 +1162,10 @@ function openDetail(o) {
         </div>
       </div>
       <div style="display: flex; gap: 8px; margin: 8px 0 14px; flex-wrap: wrap;">
-        <a href="warehouse-print.html?type=order&id=${o.id}" target="_blank" class="btn ghost" style="flex: 1; min-width: 140px; text-align: center; text-decoration: none; font-size: 12px;">🖨 Imprimir hoja</a>
-        ${clientIds.length && myItems.length ? `<button class="btn ghost" style="flex: 2; min-width: 200px; font-size: 12px;" onclick="saveOrderAsStandard()">💾 Guardar como pedido estándar</button>` : ""}
-        <button class="btn ghost" style="flex: 1; min-width: 140px; font-size: 12px; color: var(--red); border-color: rgba(217,83,79,0.4);" onclick="cancelOrArchiveOrder()">${STAGES.some(s => readProp(o, s.code + " ✓")) ? "🚫 Cancelar orden" : "🗑 Archivar orden"}</button>
+        <a href="print.html?type=order&id=${o.id}" target="_blank" class="btn ghost" style="flex: 1; min-width: 130px; text-align: center; text-decoration: none; font-size: 12px;">🖨 Imprimir hoja</a>
+        <button class="btn ghost" style="flex: 1; min-width: 130px; font-size: 12px;" onclick="openEditItems()">✏ Editar items</button>
+        ${clientIds.length && myItems.length ? `<button class="btn ghost" style="flex: 2; min-width: 180px; font-size: 12px;" onclick="saveOrderAsStandard()">💾 Pedido estándar</button>` : ""}
+        <button class="btn ghost" style="flex: 1; min-width: 130px; font-size: 12px; color: var(--red); border-color: rgba(217,83,79,0.4);" onclick="cancelOrArchiveOrder()">${STAGES.some(s => readProp(o, s.code + " ✓")) ? "🚫 Cancelar" : "🗑 Archivar"}</button>
       </div>`
     : "";
 
@@ -1530,6 +1622,15 @@ function populateAdvPickers() {
   }
   document.getElementById("adv-date-from").value = STATE.advFilters.dateFrom;
   document.getElementById("adv-date-to").value = STATE.advFilters.dateTo;
+  // Tipos
+  const tipoOpts = [
+    { code: "b2b",      label: "🏢 B2B" },
+    { code: "retail",   label: "🛍 Retail" },
+    { code: "cortesia", label: "🎁 Cortesía" },
+  ];
+  document.getElementById("adv-tipos").innerHTML = tipoOpts.map(t =>
+    `<button class="tag-pick ${STATE.advFilters.tipos.includes(t.code) ? "on" : ""}" onclick="togglePicker('tipos', '${t.code}', this)">${t.label}</button>`
+  ).join("");
 }
 
 function togglePicker(dim, val, btn) {
@@ -1552,7 +1653,7 @@ function clearDateRange() {
   renderKanban();
 }
 function clearAllAdvFilters() {
-  STATE.advFilters = { dateFrom: "", dateTo: "", etapas: [], tostados: [], origenes: [] };
+  STATE.advFilters = { dateFrom: "", dateTo: "", etapas: [], tostados: [], origenes: [], tipos: [] };
   populateAdvPickers();
   renderKanban();
 }
@@ -1635,6 +1736,358 @@ async function reactivateOrder(orderId) {
     await loadAll();
   } catch (e) {
     toast("Error: " + e.message + " · ¿corriste otra vez la migración de cancelaciones?", "error");
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// v3 · View tabs
+// ═══════════════════════════════════════════════════════
+function switchTab(tab) {
+  document.getElementById("view-kanban").style.display = tab === "kanban" ? "" : "none";
+  document.getElementById("view-roast").style.display  = tab === "roast"  ? "" : "none";
+  document.getElementById("tab-kanban").classList.toggle("active", tab === "kanban");
+  document.getElementById("tab-roast").classList.toggle("active",  tab === "roast");
+  if (tab === "roast") renderRoastQueue();
+}
+
+// ═══════════════════════════════════════════════════════
+// v3 · Cola de Tostado
+// ═══════════════════════════════════════════════════════
+function renderRoastQueue() {
+  const el = document.getElementById("roast-queue-content");
+
+  // Pending roast = not cancelled AND not yet roasted (T ✓ = false)
+  const pending = STATE.ordenes.filter(o =>
+    !readProp(o, "Cancelada") && !readProp(o, "T ✓")
+  );
+
+  if (pending.length === 0) {
+    el.innerHTML = `<div class="roast-no-orders">🎉 No hay café pendiente de tostar. Todo al día.</div>`;
+    return;
+  }
+
+  // Aggregate by (origenId, tostado) across all pending orders
+  const groups = {};
+  let grandVerde = 0, grandRoasted = 0;
+
+  pending.forEach(o => {
+    const orderId = readProp(o, "Order ID") || pageTitle(o) || "—";
+    const myItems = STATE.items.filter(it => (readProp(it,"Orden") || []).includes(o.id));
+    myItems.forEach(it => {
+      const tostado = readProp(it, "Tostado") || "?";
+      const oriIds  = readProp(it, "Origen")  || [];
+      const oriId   = oriIds[0] || "__sin__";
+      const ori     = oriIds.length ? STATE.origenes.find(x => x.id === oriIds[0]) : null;
+      const oriName = ori ? (readProp(ori, "ID Origen") || pageTitle(ori)) : "Sin origen asignado";
+      const kgVerde = greenKgForItem(it);
+      const loss    = getRoastLossPct(tostado, oriIds[0]);
+      const kgRoast = Math.round(kgVerde * (1 - loss) * 100) / 100;
+
+      const key = `${tostado}::${oriId}`;
+      if (!groups[key]) groups[key] = { oriId, oriName, tostado, kgVerde: 0, kgRoasted: 0, orderIds: [] };
+      groups[key].kgVerde   = Math.round((groups[key].kgVerde   + kgVerde) * 100) / 100;
+      groups[key].kgRoasted = Math.round((groups[key].kgRoasted + kgRoast) * 100) / 100;
+      if (!groups[key].orderIds.includes(orderId)) groups[key].orderIds.push(orderId);
+      grandVerde   = Math.round((grandVerde   + kgVerde) * 100) / 100;
+      grandRoasted = Math.round((grandRoasted + kgRoast) * 100) / 100;
+    });
+  });
+
+  if (Object.keys(groups).length === 0) {
+    el.innerHTML = `<div class="roast-no-orders">Las órdenes pendientes no tienen items con tostado asignado.<br><small style="color: var(--ink-mute);">Asignales origen y tostado con ✏ Editar items para que aparezcan acá.</small></div>`;
+    return;
+  }
+
+  // Group by tostado profile, sort origins within each group
+  const byTostado = { AN: [], CM: [], MT: [] };
+  Object.values(groups).forEach(g => {
+    if (byTostado[g.tostado]) byTostado[g.tostado].push(g);
+  });
+
+  const PROFILE_META = {
+    AN: { label: "Aurora Nordics · Claro",  loss: "15%", icon: "🌿" },
+    CM: { label: "Medio",                   loss: "15%", icon: "☕" },
+    MT: { label: "Oscuro",                  loss: "20%", icon: "🔥" },
+  };
+
+  let html = `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; flex-wrap:wrap; gap:10px;">
+    <div style="font-size: 12px; color: var(--ink-mute);">${pending.length} orden${pending.length>1?"es":""} pendiente${pending.length>1?"s":""} de tostar</div>
+    <button class="btn ghost" style="font-size:11px; padding:6px 12px;" onclick="renderRoastQueue()">↻ Actualizar</button>
+  </div>`;
+
+  let hasAny = false;
+  for (const [profile, rows] of Object.entries(byTostado)) {
+    if (!rows.length) continue;
+    hasAny = true;
+    const meta = PROFILE_META[profile];
+    rows.sort((a,b) => a.oriName.localeCompare(b.oriName));
+    const totalVerde = Math.round(rows.reduce((s,r) => s + r.kgVerde,   0) * 100) / 100;
+    const totalRoast = Math.round(rows.reduce((s,r) => s + r.kgRoasted, 0) * 100) / 100;
+
+    html += `
+    <div class="roast-block">
+      <table class="roast-table">
+        <thead>
+          <tr>
+            <th><span class="roast-badge ${profile}">${profile}</span>&nbsp;&nbsp;${meta.icon} ${meta.label} <span style="font-weight:400; color: var(--ink-mute);">(merma ${meta.loss})</span></th>
+            <th>Verde · entrada</th>
+            <th>Tostado · salida</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map(r => `
+          <tr>
+            <td>
+              <div style="font-weight:600; color: var(--cream);">${r.oriName}</div>
+              <div class="roast-orders">${r.orderIds.join(" · ")}</div>
+            </td>
+            <td>
+              <div class="roast-num">${r.kgVerde.toFixed(2)}</div>
+              <div class="roast-num-sub">kg verde</div>
+            </td>
+            <td>
+              <div class="roast-num" style="color: var(--gold);">${r.kgRoasted.toFixed(2)}</div>
+              <div class="roast-num-sub">kg tostado</div>
+            </td>
+          </tr>`).join("")}
+        </tbody>
+        <tfoot>
+          <tr>
+            <td>Subtotal <span class="roast-badge ${profile}" style="font-size:10px;">${profile}</span></td>
+            <td>${totalVerde.toFixed(2)} kg</td>
+            <td>${totalRoast.toFixed(2)} kg</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>`;
+  }
+
+  if (!hasAny) {
+    el.innerHTML = `<div class="roast-no-orders">Sin datos de tostado en los items pendientes.</div>`;
+    return;
+  }
+
+  html += `
+  <div class="roast-grand">
+    <div>
+      <div class="g-lbl">Total verde a pesar y cargar</div>
+      <div class="g-val">${grandVerde.toFixed(2)} <span style="font-size:15px; color: var(--ink-mute);">kg</span></div>
+      <div class="g-sub">café verde que entra al tostador</div>
+    </div>
+    <div style="text-align:right;">
+      <div class="g-lbl">Output tostado esperado</div>
+      <div class="g-val" style="color: var(--gold);">${grandRoasted.toFixed(2)} <span style="font-size:15px; color: var(--ink-mute);">kg</span></div>
+      <div class="g-sub">después de merma · listo para empacar</div>
+    </div>
+  </div>`;
+
+  el.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════
+// v3 · Edit items (add, edit, delete post-order)
+// ═══════════════════════════════════════════════════════
+let editItemsOriginalIds = [];  // tracks which item IDs were open when modal launched
+
+function _editOrigOpts() {
+  return STATE.origenes
+    .filter(x => readProp(x,"Activo") !== false)
+    .map(x => `<option value="${x.id}">${readProp(x,"ID Origen") || pageTitle(x)}</option>`)
+    .join("");
+}
+
+function openEditItems() {
+  const o = STATE.selectedOrder;
+  if (!o) return;
+  const orderId = readProp(o, "Order ID") || pageTitle(o) || "—";
+  document.getElementById("edit-items-order-id").textContent = orderId;
+  const myItems = STATE.items.filter(it => (readProp(it,"Orden") || []).includes(o.id));
+  if (!myItems.length) { toast("La orden no tiene items", "error"); return; }
+  editItemsOriginalIds = myItems.map(it => it.id);
+  const origOpts = _editOrigOpts();
+  const body = document.getElementById("edit-items-body");
+  body.innerHTML = myItems.map((it, i) => {
+    const itemId = readProp(it, "Item ID") || pageTitle(it) || `Item ${i+1}`;
+    const pres   = readProp(it, "Presentación") || "1 KG";
+    const tos    = readProp(it, "Tostado") || "AN";
+    const cant   = readProp(it, "Cantidad") || 1;
+    return `
+    <div class="edit-item-card" data-item-id="${it.id}">
+      <div class="edit-item-card-head">
+        <div class="edit-item-id">${itemId}</div>
+        <button class="edit-item-del" onclick="removeEditItemCard(this)" title="Eliminar item">×</button>
+      </div>
+      <div class="edit-item-grid">
+        <div class="field"><label>Presentación</label>
+          <select data-edit="presentacion">
+            <option${pres==="1 KG"?" selected":""}>1 KG</option>
+            <option${pres==="500g"?" selected":""}>500g</option>
+            <option${pres==="250g"?" selected":""}>250g</option>
+            <option${pres==="BOX"?" selected":""}>BOX</option>
+            <option${pres==="SACHET"?" selected":""}>SACHET</option>
+          </select>
+        </div>
+        <div class="field"><label>Tostado</label>
+          <select data-edit="tostado">
+            <option${tos==="AN"?" selected":""}>AN</option>
+            <option${tos==="CM"?" selected":""}>CM</option>
+            <option${tos==="MT"?" selected":""}>MT</option>
+          </select>
+        </div>
+        <div class="field"><label>Cantidad</label>
+          <input type="number" data-edit="cantidad" value="${cant}" min="1">
+        </div>
+        <div class="field"><label>Origen</label>
+          <select data-edit="origen">
+            <option value="">— Sin origen —</option>${origOpts}
+          </select>
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+  // Set current origin selections (post innerHTML so selects exist in DOM)
+  myItems.forEach((it, i) => {
+    const oriIds = readProp(it, "Origen") || [];
+    const card = body.querySelectorAll(".edit-item-card")[i];
+    if (card && oriIds[0]) card.querySelector('[data-edit="origen"]').value = oriIds[0];
+  });
+  openModal("modal-edit-items");
+}
+
+function removeEditItemCard(btn) {
+  const card = btn.closest(".edit-item-card");
+  if (!card) return;
+  const itemId = card.dataset.itemId;
+  if (itemId && itemId !== "NEW") {
+    // Existing Notion item — mark for archive (soft delete), keep visible with undo
+    if (card.dataset.deleted === "1") return; // already marked
+    card.dataset.deleted = "1";
+    card.style.opacity = "0.4";
+    card.style.borderColor = "rgba(217,83,79,0.5)";
+    card.querySelectorAll("select, input").forEach(el => el.disabled = true);
+    btn.textContent = "↩";
+    btn.title = "Deshacer";
+    btn.style.color = "var(--gold)";
+    btn.onclick = () => restoreEditItemCard(card, btn);
+  } else {
+    // New (unsaved) item — just remove from DOM
+    card.remove();
+  }
+}
+
+function restoreEditItemCard(card, btn) {
+  delete card.dataset.deleted;
+  card.style.opacity = "";
+  card.style.borderColor = "";
+  card.querySelectorAll("select, input").forEach(el => el.disabled = false);
+  btn.textContent = "×";
+  btn.title = "Eliminar item";
+  btn.style.color = "";
+  btn.onclick = () => removeEditItemCard(btn);
+}
+
+function addNewEditItem() {
+  const body = document.getElementById("edit-items-body");
+  const origOpts = _editOrigOpts();
+  const card = document.createElement("div");
+  card.className = "edit-item-card";
+  card.dataset.itemId = "NEW";
+  card.style.borderColor = "rgba(127,176,105,0.4)";
+  card.innerHTML = `
+    <div class="edit-item-card-head">
+      <div class="edit-item-id" style="color:var(--green);">+ Nuevo item</div>
+      <button class="edit-item-del" onclick="this.closest('.edit-item-card').remove()" title="Quitar">×</button>
+    </div>
+    <div class="edit-item-grid">
+      <div class="field"><label>Presentación</label>
+        <select data-edit="presentacion">
+          <option>1 KG</option><option>500g</option><option>250g</option><option>BOX</option><option>SACHET</option>
+        </select>
+      </div>
+      <div class="field"><label>Tostado</label>
+        <select data-edit="tostado">
+          <option>AN</option><option>CM</option><option>MT</option>
+        </select>
+      </div>
+      <div class="field"><label>Cantidad</label>
+        <input type="number" data-edit="cantidad" value="1" min="1">
+      </div>
+      <div class="field"><label>Origen</label>
+        <select data-edit="origen">
+          <option value="">— Sin origen —</option>${origOpts}
+        </select>
+      </div>
+    </div>`;
+  body.appendChild(card);
+}
+
+async function saveItemEdits() {
+  const btn = document.getElementById("btn-save-items");
+  btn.disabled = true;
+  const o = STATE.selectedOrder;
+  if (!o) { btn.disabled = false; return; }
+  const orderId = readProp(o, "Order ID") || pageTitle(o) || "ORD";
+  const allCards = Array.from(document.querySelectorAll("#edit-items-body .edit-item-card"));
+  const toUpdate  = allCards.filter(c => !c.dataset.deleted && c.dataset.itemId !== "NEW");
+  const toDelete  = allCards.filter(c => c.dataset.deleted === "1");
+  const toCreate  = allCards.filter(c => c.dataset.itemId === "NEW");
+  // also catch items that were removed from DOM entirely
+  const visibleIds = allCards.map(c => c.dataset.itemId);
+  const removedIds = editItemsOriginalIds.filter(id => !visibleIds.includes(id));
+  try {
+    let first = true;
+    // 1. PATCH existing items
+    for (const card of toUpdate) {
+      if (!first) await new Promise(r => setTimeout(r, 350));
+      first = false;
+      const oriId = card.querySelector('[data-edit="origen"]').value;
+      await updatePage(card.dataset.itemId, {
+        "Presentación": { select:  { name: card.querySelector('[data-edit="presentacion"]').value } },
+        "Tostado":      { select:  { name: card.querySelector('[data-edit="tostado"]').value } },
+        "Cantidad":     { number:  parseInt(card.querySelector('[data-edit="cantidad"]').value) || 1 },
+        "Origen":       { relation: oriId ? [{ id: oriId }] : [] },
+      });
+    }
+    // 2. ARCHIVE deleted items (marked + removed from DOM)
+    const archiveIds = [...toDelete.map(c => c.dataset.itemId), ...removedIds];
+    for (const id of archiveIds) {
+      if (!first) await new Promise(r => setTimeout(r, 350));
+      first = false;
+      await notion(`/pages/${id}`, { archived: true }, "PATCH");
+    }
+    // 3. CREATE new items
+    const existingCount = STATE.items.filter(it => (readProp(it,"Orden") || []).includes(o.id)).length;
+    let newIdx = existingCount;
+    for (const card of toCreate) {
+      if (!first) await new Promise(r => setTimeout(r, 350));
+      first = false;
+      const oriId = card.querySelector('[data-edit="origen"]').value;
+      await createPage(CONFIG.DB_ITEMS, {
+        "Item ID":        { title: [{ text: { content: `${orderId}-ITEM-${newIdx}` } }] },
+        "Orden":          { relation: [{ id: o.id }] },
+        "Presentación":   { select: { name: card.querySelector('[data-edit="presentacion"]').value } },
+        "Tostado":        { select: { name: card.querySelector('[data-edit="tostado"]').value } },
+        "Cantidad":       { number: parseInt(card.querySelector('[data-edit="cantidad"]').value) || 1 },
+        "Grano / Molido": { select: { name: "Grano entero" } },
+        "Origen":         { relation: oriId ? [{ id: oriId }] : [] },
+      });
+      newIdx++;
+    }
+    // Build summary toast
+    const parts = [];
+    if (toUpdate.length)    parts.push(`${toUpdate.length} actualizado${toUpdate.length>1?"s":""}`);
+    if (toCreate.length)    parts.push(`${toCreate.length} creado${toCreate.length>1?"s":""}`);
+    if (archiveIds.length)  parts.push(`${archiveIds.length} eliminado${archiveIds.length>1?"s":""}`);
+    toast(`✓ ${parts.join(", ") || "Sin cambios"}`, "success");
+    closeModal("modal-edit-items");
+    STATE.lastAction = Date.now();
+    await loadAll();
+    const refreshed = STATE.ordenes.find(x => x.id === o.id);
+    if (refreshed) openDetail(refreshed);
+  } catch (e) {
+    toast("Error: " + e.message, "error");
+  } finally {
+    btn.disabled = false;
   }
 }
 

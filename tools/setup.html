@@ -651,9 +651,9 @@ async function runAll() {
   if (!ok3) { log("Setup detenido en Fase 3.", "warn"); document.getElementById("btn-all").disabled = false; return; }
   log("═══ ¡TODO LISTO! ═══", "head");
   log("Notion configurado. Ya puedes ir a:", "ok");
-  log("  · warehouse-ordenes.html", "info");
-  log("  · warehouse-inventario.html", "info");
-  log("  · warehouse-yo.html", "info");
+  log("  · orders.html", "info");
+  log("  · inventory.html", "info");
+  log("  · game.html", "info");
   log("Recuerda crear las 4 filas de Miembros en Notion (Kafay/Partner/Leo/Primo) antes de usar la app.", "warn");
   document.getElementById("btn-all").disabled = false;
 }
@@ -832,11 +832,11 @@ async function seedTestOrder() {
     } else log(`  ⓘ ${usoId} ya existía`, "warn");
 
     log("═══ Siembra completa ═══", "head");
-    log("Verificación esperada (abrir warehouse-inventario.html):", "ok");
+    log("Verificación esperada (abrir inventory.html):", "ok");
     log("  · MG-MC-CM total: 138 kg · usado: 15 kg · remanente: 123 kg", "info");
     log("  · Quintal A: 46 → 31 kg remanente", "info");
     log("  · Quintales B y C: 46 kg cada uno (sin usar)", "info");
-    log("Y en warehouse-ordenes.html:", "ok");
+    log("Y en orders.html:", "ok");
     log("  · Orden PETIT-3003 visible en columna 'Recibida'", "info");
   } catch (e) {
     log("✗ " + e.message, "err");
@@ -932,7 +932,7 @@ async function configureEmpaque() {
     stored.DB_ID_EMPAQUE = id;
     localStorage.setItem("kofy_warehouse_db_ids", JSON.stringify(stored));
     log("  ✓ DB_ID_EMPAQUE guardado", "ok");
-    log("Listo. Abrí warehouse-inventario.html — la sección Empaque aparece al final.", "ok");
+    log("Listo. Abrí inventory.html — la sección Empaque aparece al final.", "ok");
   } catch (e) {
     log("✗ " + e.message, "err");
   } finally {

@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kofy · Reset Databases</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0d0d0d;
+    color: #e0e0e0;
+    font-family: 'Inter', system-ui, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .card {
+    background: #161616;
+    border: 1px solid #2a2a2a;
+    border-radius: 12px;
+    padding: 36px 40px;
+    width: 100%;
+    max-width: 520px;
+  }
+  .warning-icon { font-size: 2rem; margin-bottom: 12px; }
+  h1 { font-size: 1.4rem; font-weight: 700; color: #fff; margin-bottom: 6px; }
+  .subtitle { font-size: 0.85rem; color: #888; margin-bottom: 28px; }
+
+  .db-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 28px; }
+  .db-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #1e1e1e;
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .db-row:hover { border-color: #444; }
+  .db-row.selected { border-color: #e04040; background: #1e1010; }
+  .db-row input[type=checkbox] { accent-color: #e04040; width: 16px; height: 16px; cursor: pointer; }
+  .db-name { font-size: 0.9rem; font-weight: 500; color: #ddd; flex: 1; }
+  .db-status {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 99px;
+    background: #2a2a2a;
+    color: #888;
+  }
+  .db-row.selected .db-status { background: #3a1010; color: #e04040; }
+
+  label.confirm-label {
+    display: block;
+    font-size: 0.8rem;
+    color: #888;
+    margin-bottom: 8px;
+  }
+  label.confirm-label span { color: #e04040; font-weight: 600; }
+  input.confirm-input {
+    width: 100%;
+    background: #1e1e1e;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: #fff;
+    font-size: 0.9rem;
+    outline: none;
+    margin-bottom: 20px;
+    transition: border-color 0.15s;
+  }
+  input.confirm-input:focus { border-color: #555; }
+  input.confirm-input.valid { border-color: #e04040; }
+
+  .btn-reset {
+    width: 100%;
+    background: #e04040;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 13px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s, opacity 0.15s;
+    letter-spacing: 0.03em;
+  }
+  .btn-reset:disabled { opacity: 0.35; cursor: not-allowed; }
+  .btn-reset:not(:disabled):hover { background: #cc2222; }
+
+  .progress-section { display: none; margin-top: 24px; }
+  .progress-section.active { display: block; }
+  .progress-db {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    font-size: 0.82rem;
+  }
+  .progress-db-name { flex: 1; color: #bbb; }
+  .progress-db-count { color: #888; min-width: 60px; text-align: right; }
+  .progress-bar-wrap {
+    background: #222;
+    border-radius: 4px;
+    height: 4px;
+    width: 100%;
+    margin-bottom: 16px;
+  }
+  .progress-bar-fill {
+    height: 4px;
+    border-radius: 4px;
+    background: #e04040;
+    transition: width 0.2s;
+    width: 0%;
+  }
+
+  .log {
+    background: #111;
+    border: 1px solid #222;
+    border-radius: 8px;
+    padding: 14px;
+    font-size: 0.75rem;
+    color: #666;
+    max-height: 180px;
+    overflow-y: auto;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    line-height: 1.6;
+    display: none;
+    margin-top: 16px;
+  }
+  .log.active { display: block; }
+  .log .line { margin-bottom: 2px; }
+  .log .line.ok { color: #5a8; }
+  .log .line.err { color: #e04040; }
+  .log .line.info { color: #888; }
+
+  .done-banner {
+    display: none;
+    text-align: center;
+    padding: 20px 0 4px;
+  }
+  .done-banner.active { display: block; }
+  .done-banner .icon { font-size: 2rem; margin-bottom: 8px; }
+  .done-banner h2 { color: #5a8; font-size: 1.1rem; margin-bottom: 4px; }
+  .done-banner p { color: #666; font-size: 0.8rem; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="warning-icon">⚠️</div>
+  <h1>Reset Databases</h1>
+  <p class="subtitle">Archiva todos los registros de las bases seleccionadas. Irreversible desde aquí.</p>
+
+  <div class="db-list" id="dbList">
+    <div class="db-row selected" data-db="clientes" data-id="3649b62600a08020ae9ed625e57044bb">
+      <input type="checkbox" checked>
+      <span class="db-name">Clientes</span>
+      <span class="db-status">seleccionado</span>
+    </div>
+    <div class="db-row selected" data-db="origenes" data-id="3649b62600a080b5a056c4a03d3fbc2b">
+      <input type="checkbox" checked>
+      <span class="db-name">Origenes (café verde)</span>
+      <span class="db-status">seleccionado</span>
+    </div>
+    <div class="db-row selected" data-db="quintales" data-id="3649b62600a080df9a7ac6c932fa9d5b">
+      <input type="checkbox" checked>
+      <span class="db-name">Quintales (inventario)</span>
+      <span class="db-status">seleccionado</span>
+    </div>
+    <div class="db-row selected" data-db="ordenes" data-id="3649b62600a0800ea228d8d8dcf2ada4">
+      <input type="checkbox" checked>
+      <span class="db-name">Ordenes</span>
+      <span class="db-status">seleccionado</span>
+    </div>
+    <div class="db-row selected" data-db="items" data-id="3649b62600a0806db145c919a7927ac2">
+      <input type="checkbox" checked>
+      <span class="db-name">Items de orden</span>
+      <span class="db-status">seleccionado</span>
+    </div>
+    <div class="db-row selected" data-db="usos" data-id="3649b62600a080108754c2eaadac2455">
+      <input type="checkbox" checked>
+      <span class="db-name">Usos (log de inventario)</span>
+      <span class="db-status">seleccionado</span>
+    </div>
+  </div>
+
+  <label class="confirm-label">
+    Escribe <span>BORRAR TODO</span> para confirmar
+  </label>
+  <input
+    type="text"
+    class="confirm-input"
+    id="confirmInput"
+    placeholder="BORRAR TODO"
+    autocomplete="off"
+    autocorrect="off"
+    spellcheck="false"
+  >
+
+  <button class="btn-reset" id="btnReset" disabled>Borrar todo lo seleccionado</button>
+
+  <div class="progress-section" id="progressSection"></div>
+  <div class="log" id="logBox"></div>
+  <div class="done-banner" id="doneBanner">
+    <div class="icon">✓</div>
+    <h2>Listo. Bases en cero.</h2>
+    <p>Podés cerrar esta página.</p>
+  </div>
+</div>
+
+<script>
+const PROXY = 'https://kofy-notion-proxy.delicate-surf-529c.workers.dev';
+
+// — toggle DB row selection
+document.getElementById('dbList').querySelectorAll('.db-row').forEach(row => {
+  row.addEventListener('click', e => {
+    if (e.target.tagName === 'INPUT') return; // handled by checkbox change
+    const cb = row.querySelector('input[type=checkbox]');
+    cb.checked = !cb.checked;
+    updateRow(row, cb.checked);
+  });
+  row.querySelector('input').addEventListener('change', e => {
+    updateRow(row, e.target.checked);
+  });
+});
+
+function updateRow(row, checked) {
+  row.classList.toggle('selected', checked);
+  row.querySelector('.db-status').textContent = checked ? 'seleccionado' : 'omitido';
+}
+
+// — confirm input gate
+const confirmInput = document.getElementById('confirmInput');
+const btnReset     = document.getElementById('btnReset');
+
+confirmInput.addEventListener('input', () => {
+  const ok = confirmInput.value.trim() === 'BORRAR TODO';
+  confirmInput.classList.toggle('valid', ok);
+  btnReset.disabled = !ok;
+});
+
+// — run reset
+btnReset.addEventListener('click', async () => {
+  if (confirmInput.value.trim() !== 'BORRAR TODO') return;
+
+  const selected = [...document.querySelectorAll('.db-row.selected')];
+  if (!selected.length) { alert('No hay bases seleccionadas.'); return; }
+
+  btnReset.disabled = true;
+  confirmInput.disabled = true;
+  document.getElementById('dbList').querySelectorAll('input').forEach(i => i.disabled = true);
+
+  const progressSection = document.getElementById('progressSection');
+  const logBox          = document.getElementById('logBox');
+  progressSection.classList.add('active');
+  logBox.classList.add('active');
+
+  // build progress rows
+  progressSection.innerHTML = '';
+  const progressRows = {};
+  selected.forEach(row => {
+    const db = row.dataset.db;
+    const div = document.createElement('div');
+    div.innerHTML = `
+      <div class="progress-db">
+        <span class="progress-db-name">${row.querySelector('.db-name').textContent}</span>
+        <span class="progress-db-count" id="cnt-${db}">—</span>
+      </div>
+      <div class="progress-bar-wrap"><div class="progress-bar-fill" id="bar-${db}"></div></div>
+    `;
+    progressSection.appendChild(div);
+    progressRows[db] = true;
+  });
+
+  function log(msg, type = 'info') {
+    const line = document.createElement('div');
+    line.className = 'line ' + type;
+    line.textContent = msg;
+    logBox.appendChild(line);
+    logBox.scrollTop = logBox.scrollHeight;
+  }
+
+  for (const row of selected) {
+    const dbName = row.querySelector('.db-name').textContent;
+    const dbId   = row.dataset.db;
+    const notionId = row.dataset.id;
+
+    log(`→ ${dbName}: buscando registros…`);
+
+    // paginate through all pages
+    let allPages = [];
+    let cursor   = undefined;
+    try {
+      do {
+        const body = { database_id: notionId, page_size: 100 };
+        if (cursor) body.start_cursor = cursor;
+        const r  = await fetch(PROXY + '/query', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        const j = await r.json();
+        if (!r.ok) throw new Error(j.error || 'query failed ' + r.status);
+        allPages = allPages.concat(j.results || []);
+        cursor   = j.has_more ? j.next_cursor : undefined;
+      } while (cursor);
+    } catch(e) {
+      log(`✗ ${dbName}: error al consultar — ${e.message}`, 'err');
+      continue;
+    }
+
+    const total = allPages.length;
+    document.getElementById('cnt-' + dbId).textContent = `0 / ${total}`;
+    log(`  ${total} registros encontrados`, 'info');
+
+    if (total === 0) {
+      document.getElementById('cnt-' + dbId).textContent = '✓ vacío';
+      document.getElementById('bar-' + dbId).style.width = '100%';
+      log(`  ya estaba vacío`, 'ok');
+      continue;
+    }
+
+    let done = 0;
+    for (const page of allPages) {
+      try {
+        const r = await fetch(PROXY + '/pages/' + page.id, {
+          method:  'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ archived: true })
+        });
+        if (!r.ok) {
+          const j = await r.json().catch(() => ({}));
+          throw new Error(j.error || 'patch failed ' + r.status);
+        }
+        done++;
+        document.getElementById('cnt-' + dbId).textContent = `${done} / ${total}`;
+        document.getElementById('bar-' + dbId).style.width = Math.round((done/total)*100) + '%';
+      } catch(e) {
+        log(`  ✗ página ${page.id.slice(0,8)}… — ${e.message}`, 'err');
+      }
+    }
+
+    document.getElementById('cnt-' + dbId).textContent = `✓ ${done} borrados`;
+    log(`✓ ${dbName}: ${done}/${total} archivados`, 'ok');
+  }
+
+  log('— listo —', 'info');
+  document.getElementById('doneBanner').classList.add('active');
+});
+</script>
+</body>
+</html>

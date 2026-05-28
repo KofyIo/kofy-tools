@@ -536,7 +536,7 @@
 
     const member = await findMemberByName(dbName, ids.miembros);
     if (!member) {
-      log(realName + ': no encontrado en Miembros (busqué por Nombre = "' + dbName + '"). Creá la fila en warehouse-miembros.html primero, o ajustá el DB Name arriba.', 'err');
+      log(realName + ': no encontrado en Miembros (busqué por Nombre = "' + dbName + '"). Creá la fila en miembros.html primero, o ajustá el DB Name arriba.', 'err');
       statusEl.textContent = 'no encontrado';
       statusEl.style.color = 'var(--red)';
       return false;

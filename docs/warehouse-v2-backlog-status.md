@@ -1,6 +1,6 @@
 # Warehouse v2 backlog · status snapshot
 
-*Last update: 2026-05-26 · Original list dictated by Kafay 2026-05-18 · Source memory: `warehouse_v2_backlog.md`*
+*Last update: 2026-05-28 · Original list dictated by Kafay 2026-05-18 · Source memory: `warehouse_v2_backlog.md`*
 
 Status snapshot of the 14 v2 improvements dictated after warehouse v1 went live, plus items added since. Upload alongside `02-kofy-operaciones.md` when working on warehouse / Operaciones.
 
@@ -69,18 +69,18 @@ These are real pending warehouse-side deliverables, not part of the 2026-05-18 l
 
 ---
 
-## Final files of the warehouse system
+## Final files of the warehouse system (current names as of 2026-05-26)
 
-- `warehouse-arquitectura.html`
-- `warehouse-notion-schema.html`
-- `warehouse-setup.html`
-- `warehouse-miembros.html`
-- `warehouse-ordenes.html`
-- `warehouse-inventario.html`
-- `warehouse-yo.html` (The Game)
-- `warehouse-talent.html` (piso)
-- `warehouse-print.html` (versión imprimible)
-- `warehouse-comms.html` (comms settings UI)
+- `warehouse-notion-schema.html` (schema reference doc — unchanged)
+- `setup.html` (was `warehouse-setup.html`)
+- `miembros.html` (was `warehouse-miembros.html`)
+- `orders.html` (was `warehouse-ordenes.html`)
+- `inventory.html` (was `warehouse-inventario.html`)
+- `game.html` (was `warehouse-yo.html` / The Game)
+- `print.html` (was `warehouse-print.html`)
+- `comms.html` (was `warehouse-comms.html`)
+- `warehouse.html` (floor app — new, was `warehouse-talent.html` concept)
+- `warehouse-reset.html` (new utility)
 
 **Pending additions:** `warehouse-reportes.html`, `warehouse-cliente.html`.
 

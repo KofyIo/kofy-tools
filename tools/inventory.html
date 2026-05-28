@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
 <title>Kofy · Inventario</title>
 <style>
   :root {
@@ -180,16 +182,18 @@ const CONFIG = {
   DB_USOS:      "3649b62600a080108754c2eaadac2455",
   DB_ORDENES:   "3649b62600a0800ea228d8d8dcf2ada4",
   DB_MIEMBROS:  "3649b62600a080308dc6cf556b0d8c4b",
-  DB_EMPAQUE:   null,  // v2: cargado desde localStorage si configurado en setup
+  DB_EMPAQUE:   "3659b62600a08053a953e4a457d44626",
   REFRESH_MS: 15000,
   UMBRAL_BAJO: 10,   // kg — alerta roja
   UMBRAL_MEDIO: 25,  // kg — alerta amarilla
 };
-// v2: cargar DB_EMPAQUE de localStorage si setup lo configuró
+// localStorage override only applies if no hardcoded ID is set
 (function loadEmpaqueId() {
+  if (CONFIG.DB_EMPAQUE) return;  // hardcoded wins
   try {
     const stored = JSON.parse(localStorage.getItem("kofy_warehouse_db_ids") || "{}");
-    if (stored.DB_ID_EMPAQUE) CONFIG.DB_EMPAQUE = stored.DB_ID_EMPAQUE;
+    const id = (stored.DB_ID_EMPAQUE || "").trim().replace(/[^a-f0-9]/gi,"").toLowerCase();
+    if (id.length === 32) CONFIG.DB_EMPAQUE = id;
   } catch {}
 })();
 </script>
@@ -210,9 +214,9 @@ const CONFIG = {
       <span class="name">Kofy <span class="sub">· Inventario</span></span>
     </div>
     <nav class="nav">
-      <a href="warehouse-ordenes.html">Órdenes</a>
-      <a href="warehouse-inventario.html" class="active">Inventario</a>
-      <a href="warehouse-yo.html">The Game</a>
+      <a href="orders.html">Órdenes</a>
+      <a href="inventory.html" class="active">Inventario</a>
+      <a href="game.html">The Game</a>
     </nav>
     <button class="persona-chip" id="persona-chip" onclick="changePersona()" style="display:none; margin-left: 10px;">
       <span class="dot" id="persona-dot">—</span>
@@ -245,15 +249,26 @@ const CONFIG = {
 
   <!-- v2 · Empaque section -->
   <div id="empaque-section" style="display:none; margin-top: 40px;">
-    <h2 style="display: flex; align-items: center; gap: 12px;">
+    <h2 style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
       Empaque
       <button class="btn" style="padding: 4px 10px; font-size: 11px;" onclick="openNewEmpaque()">+ Nuevo empaque</button>
+      <button class="btn" style="padding: 4px 10px; font-size: 11px; color: var(--red); border-color: rgba(217,83,79,0.4); margin-left: auto;" onclick="wipeAllEmpaque()">🗑 Limpiar todo</button>
     </h2>
     <div id="empaque-list"></div>
   </div>
-  <div id="empaque-hint" style="display:none; margin-top: 40px; padding: 20px; background: var(--surface); border: 1px dashed var(--line); border-radius: 8px; color: var(--ink-mute); font-size: 13px; text-align: center;">
-    <strong style="color: var(--cream); display: block; margin-bottom: 6px;">Inventario de empaque · no configurado</strong>
-    Para trackear cajas, bolsas, etiquetas y QR, abrí <code style="color: var(--gold);">warehouse-setup.html</code> → sección "DB de Empaque" → seguí los 3 pasos.
+  <div id="empaque-hint" style="display:none; margin-top: 40px;">
+    <h2>Empaque</h2>
+    <div style="background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 28px 24px; text-align: center;">
+      <strong style="color: var(--cream); display: block; margin-bottom: 8px; font-size: 15px;">Inventario de empaque · no conectado</strong>
+      <p style="color: var(--ink-mute); font-size: 13px; margin-bottom: 18px; max-width: 420px; margin-left: auto; margin-right: auto;">Pegá el Database ID del DB <code style="color: var(--gold); font-family: ui-monospace, monospace; font-size: 12px;">Empaque</code> de Notion para conectar esta sección. Si es la primera vez, abrí <a href="setup.html" style="color: var(--gold);">setup.html</a> → "DB de Empaque" para crear el schema primero.</p>
+      <div style="display: flex; gap: 8px; max-width: 460px; margin: 0 auto;">
+        <input type="text" id="empaque-quick-id" placeholder="Database ID — 32 caracteres hex"
+               style="flex:1; background: var(--surface-2); color: var(--ink); border: 1px solid var(--line); padding: 10px 12px; border-radius: 4px; font-size: 13px; font-family: ui-monospace, monospace; min-width: 0;"
+               oninput="validateEmpaqueQuickId()">
+        <button class="btn primary" id="btn-connect-empaque" onclick="connectEmpaqueDb()" style="white-space: nowrap;">Conectar</button>
+      </div>
+      <div id="empaque-quick-status" style="font-size: 11px; color: var(--ink-mute); margin-top: 8px; font-family: ui-monospace, monospace;"></div>
+    </div>
   </div>
 </main>
 
@@ -453,7 +468,7 @@ function updatePersonaChip() {
 function renderPersonaPicker() {
   const grid = document.getElementById("picker-grid");
   if (!STATE.miembros.length) {
-    grid.innerHTML = `<div style="grid-column: span 2; color: var(--ink-mute); text-align: center; font-size: 13px;">No hay miembros en Notion.<br>Abrí <a href="warehouse-miembros.html" style="color: var(--gold);">warehouse-miembros.html</a> y sembralos.</div>`;
+    grid.innerHTML = `<div style="grid-column: span 2; color: var(--ink-mute); text-align: center; font-size: 13px;">No hay miembros en Notion.<br>Abrí <a href="miembros.html" style="color: var(--gold);">miembros.html</a> y sembralos.</div>`;
     return;
   }
   grid.innerHTML = "";
@@ -536,25 +551,37 @@ async function submitAudit() {
     const oriName = (() => { const o = STATE.origenes.find(x => x.id === origenId); return o ? (readProp(o,"ID Origen") || pageTitle(o)) : "ORIGEN"; })();
     const today = new Date().toISOString().substring(0,10);
     const seq = STATE.usos.filter(u => {
-      const tipo = readProp(u,"Tipo") || "";
-      return tipo === "Ajuste audit";
+      const id = readProp(u,"Uso ID") || "";
+      return id.startsWith("AUDIT-");
     }).length + 1;
     const usoId = `AUDIT-${oriName}-${String(seq).padStart(3,"0")}`;
-    await createPage(CONFIG.DB_USOS, {
-      "Uso ID":    { title: [{ text: { content: usoId } }] },
+    const coreProps = {
       "Quintal":   { relation: [{ id: target.q.id }] },
       "KG usados": { number: Math.round(delta * 100) / 100 },
       "Firma":     { relation: [{ id: STATE.persona.id }] },
       "Fecha":     { date: { start: today } },
-      "Tipo":      { select: { name: "Ajuste audit" } },
-      "Notas / Razón": { rich_text: [{ text: { content: razon } }] },
-    });
+    };
+    // Attempt 1: full payload (requires "Tipo" + "Notas / Razón" columns in Notion)
+    // Attempt 2: fallback without optional columns — reason goes into the title
+    try {
+      await createPage(CONFIG.DB_USOS, {
+        "Uso ID": { title: [{ text: { content: usoId } }] },
+        ...coreProps,
+        "Tipo":          { select: { name: "Ajuste audit" } },
+        "Notas / Razón": { rich_text: [{ text: { content: razon } }] },
+      });
+    } catch {
+      await createPage(CONFIG.DB_USOS, {
+        "Uso ID": { title: [{ text: { content: `${usoId} · ${razon.substring(0, 80)}` } }] },
+        ...coreProps,
+      });
+    }
     toast(`✓ Ajuste de ${delta >= 0 ? "-" : "+"}${Math.abs(delta).toFixed(2)} kg registrado en ${oriName}`, "success");
     closeModal("modal-audit");
     STATE.lastAction = Date.now();
     await loadAll();
   } catch (e) {
-    toast("Error: " + e.message + (e.message.includes("Tipo") || e.message.includes("Notas") ? " · ¿corriste la migración de auditoría?" : ""), "error");
+    toast("Error: " + e.message, "error");
   } finally {
     btn.disabled = false;
   }
@@ -809,6 +836,32 @@ function parseBind(bind) {
   return { tipo: "Bolsa", tamano: tam || "N/A" };
 }
 
+function validateEmpaqueQuickId() {
+  const raw = document.getElementById("empaque-quick-id").value || "";
+  const norm = raw.trim().replace(/[^a-f0-9]/gi, "").toLowerCase();
+  const st = document.getElementById("empaque-quick-status");
+  const btn = document.getElementById("btn-connect-empaque");
+  if (!norm) { st.textContent = ""; btn.disabled = false; return; }
+  if (norm.length === 32) { st.textContent = "✓ ID válido"; st.style.color = "var(--green)"; btn.disabled = false; }
+  else { st.textContent = `${norm.length}/32 caracteres`; st.style.color = "var(--ink-mute)"; btn.disabled = true; }
+}
+
+function connectEmpaqueDb() {
+  const raw = document.getElementById("empaque-quick-id").value || "";
+  const norm = raw.trim().replace(/[^a-f0-9]/gi, "").toLowerCase();
+  if (norm.length !== 32) { toast("ID inválido — deben ser 32 caracteres hex", "error"); return; }
+  try {
+    const stored = JSON.parse(localStorage.getItem("kofy_warehouse_db_ids") || "{}");
+    stored.DB_ID_EMPAQUE = norm;
+    localStorage.setItem("kofy_warehouse_db_ids", JSON.stringify(stored));
+    CONFIG.DB_EMPAQUE = norm;
+    toast("Conectado. Cargando empaque…", "success");
+    loadAll();
+  } catch (e) {
+    toast("Error al guardar: " + e.message, "error");
+  }
+}
+
 function openNewEmpaque() {
   document.getElementById("empaque-modal-title").textContent = "Nuevo empaque";
   document.getElementById("empaque-edit-id").value = "";
@@ -885,6 +938,37 @@ async function submitEmpaque() {
     toast("Error: " + e.message, "error");
   } finally {
     btn.disabled = false;
+  }
+}
+
+// v3 · Wipe all empaque records (archive all — clean slate)
+async function wipeAllEmpaque() {
+  if (!CONFIG.DB_EMPAQUE) { toast("DB_EMPAQUE no configurado", "error"); return; }
+  const activos = STATE.empaques.filter(e => readProp(e,"Activo") !== false);
+  const total = STATE.empaques.length;
+  if (total === 0) { toast("No hay empaques que limpiar", "error"); return; }
+  const confirm1 = confirm(
+    `⚠️ LIMPIAR TODO EL INVENTARIO DE EMPAQUE\n\n` +
+    `Esto va a ARCHIVAR (eliminar de la vista) ${total} registro${total>1?"s":""} de empaque.\n\n` +
+    `Los órdenes y el inventario de café verde NO se ven afectados.\n\n` +
+    `¿Estás segura de que querés hacer esto?`
+  );
+  if (!confirm1) return;
+  const confirm2 = confirm(`Segunda confirmación: ¿eliminar los ${total} registros de empaque y empezar de cero?`);
+  if (!confirm2) return;
+  try {
+    let count = 0;
+    for (const e of STATE.empaques) {
+      await notion(`/pages/${e.id}`, { archived: true }, "PATCH");
+      await new Promise(r => setTimeout(r, 200));
+      count++;
+    }
+    toast(`✓ ${count} registro${count>1?"s":""} de empaque eliminados`, "success");
+    closeModal("modal-empaque");
+    STATE.lastAction = Date.now();
+    await loadAll();
+  } catch (e) {
+    toast("Error: " + e.message, "error");
   }
 }
 
@@ -1016,7 +1100,7 @@ function renderOrigenCard(o, stock, active = true) {
   qBody.innerHTML += `
     <div class="quintales-foot" style="flex-wrap: wrap;">
       <button class="add-quintal" onclick="event.stopPropagation(); openNewQuintal('${o.id}', '${idOrigen}')">+ Agregar quintal</button>
-      <a href="warehouse-print.html?type=origen&id=${o.id}" target="_blank" class="add-quintal" style="text-decoration: none; border-color: var(--gold); color: var(--gold);" onclick="event.stopPropagation()">🖨 Imprimir hoja</a>
+      <a href="print.html?type=origen&id=${o.id}" target="_blank" class="add-quintal" style="text-decoration: none; border-color: var(--gold); color: var(--gold);" onclick="event.stopPropagation()">🖨 Imprimir hoja</a>
       ${active ? `<button class="add-quintal" style="border-color: var(--plum-soft); color: var(--plum-soft);" onclick="event.stopPropagation(); openAuditOrigen('${o.id}')">📋 Auditar stock</button>` : ""}
       ${active
         ? `<button class="origen-deact" onclick="event.stopPropagation(); toggleOrigenActive('${o.id}', true)">Desactivar origen</button>`
@@ -1164,6 +1248,9 @@ setInterval(() => {
   if (shouldSkipRefresh()) return;
   loadAll();
 }, CONFIG.REFRESH_MS);
+
+// If restored from bfcache, reload so code changes take effect immediately
+window.addEventListener("pageshow", (e) => { if (e.persisted) window.location.reload(); });
 
 window.addEventListener("DOMContentLoaded", async () => {
   if (CONFIG.DB_ORIGENES.startsWith("PEGAR_")) {

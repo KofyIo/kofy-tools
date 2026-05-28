@@ -323,6 +323,59 @@
   .cascade-banner strong { color: var(--accent); font-family: 'DM Mono', monospace; font-weight: 500; }
 
   .config-warn { background: rgba(217,83,79,0.1); border: 1px solid var(--red); padding: 16px; border-radius: 8px; margin: 20px; color: var(--text); font-size: 14px; }
+
+  /* ═══ Cola de Tostado ═══ */
+  .roast-badge {
+    font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 700;
+    padding: 3px 9px; border-radius: 4px; letter-spacing: 0.08em; display: inline-block;
+  }
+  .roast-badge.AN { background: rgba(29,158,117,0.15); color: var(--green); border: 1px solid rgba(29,158,117,0.3); }
+  .roast-badge.CM { background: rgba(212,150,10,0.12); color: var(--gold); border: 1px solid rgba(212,150,10,0.3); }
+  .roast-badge.MT { background: rgba(217,119,87,0.15); color: var(--accent); border: 1px solid rgba(217,119,87,0.35); }
+
+  .roast-grand-banner {
+    display: flex; align-items: stretch; justify-content: space-around;
+    background: var(--surface); border: 1px solid var(--line-2); border-radius: 10px;
+    margin-bottom: 12px; overflow: hidden;
+  }
+  .roast-grand-item { flex: 1; text-align: center; padding: 16px 10px; }
+  .roast-grand-val { font-family: 'DM Mono', monospace; font-size: 28px; font-weight: 700; color: var(--text); line-height: 1; }
+  .roast-grand-val.out { color: var(--gold); }
+  .roast-grand-lbl { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 5px; font-family: 'DM Mono', monospace; }
+  .roast-grand-divider { width: 1px; background: var(--line); flex: 0 0 1px; }
+
+  .roast-group { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; margin-bottom: 10px; overflow: hidden; }
+  .roast-group-head {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--surface-2); padding: 10px 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  .roast-group-title { flex: 1; font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text); font-weight: 700; }
+  .roast-group-loss { font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; }
+
+  .roast-row { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+  .roast-row:last-of-type { border-bottom: none; }
+  .roast-row-info { flex: 1; min-width: 0; }
+  .roast-row-name { font-family: 'DM Mono', monospace; font-size: 14px; color: var(--text); font-weight: 700; }
+  .roast-row-orders { font-size: 10px; color: var(--text3); font-family: 'DM Mono', monospace; margin-top: 3px; line-height: 1.5; }
+  .roast-row-kgs { text-align: right; flex: 0 0 auto; }
+  .roast-row-kgs .kv { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--text); font-weight: 700; }
+  .roast-row-kgs .kt { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--gold); font-weight: 700; }
+  .roast-row-kgs .klbl { font-size: 9px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; margin-left: 2px; }
+
+  .roast-subtotal {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--surface-2); padding: 10px 14px;
+    border-top: 1px solid var(--line);
+    font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text);
+  }
+
+  .roast-empty {
+    background: var(--surface); border: 1px dashed var(--line);
+    border-radius: 10px; padding: 32px 20px; text-align: center;
+    color: var(--text2); font-family: 'DM Serif Display', serif; font-size: 16px;
+  }
+  .roast-empty small { display: block; font-family: 'Lato', sans-serif; font-size: 12px; color: var(--text3); margin-top: 6px; }
 </style>
 </head>
 <body>
@@ -353,6 +406,16 @@ const STAGES = [
   { code: "L",  icon: "🏷️", name: "Listo p/ envío",   sub: "QR · etiquetas · caja" },
   { code: "EN", icon: "✅", name: "Entregado",         sub: "al cliente" },
 ];
+
+const ROAST_LOSS = { "AN": 0.15, "CM": 0.15, "MT": 0.20 };
+const PRESENTACION_KG = {
+  "1 KG": 1, "500g": 0.5, "250g": 0.25, "BOX": 0.12, "SACHET": 0.012,
+};
+const PROFILE_META = {
+  AN: { label: "Aurora Nordics · Claro", loss: "15%", icon: "🌿" },
+  CM: { label: "Medio",                  loss: "15%", icon: "☕" },
+  MT: { label: "Oscuro",                 loss: "20%", icon: "🔥" },
+};
 </script>
 
 <!-- ═══ Persona picker (modal de boot) ═══ -->
@@ -392,6 +455,20 @@ const STAGES = [
   </div>
   <div id="tasks-list"><div class="loading-state">cargando órdenes…</div></div>
 
+  <!-- ═══ COLA DE TOSTADO ═══ -->
+  <div class="sec-head">
+    <h2 class="sec-title">🔥 Cola de Tostado</h2>
+    <span class="sec-count" id="roast-count">—</span>
+  </div>
+  <div id="roast-queue-content"><div class="loading-state">cargando…</div></div>
+
+  <!-- ═══ COLA DE EMPAQUETADO ═══ -->
+  <div class="sec-head">
+    <h2 class="sec-title">📦 Cola de Empaquetado</h2>
+    <span class="sec-count" id="pack-count">—</span>
+  </div>
+  <div id="pack-queue-content"><div class="loading-state">cargando…</div></div>
+
   <!-- ═══ INVENTARIO ═══ -->
   <div class="sec-head">
     <h2 class="sec-title">Inventario</h2>
@@ -403,7 +480,7 @@ const STAGES = [
   <div class="inv-body" id="inv-body"></div>
 
   <div class="foot">
-    <a href="warehouse-ordenes.html">vista management →</a>
+    <a href="orders.html">vista management →</a>
   </div>
 </main>
 
@@ -579,6 +656,8 @@ async function loadAll() {
 // ═══════════════════════════════════════════════════════
 function renderAll() {
   renderTasks();
+  renderRoastQueue();
+  renderPackQueue();
   renderInventory();
 }
 
@@ -807,6 +886,229 @@ function openStageModal(o) {
   }
 
   document.getElementById("modal-stage").classList.add("open");
+}
+
+// ═══════════════════════════════════════════════════════
+// Roast loss helpers
+// ═══════════════════════════════════════════════════════
+function getRoastLossPct(tostado, origenId) {
+  if (ROAST_LOSS[tostado] !== undefined) return ROAST_LOSS[tostado];
+  if (origenId) {
+    const ori = STATE.origenes.find(x => x.id === origenId);
+    if (ori) {
+      const def = readProp(ori, "Tostado default");
+      if (ROAST_LOSS[def] !== undefined) return ROAST_LOSS[def];
+    }
+  }
+  return 0.15;
+}
+function greenKgFor(presentacion, tostado, cantidad, origenId) {
+  const presKg = PRESENTACION_KG[presentacion] || 0;
+  const loss = getRoastLossPct(tostado, origenId);
+  return ((cantidad || 0) * presKg) / (1 - loss);
+}
+function greenKgForItem(item) {
+  const oriIds = readProp(item, "Origen") || [];
+  return greenKgFor(readProp(item,"Presentación"), readProp(item,"Tostado"), readProp(item,"Cantidad"), oriIds[0]);
+}
+
+// ═══════════════════════════════════════════════════════
+// Cola de Tostado
+// ═══════════════════════════════════════════════════════
+function renderRoastQueue() {
+  const el = document.getElementById("roast-queue-content");
+  const pending = STATE.ordenes.filter(o => !readProp(o,"Cancelada") && !readProp(o,"T ✓"));
+  document.getElementById("roast-count").textContent = pending.length;
+
+  if (pending.length === 0) {
+    el.innerHTML = `<div class="roast-empty">🎉 Todo tostado · no hay pendientes</div>`;
+    return;
+  }
+
+  const groups = {};
+  let grandVerde = 0, grandRoasted = 0;
+  pending.forEach(o => {
+    const orderId = pageTitle(o) || "—";
+    const myItems = STATE.items.filter(it => (readProp(it,"Orden")||[]).includes(o.id));
+    myItems.forEach(it => {
+      const tostado = readProp(it,"Tostado") || "?";
+      const oriIds  = readProp(it,"Origen")  || [];
+      const oriId   = oriIds[0] || "__sin__";
+      const ori     = oriIds.length ? STATE.origenes.find(x => x.id === oriIds[0]) : null;
+      const oriName = ori ? (readProp(ori,"ID Origen") || pageTitle(ori)) : "Sin origen";
+      const kgVerde = greenKgForItem(it);
+      const loss    = getRoastLossPct(tostado, oriIds[0]);
+      const kgRoast = Math.round(kgVerde * (1 - loss) * 100) / 100;
+      const key     = `${tostado}::${oriId}`;
+      if (!groups[key]) groups[key] = { oriId, oriName, tostado, kgVerde: 0, kgRoasted: 0, orderIds: [] };
+      groups[key].kgVerde   = Math.round((groups[key].kgVerde   + kgVerde) * 100) / 100;
+      groups[key].kgRoasted = Math.round((groups[key].kgRoasted + kgRoast) * 100) / 100;
+      if (!groups[key].orderIds.includes(orderId)) groups[key].orderIds.push(orderId);
+      grandVerde   = Math.round((grandVerde   + kgVerde) * 100) / 100;
+      grandRoasted = Math.round((grandRoasted + kgRoast) * 100) / 100;
+    });
+  });
+
+  if (Object.keys(groups).length === 0) {
+    el.innerHTML = `<div class="roast-empty">Órdenes sin origen/tostado asignado<small>Asignales datos en orders.html</small></div>`;
+    return;
+  }
+
+  // Grand total banner first (Leo needs total at a glance)
+  let html = `
+  <div class="roast-grand-banner">
+    <div class="roast-grand-item">
+      <div class="roast-grand-val">${grandVerde.toFixed(2)}</div>
+      <div class="roast-grand-lbl">kg verde · entrada</div>
+    </div>
+    <div class="roast-grand-divider"></div>
+    <div class="roast-grand-item">
+      <div class="roast-grand-val out">${grandRoasted.toFixed(2)}</div>
+      <div class="roast-grand-lbl">kg tostado · salida</div>
+    </div>
+  </div>`;
+
+  const byTostado = { AN: [], CM: [], MT: [] };
+  Object.values(groups).forEach(g => {
+    if (byTostado[g.tostado]) byTostado[g.tostado].push(g);
+  });
+
+  for (const [profile, rows] of Object.entries(byTostado)) {
+    if (!rows.length) continue;
+    const meta = PROFILE_META[profile];
+    rows.sort((a,b) => a.oriName.localeCompare(b.oriName));
+    const totalVerde = Math.round(rows.reduce((s,r) => s + r.kgVerde,   0) * 100) / 100;
+    const totalRoast = Math.round(rows.reduce((s,r) => s + r.kgRoasted, 0) * 100) / 100;
+    html += `
+    <div class="roast-group">
+      <div class="roast-group-head">
+        <span class="roast-badge ${profile}">${profile}</span>
+        <span class="roast-group-title">${meta.icon} ${meta.label}</span>
+        <span class="roast-group-loss">−${meta.loss}</span>
+      </div>
+      ${rows.map(r => `
+      <div class="roast-row">
+        <div class="roast-row-info">
+          <div class="roast-row-name">${r.oriName}</div>
+          <div class="roast-row-orders">${r.orderIds.join(" · ")}</div>
+        </div>
+        <div class="roast-row-kgs">
+          <div class="kv">${r.kgVerde.toFixed(2)}<span class="klbl">v</span></div>
+          <div class="kt">${r.kgRoasted.toFixed(2)}<span class="klbl">t</span></div>
+        </div>
+      </div>`).join("")}
+      <div class="roast-subtotal">
+        <span>Subtotal <span class="roast-badge ${profile}" style="font-size:10px; margin-left:4px;">${profile}</span></span>
+        <span>${totalVerde.toFixed(2)} kg → ${totalRoast.toFixed(2)} kg</span>
+      </div>
+    </div>`;
+  }
+
+  el.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════
+// Cola de Empaquetado
+// ═══════════════════════════════════════════════════════
+function renderPackQueue() {
+  const el = document.getElementById("pack-queue-content");
+  // Needs packing: not cancelled, not yet packaged (E ✓ = false)
+  const pending = STATE.ordenes.filter(o => !readProp(o,"Cancelada") && !readProp(o,"E ✓"));
+  document.getElementById("pack-count").textContent = pending.length;
+
+  if (pending.length === 0) {
+    el.innerHTML = `<div class="roast-empty">🎉 Todo empaquetado · no hay pendientes</div>`;
+    return;
+  }
+
+  // Aggregate by (tostado, presentación, grano/molido)
+  const groups = {};
+  let grandUnits = 0;
+
+  pending.forEach(o => {
+    const orderId = pageTitle(o) || "—";
+    const isRoasted = !!readProp(o, "T ✓");
+    const myItems = STATE.items.filter(it => (readProp(it,"Orden")||[]).includes(o.id));
+    myItems.forEach(it => {
+      const tostado = readProp(it,"Tostado") || "?";
+      const pres    = readProp(it,"Presentación") || "?";
+      const gm      = readProp(it,"Grano / Molido") || "";
+      const cant    = readProp(it,"Cantidad") || 0;
+      const key     = `${tostado}::${pres}::${gm}`;
+      if (!groups[key]) groups[key] = { tostado, pres, gm, units: 0, orderIds: [], readyAll: true };
+      groups[key].units += cant;
+      if (!isRoasted) groups[key].readyAll = false;
+      if (!groups[key].orderIds.includes(orderId)) groups[key].orderIds.push(orderId);
+      grandUnits += cant;
+    });
+  });
+
+  if (Object.keys(groups).length === 0) {
+    el.innerHTML = `<div class="roast-empty">Órdenes sin items asignados<small>Asignales presentación y tostado en orders.html</small></div>`;
+    return;
+  }
+
+  // Grand total at top
+  let html = `
+  <div class="roast-grand-banner">
+    <div class="roast-grand-item">
+      <div class="roast-grand-val">${grandUnits}</div>
+      <div class="roast-grand-lbl">unidades a empacar</div>
+    </div>
+    <div class="roast-grand-divider"></div>
+    <div class="roast-grand-item">
+      <div class="roast-grand-val">${pending.length}</div>
+      <div class="roast-grand-lbl">órdenes pendientes</div>
+    </div>
+  </div>`;
+
+  // Group by tostado profile
+  const PACK_META = {
+    AN: { label: "Aurora Nordics · Claro", icon: "🌿" },
+    CM: { label: "Medio",                  icon: "☕" },
+    MT: { label: "Oscuro",                 icon: "🔥" },
+  };
+  const byTostado = {};
+  Object.values(groups).forEach(g => {
+    if (!byTostado[g.tostado]) byTostado[g.tostado] = [];
+    byTostado[g.tostado].push(g);
+  });
+
+  // Render known profiles first (AN/CM/MT), then any others
+  const profileOrder = ["AN","CM","MT",...Object.keys(byTostado).filter(k => !["AN","CM","MT"].includes(k))];
+  profileOrder.forEach(profile => {
+    const rows = byTostado[profile];
+    if (!rows || !rows.length) return;
+    const meta = PACK_META[profile] || { label: profile, icon: "📦" };
+    rows.sort((a,b) => a.pres.localeCompare(b.pres));
+    const totalUnits = rows.reduce((s,r) => s + r.units, 0);
+
+    html += `
+    <div class="roast-group">
+      <div class="roast-group-head">
+        <span class="roast-badge ${PACK_META[profile] ? profile : ""}">${profile}</span>
+        <span class="roast-group-title">${meta.icon} ${meta.label}</span>
+        <span class="roast-group-loss">${totalUnits} und</span>
+      </div>
+      ${rows.map(r => `
+      <div class="roast-row">
+        <div class="roast-row-info">
+          <div class="roast-row-name">${r.pres}${r.gm ? ` · ${r.gm}` : ""}</div>
+          <div class="roast-row-orders">${r.orderIds.join(" · ")}${r.readyAll ? "" : " · <span style='color:var(--yellow);font-size:10px;'>⏳ pendiente tostado</span>"}</div>
+        </div>
+        <div class="roast-row-kgs">
+          <div class="kv" style="font-size:20px;">${r.units}</div>
+          <div class="klbl" style="font-size:9px; color:var(--text3); text-transform:uppercase; letter-spacing:0.06em; margin-top:2px;">und</div>
+        </div>
+      </div>`).join("")}
+      <div class="roast-subtotal">
+        <span>Subtotal <span class="roast-badge ${PACK_META[profile] ? profile : ""}" style="font-size:10px; margin-left:4px;">${profile}</span></span>
+        <span>${totalUnits} unidades</span>
+      </div>
+    </div>`;
+  });
+
+  el.innerHTML = html;
 }
 
 // ═══════════════════════════════════════════════════════

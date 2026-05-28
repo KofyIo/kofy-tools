@@ -145,13 +145,13 @@
 <table>
   <thead><tr><th>File</th><th>Role</th></tr></thead>
   <tbody>
-    <tr><td><code>warehouse-ordenes.html</code></td><td>Management Kanban. Create orders, advance stages (with cascade firma), cancel/archive. Auto-deduct green (FIFO) on CV stage. Auto-deduct packaging on E stage. B2B pre-fill.</td></tr>
-    <tr><td><code>warehouse-inventario.html</code></td><td>Coffee &amp; packaging inventory. Add/edit/deactivate origens, quintales, empaques. Read-only stock status.</td></tr>
-    <tr><td><code>warehouse-talent.html</code></td><td>"Piso" — simplified phone-first app for Leo/Primo. Their task queue. Cascade firma. No uso UI (auto-deduct).</td></tr>
-    <tr><td><code>warehouse-yo.html</code> ("The Game")</td><td>Per-member gamification: points, levels, activity. View-only.</td></tr>
-    <tr><td><code>warehouse-miembros.html</code></td><td>Team CRUD. Seed/add/edit the 4 members.</td></tr>
-    <tr><td><code>warehouse-setup.html</code></td><td>One-click installer. Configures all DB schemas via PATCH. Seeds test data. Hosts migrations.</td></tr>
-    <tr><td><code>warehouse-print.html</code></td><td>Printable order sheets and green coffee registry sheets. URL params <code>?type=order&amp;id=…</code> or <code>?type=origen&amp;id=…</code>.</td></tr>
+    <tr><td><code>orders.html</code></td><td>Management Kanban. Create orders, advance stages (with cascade firma), cancel/archive. Auto-deduct green (FIFO) on CV stage. Auto-deduct packaging on E stage. B2B pre-fill.</td></tr>
+    <tr><td><code>inventory.html</code></td><td>Coffee &amp; packaging inventory. Add/edit/deactivate origens, quintales, empaques. Read-only stock status.</td></tr>
+    <tr><td><code>warehouse.html</code></td><td>"Piso" — simplified phone-first app for Leo/Primo. Their task queue. Cascade firma. No uso UI (auto-deduct).</td></tr>
+    <tr><td><code>game.html</code> ("The Game")</td><td>Per-member gamification: points, levels, activity. View-only.</td></tr>
+    <tr><td><code>miembros.html</code></td><td>Team CRUD. Seed/add/edit the 4 members.</td></tr>
+    <tr><td><code>setup.html</code></td><td>One-click installer. Configures all DB schemas via PATCH. Seeds test data. Hosts migrations.</td></tr>
+    <tr><td><code>print.html</code></td><td>Printable order sheets and green coffee registry sheets. URL params <code>?type=order&amp;id=…</code> or <code>?type=origen&amp;id=…</code>.</td></tr>
     <tr><td><code>warehouse-arquitectura.html</code>, <code>warehouse-notion-schema.html</code></td><td>Reference docs.</td></tr>
   </tbody>
 </table>
@@ -273,7 +273,7 @@
   <span class="com">// ... etc</span>
 }</pre>
 
-<h3>5.6 · Settings UI (warehouse-comms.html)</h3>
+<h3>5.6 · Settings UI (comms.html)</h3>
 <p>Single HTML following the warehouse module patterns (persona selector at boot, dark theme, brief design tokens, smart refresh). Contains:</p>
 <ul>
   <li><strong>Trigger matrix</strong> — table of the 9 triggers × the 3 channels. Each cell: checkbox (enabled), recipient picker. Saved to Notion as a settings page or to <code>localStorage</code> for v1.</li>
@@ -301,7 +301,7 @@
   }
 }));</pre>
 
-<p>Your <code>warehouse-comms.html</code> (or a tiny <code>kofy-comms-loader.js</code>) listens:</p>
+<p>Your <code>comms.html</code> (or a tiny <code>kofy-comms-loader.js</code>) listens:</p>
 <pre>window.addEventListener(<span class="str">"kofy:orderCreated"</span>, async (e) => {
   <span class="kw">const</span> { detail } = e;
   <span class="kw">if</span> (<span class="kw">!</span>userSettings.triggers.order_created.enabled) <span class="kw">return</span>;
@@ -340,7 +340,7 @@
   <li>Calls the worker <code>/notify</code> route as needed</li>
   <li>Logs to the Notificaciones DB</li>
 </ul>
-<p>The full settings UI lives in <code>warehouse-comms.html</code>. The lightweight loader runs in every other app to actually dispatch.</p>
+<p>The full settings UI lives in <code>comms.html</code>. The lightweight loader runs in every other app to actually dispatch.</p>
 
 <h3>6.4 · What you DO NOT change in existing apps</h3>
 <div class="callout warn">
@@ -349,10 +349,10 @@
 
 <h2 id="deliverables">7 · Deliverables expected</h2>
 <ol>
-  <li><strong><code>warehouse-comms.html</code></strong> — settings UI + log viewer + test sender. Mobile-first. Persona selector. Dark theme. ~600-900 lines.</li>
+  <li><strong><code>comms.html</code></strong> — settings UI + log viewer + test sender. Mobile-first. Persona selector. Dark theme. ~600-900 lines.</li>
   <li><strong><code>kofy-comms-loader.js</code></strong> — lightweight event-bus loader injected in every warehouse app. Pure JS, no dependencies. ~80-150 lines.</li>
   <li><strong><code>kofy-comms-worker-patch.md</code></strong> — instructions for Kafay to add the <code>/notify</code> route to the existing Cloudflare Worker. Include the JS to paste, env vars needed, deploy steps.</li>
-  <li><strong>Setup additions</strong> — a snippet to add to <code>warehouse-setup.html</code> that (a) creates the Notificaciones DB schema, (b) migrates Miembros + Clientes to add email/WhatsApp/SMS fields.</li>
+  <li><strong>Setup additions</strong> — a snippet to add to <code>setup.html</code> that (a) creates the Notificaciones DB schema, (b) migrates Miembros + Clientes to add email/WhatsApp/SMS fields.</li>
   <li><strong>Event-hook patch list</strong> — a markdown file naming EXACTLY which one line goes into which existing file at which approximate line. Kafay applies these manually when reintegrating.</li>
   <li><strong><code>kofy-comms-integration-notes.md</code></strong> — short notes for me (the warehouse Claude) on anything tricky.</li>
 </ol>
