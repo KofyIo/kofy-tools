@@ -56,14 +56,16 @@ Phase 05 approved-but-unpublished pieces sit in the banco. Semanas pre-evento pr
 - ✅ Rolling year / multi-month — renderCal groups by month dynamically; syncFromNotion creates new entries; _wkFromIso works for any date; header is dynamic
 - ✅ June + July seed data (p17–p34) — 3 Producción + 12 Otra entries through 2026-07-05
 
-## 5 · Calendar backlog · remaining (scoped to this conversation only)
+## 5 · Calendar backlog · v9 COMPLETE (2026-06-03)
 
-### Features
-- **Briefing template per video** — when a piece is in fase 01 Briefing, the detail panel shows the full KPS briefing structure: Info básica · Sesión grupal · Objetivo · Concepto · Logística · Firma de aprobación (🔒 CERRADO when Kafay signs). Inputs save to Notion alongside existing fields.
-- **Plantilla 01 — Briefing Grupal** — Monday briefing flow that creates draft entries for all pieces discussed, with Kafay's firma.
-- **Plantilla 02-B — Checklist de Props 100%** — auto-populates `groups` checklist when piece advances to fase 02 Guion; blocks fase 03 until 100% checked.
-- **Métricas in Google Sheets** — Hoja 1 "Registro de Videos" with per-phase times (goal: 10–12h/video → 6–8h/video).
-- **Sacred blocks overlay** — visual Mié / Vie / Sáb edit block markers on the Calendario month grid.
+All features shipped. No open backlog for this conversation.
+
+### Shipped in second build pass
+- ✅ **Briefing template** — fase 01 detail panel shows Objetivo · Concepto · Logística · Sesión grupal + 🔒 Firma KL. Fields editable via edit form, locked once signed.
+- ✅ **Plantilla 01 — Briefing Grupal** — "+ Briefing" button in Checklist sync bar. Builds piece list Monday-style, fires all to Notion with 350ms spacing.
+- ✅ **Plantilla 02-B — Props gate** — advance to fase 02 auto-populates 6-item Props & Storyboard checklist; advance to fase 03 warns if checklist incomplete (soft confirm, Kafay can override).
+- ✅ **Métricas tab** — 6th tab. Summary cards + Registro de Videos table with phase/days-in-production per entry. CSV export → Google Sheets.
+- ✅ **Sacred blocks overlay** — Wed/Fri/Sat cells get a purple dot in the month grid. Legend updated.
 
 ## 6 · KPS migration map (old → new)
 
