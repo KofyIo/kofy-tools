@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kofy · Calendario Mayo 2026</title>
+<title>Kofy · Calendario</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -561,9 +561,9 @@ body.theme-light .kps-step:hover{background:rgba(124,74,150,0.08)}
 <div class="wrap">
 <header class="hdr">
   <div>
-    <div class="hdr-eyebrow">Calendario de Produccion &mdash; Mayo 2026</div>
+    <div class="hdr-eyebrow">Calendario de Produccion &mdash; Kofy</div>
     <div class="hdr-title">kofy<em>.io</em></div>
-    <div class="hdr-sub">16 piezas &middot; 8 jornadas &middot; 5 semanas</div>
+    <div class="hdr-sub" id="hdr-sub">Cargando...</div>
   </div>
   <div class="hdr-r">
     <div class="hdr-date">28 &middot; abr &middot; 2026</div>
@@ -849,6 +849,37 @@ const POSTS=[
     {label:'Planificacion',items:mkItems(['Kafay: Definir fecha del evento de junio','Kafay: Confirmar locacion del evento','Kafay: Confirmar quien es el/la invitado/a'])},
     {label:'Produccion',items:mkItems(['Leo: Blackmagic 6K opera','Todos: Todo el equipo en camara','Kafay: Narracion — anuncia el proximo evento como CTA'])},
     {label:'Publicacion',items:mkItems(['Leo: Edicion','Kafay: Aprobacion y publicar 31/5'])}]},
+
+  {id:'p17',wk:1,dl:'6',iso:'2026-06-06',name:"Father's Day Pack",sub:'Craft · Track B · Dia del Padre',layer:'what',pillar:'Craft',track:'b',fmt:'Video',stage:'briefing',warn:true,warnText:'Confirmar locacion y talent antes del 3/6. No mezclar con Barismo el mismo dia.',temas:['Producto','Cliente'],vis:[],nar:[],pubIso:'2026-06-07',type:'produccion',notionId:null,archived:false,groups:[
+    {label:'Pre-produccion',items:mkItems(['Kafay: Brief aprobado','Leo: Locacion confirmada','Kafay: Talent confirmado'])},
+    {label:'Produccion',items:mkItems(['Leo: Graba','Kafay: Narracion offscreen'])},
+    {label:'Publicacion',items:mkItems(['Leo: Edicion','Kafay: Caption aprobado','Kafay: Publicar 7/6'])}]},
+
+  {id:'p18',wk:2,dl:'8',iso:'2026-06-08',name:'Barismo - Aromia',sub:'Conocimiento · Track A · Colaboracion Aromia',layer:'what',pillar:'Conocimiento',track:'a',fmt:'Video',stage:'briefing',warn:true,warnText:'Coordinar con Aromia. Confirmar fecha y locacion.',temas:['Educativo','Cliente'],vis:[],nar:[],pubIso:'2026-06-06',type:'produccion',notionId:null,archived:false,groups:[
+    {label:'Pre-produccion',items:mkItems(['Kafay: Confirmar fecha con Aromia','Kafay: Brief aprobado','Leo: Blackmagic 6K confirmada'])},
+    {label:'Rodaje',items:mkItems(['Leo: Documenta clase de barismo','Kafay: Entrevista al barista','Leo: Close-ups herramientas y proceso'])},
+    {label:'Publicacion',items:mkItems(['Leo: Edicion','Kafay: Caption aprobado','Kafay: Publicar'])}]},
+
+  {id:'p19',wk:2,dl:'13',iso:'2026-06-13',name:'RIO SACHETS',sub:'Craft · Track A · RIO Supermarket',layer:'what',pillar:'Craft',track:'a',fmt:'Video',stage:'guion',warn:false,warnText:'',temas:['Producto'],vis:[],nar:[],pubIso:'2026-06-14',type:'produccion',notionId:null,archived:false,groups:[
+    {label:'Pre-produccion',items:mkItems(['Kafay: Brief aprobado','Partner: Script aprobado','Leo: Locacion RIO confirmada'])},
+    {label:'Produccion',items:mkItems(['Leo: Graba en RIO','Leo: Close-ups sachets en anaquel','Kafay: Narracion offscreen'])},
+    {label:'Publicacion',items:mkItems(['Leo: Edicion','Kafay: Caption aprobado','Kafay: Publicar 14/6'])}]},
+
+  {id:'p20',wk:1,dl:'3',iso:'2026-06-03',name:'Editar Recap Mgta',sub:'',layer:'how',pillar:'Craft',track:'b',fmt:'Otro',stage:'briefing',warn:false,warnText:'',temas:[],vis:[],nar:[],notionId:null,type:'otra',archived:false,pubIso:null,description:'Editar video recap Magatería',groups:[]},
+  {id:'p21',wk:1,dl:'3',iso:'2026-06-03',name:'Post Recap Mgta',sub:'',layer:'how',pillar:'Craft',track:'b',fmt:'Otro',stage:'briefing',warn:false,warnText:'',temas:[],vis:[],nar:[],notionId:null,type:'otra',archived:false,pubIso:null,description:'Publicar recap Magatería',groups:[]},
+  {id:'p22',wk:1,dl:'4',iso:'2026-06-04',name:'LEO OFF',sub:'',layer:'how',pillar:'Craft',track:'b',fmt:'Otro',stage:'briefing',warn:false,warnText:'',temas:[],vis:[],nar:[],notionId:null,type:'otra',archived:false,pubIso:null,description:'Leo día libre',groups:[]},
+  {id:'p23',wk:1,dl:'5',iso:'2026-06-05',name:'Post - Origin reel',sub:'',layer:'how',pillar:'Craft',track:'b',fmt:'Otro',stage:'briefing',warn:false,warnText:'',temas:[],vis:[],nar:[],notionId:null,type:'otra',archived:false,pubIso:null,description:'Publicar reel de origen',groups:[]},
+  {id:'p24',wk:1,dl:'5',iso:'2026-06-05',name:'Ready Kofy Cart',sub:'',layer:'how',pillar:'Craft',track:'b',fmt:'Otro',stage:'briefing',warn:false,warnText:'',temas:[],vis:[],nar:[],notionId:null,type:'otra',archived:false,pubIso:null,description:'Preparar carrito Kofy',groups:[]},
+  {id:'p25',wk:1,dl:'5',iso:'2026-06-05',name:'LEO OFF',sub:'',layer:'how',pillar:'Craft',track:'b',fmt:'Otro',stage:'briefing',warn:false,warnText:'',temas:[],vis:[],nar:[],notionId:null,type:'otra',archived:false,pubIso:null,description:'Leo día libre',groups:[]},
+  {id:'p26',wk:1,dl:'7',iso:'2026-06-07',name:'publicar dia del padre.',sub:'',layer:'how',pillar:'Craft',track:'b',fmt:'Otro',stage:'briefing',warn:false,warnText:'',temas:[],vis:[],nar:[],notionId:null,type:'otra',archived:false,pubIso:null,description:'Publicar contenido Día del Padre',groups:[]},
+  {id:'p27',wk:2,dl:'9',iso:'2026-06-09',name:'FERIA DEL LIBRO + COFFEE PARTY READY',sub:'',layer:'how',pillar:'Craft',track:'b',fmt:'Otro',stage:'briefing',warn:false,warnText:'',temas:[],vis:[],nar:[],notionId:null,type:'otra',archived:false,pubIso:null,description:'Preparar todo para Feria del Libro y Coffee Party',groups:[]},
+  {id:'p28',wk:2,dl:'10',iso:'2026-06-10',name:'DAY 1 FERIA DEL LIBRO',sub:'',layer:'how',pillar:'Craft',track:'b',fmt:'Otro',stage:'briefing',warn:false,warnText:'',temas:[],vis:[],nar:[],notionId:null,type:'otra',archived:false,pubIso:null,description:'Día 1 Feria del Libro',groups:[]},
+  {id:'p29',wk:2,dl:'11',iso:'2026-06-11',name:'DAY 2 FERIA DEL LIBRO + COFFEE PARTY',sub:'',layer:'how',pillar:'Craft',track:'b',fmt:'Otro',stage:'briefing',warn:false,warnText:'',temas:[],vis:[],nar:[],notionId:null,type:'otra',archived:false,pubIso:null,description:'Día 2 Feria del Libro + Coffee Party',groups:[]},
+  {id:'p30',wk:2,dl:'12',iso:'2026-06-12',name:'LEO OFF',sub:'',layer:'how',pillar:'Craft',track:'b',fmt:'Otro',stage:'briefing',warn:false,warnText:'',temas:[],vis:[],nar:[],notionId:null,type:'otra',archived:false,pubIso:null,description:'Leo día libre',groups:[]},
+  {id:'p31',wk:4,dl:'26',iso:'2026-06-26',name:'CURSO BARISMO AROMIA 1',sub:'',layer:'how',pillar:'Craft',track:'b',fmt:'Otro',stage:'briefing',warn:false,warnText:'',temas:[],vis:[],nar:[],notionId:null,type:'otra',archived:false,pubIso:null,description:'Curso de barismo en Aromia - Día 1',groups:[]},
+  {id:'p32',wk:4,dl:'27',iso:'2026-06-27',name:'CURSO BARISMO AROMIA 2',sub:'',layer:'how',pillar:'Craft',track:'b',fmt:'Otro',stage:'briefing',warn:false,warnText:'',temas:[],vis:[],nar:[],notionId:null,type:'otra',archived:false,pubIso:null,description:'Curso de barismo en Aromia - Día 2',groups:[]},
+  {id:'p33',wk:1,dl:'4',iso:'2026-07-04',name:'CURSO EVALUACION SENSORIAL AROMIA 1',sub:'',layer:'how',pillar:'Craft',track:'b',fmt:'Otro',stage:'briefing',warn:false,warnText:'',temas:[],vis:[],nar:[],notionId:null,type:'otra',archived:false,pubIso:null,description:'Curso evaluación sensorial Aromia - Día 1',groups:[]},
+  {id:'p34',wk:1,dl:'5',iso:'2026-07-05',name:'CURSO EVALUACION SENSORIAL AROMIA 2',sub:'',layer:'how',pillar:'Craft',track:'b',fmt:'Otro',stage:'briefing',warn:false,warnText:'',temas:[],vis:[],nar:[],notionId:null,type:'otra',archived:false,pubIso:null,description:'Curso evaluación sensorial Aromia - Día 2',groups:[]},
 ];
 
 const JORNADAS=[
@@ -1132,9 +1163,13 @@ function updateProgress(pid){
   if(mcnt)mcnt.textContent=d+'/'+t;
   const pb=document.getElementById('pb-'+pid);
   if(pb){const clr=PC[post.pillar]||'#7C4A96';pb.style.height=p+'%';pb.style.background=p===100?'var(--green)':`linear-gradient(to top, ${clr}, var(--green))`;}
-  const wp=weekPct(post.wk);
-  const wb=document.getElementById('wb-'+post.wk);const wpc=document.getElementById('wpc-'+post.wk);
-  if(wb)wb.style.width=wp+'%';if(wpc)wpc.textContent=wp+'%';
+  const monthKey=post.iso?post.iso.slice(0,7):'';
+  const wb=document.getElementById('wb-'+monthKey);const wpc=document.getElementById('wpc-'+monthKey);
+  if(wb||wpc){
+    let mt=0,md=0;POSTS.filter(p=>p.iso&&p.iso.slice(0,7)===monthKey&&!p.archived&&p.type!=='otra').forEach(p=>{const c=countC(p);mt+=c.t;md+=c.d;});
+    const mp=pct(md,mt);
+    if(wb)wb.style.width=mp+'%';if(wpc)wpc.textContent=mp+'%';
+  }
   updateGlobal();
 }
 function updateRodProgress(jid){
@@ -1168,7 +1203,9 @@ function applyFilters(){
     let next=row.nextElementSibling;if(next&&next.querySelector&&next.querySelector('.alert-strip'))next.style.display=vis?'':'none';
     const exp=document.getElementById('exp-'+post.id);if(exp&&!vis)exp.style.display='none';
   });
-  WEEKS.forEach(wk=>{const sec=document.getElementById('ws-'+wk.n);if(!sec)return;const anyVis=POSTS.filter(p=>p.wk===wk.n).some(p=>{const r=document.getElementById('row-'+p.id);return r&&r.style.display!=='none';});sec.style.display=anyVis?'':'none';});
+  // Hide/show month sections based on visible rows
+  const monthKeys=new Set(POSTS.map(p=>p.iso?p.iso.slice(0,7):'').filter(Boolean));
+  monthKeys.forEach(key=>{const sec=document.getElementById('ws-'+key);if(!sec)return;const anyVis=POSTS.filter(p=>p.iso&&p.iso.slice(0,7)===key).some(p=>{const r=document.getElementById('row-'+p.id);return r&&r.style.display!=='none';});sec.style.display=anyVis?'':'none';});
 }
 
 // ── TABS ────────────────────────────────────────────────────────────────────
@@ -1544,17 +1581,9 @@ function dpCancel(){
 }
 
 function _wkFromIso(iso){
-  // Lightweight wk mapping for May 2026 grid; if iso outside May, returns 1 fallback.
+  // Returns week-of-month (1-5) for any date — used only for the wk field (now less critical)
   const d=new Date(iso+'T00:00:00');if(isNaN(d))return 1;
-  // Map by day of month into the WEEKS table buckets
-  const day=d.getDate();const mon=d.getMonth();
-  if(mon!==4)return 1; // May=4
-  if(day>=5&&day<=10)return 1;
-  if(day>=11&&day<=15)return 2;
-  if(day>=17&&day<=22)return 3;
-  if(day>=24&&day<=27)return 4;
-  if(day>=29&&day<=31)return 5;
-  return 1;
+  return Math.ceil(d.getDate()/7);
 }
 
 async function dpSave(){
@@ -1673,11 +1702,6 @@ function toggleTheme(){
 }
 
 // ── RENDER CHECKLIST ────────────────────────────────────────────────────────
-const WEEKS=[
-  {n:1,label:'Semana 1 — 5 al 10 de mayo'},{n:2,label:'Semana 2 — 11 al 15 de mayo'},
-  {n:3,label:'Semana 3 — 17 al 22 de mayo'},{n:4,label:'Semana 4 — 24 al 27 de mayo'},
-  {n:5,label:'Semana 5 — 29 al 31 de mayo'}
-];
 function renderCL(post){
   const trackPts=post.track==='a'?PTS_A:PTS_B;
   return post.groups.map((g,gi)=>`<div class="cl-grp"><div class="cl-grp-lbl">${g.label}</div>${g.items.map((item,ii)=>{const k=ck(post.id,gi,ii);const chk=CS[k]?'chk':'';const ow=getTaskOwner(post.id,gi,ii);return `<div class="cl-item ${chk}" id="ci-${k}" onclick="toggleCheck('${post.id}',${gi},${ii})"><div class="cl-box ${chk?'done':''}"></div><div class="cl-txt">${displayText(item.text)}</div><span class="owner-tag ot-${ow}">${ow}</span><span class="pts-badge">+${trackPts}</span></div>`;}).join('')}</div>`).join('');
@@ -1696,7 +1720,7 @@ async function patchNotion(pid){
 
 async function pushAllToNotion(){
   const btn=document.getElementById('btn-push-all');const st=document.getElementById('sync-st');
-  if(btn)btn.disabled=true;if(st){st.textContent='Enviando 16 piezas...';st.className='sync-st';}
+  if(btn)btn.disabled=true;if(st){st.textContent='Enviando '+POSTS.length+' entradas...';st.className='sync-st';}
   let ok=0,fail=0;
   for(const post of POSTS){
     const{t,d}=countC(post);const p=pct(d,t);
@@ -1740,7 +1764,16 @@ async function loadFromNotion(isUserTriggered=false){
     let hasChanges=false;
     data.results.forEach(page=>{
       const dateStart=page.properties?.Date?.date?.start;if(!dateStart)return;
-      const post=POSTS.find(p=>p.iso===dateStart);if(!post)return;
+      let post=POSTS.find(p=>p.notionId===page.id)||POSTS.find(p=>p.iso===dateStart&&!p.notionId);
+      if(!post){
+        const nName=page.properties?.Name?.title?.[0]?.plain_text||'';
+        if(!nName||nName===STATE_PAGE_NAME)return;
+        const newId='n-'+page.id.replace(/-/g,'').slice(0,8);
+        if(POSTS.some(p=>p.id===newId))return;
+        post={id:newId,wk:Math.ceil(new Date(dateStart+'T00:00:00').getDate()/7),dl:String(new Date(dateStart+'T00:00:00').getDate()),iso:dateStart,name:nName,sub:'',layer:'how',pillar:'Craft',track:'b',fmt:'Video',stage:'briefing',warn:false,warnText:'',temas:[],vis:[],nar:[],notionId:page.id,type:'produccion',archived:false,pubIso:null,description:'',groups:[]};
+        POSTS.push(post);
+        hasChanges=true;
+      }
       post.notionId=page.id;
       const nName=page.properties?.Name?.title?.[0]?.plain_text||'';if(nName&&nName!==STATE_PAGE_NAME&&nName!==post.name){post.name=nName;hasChanges=true;}
       let nStatus=page.properties?.Status?.select?.name||'';if(nStatus)nStatus=kpsPhase(nStatus);if(nStatus&&nStatus!==post.stage){post.stage=nStatus;hasChanges=true;}
@@ -1848,19 +1881,33 @@ async function pushEntry(pid){
 // ── RENDER CALENDAR ─────────────────────────────────────────────────────────
 function renderCal(){
   const body=document.getElementById('cal-body');body.innerHTML='';
-  WEEKS.forEach(wk=>{
-    const posts=POSTS.filter(p=>p.wk===wk.n&&!p.archived);if(!posts.length)return;
-    const wp=weekPct(wk.n);
-    const sec=document.createElement('div');sec.className='wk-section';sec.id='ws-'+wk.n;
-    sec.innerHTML=`<div class="wk-hdr"><span class="wk-lbl">Semana ${wk.n}</span><span class="wk-title">${wk.label}</span><div class="wk-prog"><div class="wk-bar-o"><div class="wk-bar-i" id="wb-${wk.n}" style="width:${wp}%"></div></div><span class="wk-pct" id="wpc-${wk.n}">${wp}%</span></div></div><table class="tbl"><thead><tr><th>Fecha</th><th>Concepto</th><th>Capa</th><th>Formato</th><th>Progress</th><th></th></tr></thead><tbody id="tb-${wk.n}"></tbody></table>`;
+  const active=POSTS.filter(p=>!p.archived);
+  if(!active.length){body.innerHTML='<div style="padding:40px;text-align:center;color:var(--text3)">No hay actividades. Agrega una desde el Calendario.</div>';return;}
+  // Group by month-year
+  const months={};
+  active.forEach(p=>{
+    const key=p.iso?p.iso.slice(0,7):'0000-00';
+    if(!months[key])months[key]=[];
+    months[key].push(p);
+  });
+  const sortedKeys=Object.keys(months).sort();
+  sortedKeys.forEach(key=>{
+    const [yr,mo]=key.split('-');
+    const monthName=MONTHS_ES[parseInt(mo,10)-1]||mo;
+    const posts=months[key].sort((a,b)=>a.iso.localeCompare(b.iso));
+    // compute month progress (produccion only)
+    let mt=0,md=0;posts.filter(p=>p.type!=='otra').forEach(p=>{const c=countC(p);mt+=c.t;md+=c.d;});
+    const mp=pct(md,mt);
+    const sec=document.createElement('div');sec.className='wk-section';sec.id='ws-'+key;
+    sec.innerHTML=`<div class="wk-hdr"><span class="wk-lbl">${monthName}</span><span class="wk-title">${monthName} ${yr}</span><div class="wk-prog"><div class="wk-bar-o"><div class="wk-bar-i" id="wb-${key}" style="width:${mp}%"></div></div><span class="wk-pct" id="wpc-${key}">${mp}%</span></div></div><table class="tbl"><thead><tr><th>Fecha</th><th>Concepto</th><th>Capa</th><th>Formato</th><th>Progress</th><th></th></tr></thead><tbody id="tb-${key}"></tbody></table>`;
     body.appendChild(sec);
-    const tb=document.getElementById('tb-'+wk.n);
+    const tb=document.getElementById('tb-'+key);
+    const moAbbr=MONTHS_ES[parseInt(mo,10)-1]||mo;
     posts.forEach((post,idx)=>{
       if(post.type==='otra'){
-        // Simplified row for Otra activities
         const tr=document.createElement('tr');tr.className='erow';tr.id='row-'+post.id;tr.style.animationDelay=(idx*0.05)+'s';
-        const d=new Date(post.iso+'T00:00:00');const dlLbl=isNaN(d)?post.dl:d.getDate();
-        tr.innerHTML=`<td class="td-date" onclick="openDayPanel('${post.iso}')"><div class="date-inn"><div class="date-pillar-bar" style="background:var(--text3)"></div><div><div class="date-lbl">Mayo</div><div class="date-day">${dlLbl}</div><div class="date-mo">2026</div></div></div></td><td class="td-concept" colspan="3" onclick="openDayPanel('${post.iso}')"><div class="con-name">${post.name}</div><div class="badges"><span class="otra-pill">Otra</span>${post.owner?'<span class="owner-tag ot-'+post.owner+'" style="margin-left:6px">'+post.owner+'</span>':''}</div>${post.description?'<div class="con-sub">'+_escH(post.description.slice(0,80))+(post.description.length>80?'…':'')+'</div>':''}</td><td class="td-check"></td><td class="td-tog"></td>`;
+        const dd=new Date(post.iso+'T00:00:00');const dlLbl=isNaN(dd)?post.dl:dd.getDate();
+        tr.innerHTML=`<td class="td-date" onclick="openDayPanel('${post.iso}')"><div class="date-inn"><div class="date-pillar-bar" style="background:var(--text3)"></div><div><div class="date-lbl">${moAbbr.slice(0,3)}</div><div class="date-day">${dlLbl}</div><div class="date-mo">${yr}</div></div></div></td><td class="td-concept" colspan="3" onclick="openDayPanel('${post.iso}')"><div class="con-name">${_escH(post.name)}</div><div class="badges"><span class="otra-pill">Otra</span>${post.owner?'<span class="owner-tag ot-'+post.owner+'" style="margin-left:6px">'+post.owner+'</span>':''}</div>${post.description?'<div class="con-sub">'+_escH(post.description.slice(0,80))+(post.description.length>80?'…':'')+'</div>':''}</td><td class="td-check"></td><td class="td-tog"></td>`;
         tb.appendChild(tr);
         return;
       }
@@ -1871,11 +1918,11 @@ function renderCal(){
       const tb_b=post.track==='a'?'<span class="badge ba">Track A</span>':'<span class="badge bb">Track B</span>';
       const pubSub=post.pubIso&&post.pubIso!==post.iso?'<div style="font-size:9px;color:var(--gold);margin-top:2px">📅 Pub · '+post.pubIso+'</div>':'';
       const tr=document.createElement('tr');tr.className='erow'+(post.warn?' warn':'')+(p===100?' done':'');tr.id='row-'+post.id;tr.style.animationDelay=(idx*0.05)+'s';
-      tr.innerHTML=`<td class="td-date" onclick="toggleRow('${post.id}')"><div class="date-inn"><div class="date-pillar-bar" style="background:${clr}"></div><div><div class="date-lbl">Mayo</div><div class="date-day">${post.dl}</div><div class="date-mo">2026</div></div></div></td><td class="td-concept" onclick="toggleRow('${post.id}')"><div class="con-name">${post.name}</div><div class="con-sub">${post.sub}</div><div class="badges">${tb_b}</div>${post.temas&&post.temas.length?'<div class="temas">'+post.temas.map(t=>'<span class="tema">'+t+'</span>').join('')+'</div>':''}<span class="st-pill st-${post.stage}">${SL[post.stage]||post.stage}</span>${pubSub}</td><td class="td-layer" onclick="toggleRow('${post.id}')"><div class="layer-b ${lc}">${ll}</div><div class="pillar">${post.pillar}</div></td><td class="td-fmt" onclick="toggleRow('${post.id}')"><div class="fmt-pill" style="background:${fc.bg};color:${fc.c}">${post.fmt}</div><div class="owner-l">${OW[post.owner]||post.owner}</div></td><td class="td-check" onclick="toggleRow('${post.id}')"><span class="chk-cnt" id="mc-${post.id}">${d}/${t}</span></td><td class="td-tog" onclick="toggleRow('${post.id}')"><div class="prog-border" id="pb-${post.id}" style="height:${p}%;background:${p===100?'var(--green)':`linear-gradient(to top, ${clr}, var(--green))`}"></div><span class="tog-arr" style="position:relative;z-index:1">v</span></td>`;
+      tr.innerHTML=`<td class="td-date" onclick="toggleRow('${post.id}')"><div class="date-inn"><div class="date-pillar-bar" style="background:${clr}"></div><div><div class="date-lbl">${moAbbr.slice(0,3)}</div><div class="date-day">${post.dl}</div><div class="date-mo">${yr}</div></div></div></td><td class="td-concept" onclick="toggleRow('${post.id}')"><div class="con-name">${_escH(post.name)}</div><div class="con-sub">${_escH(post.sub||'')}</div><div class="badges">${tb_b}</div>${post.temas&&post.temas.length?'<div class="temas">'+post.temas.map(t=>'<span class="tema">'+_escH(t)+'</span>').join('')+'</div>':''}<span class="st-pill st-${post.stage}">${SL[post.stage]||post.stage}</span>${pubSub}</td><td class="td-layer" onclick="toggleRow('${post.id}')"><div class="layer-b ${lc}">${ll}</div><div class="pillar">${_escH(post.pillar||'')}</div></td><td class="td-fmt" onclick="toggleRow('${post.id}')"><div class="fmt-pill" style="background:${fc.bg};color:${fc.c}">${_escH(post.fmt||'')}</div><div class="owner-l">${OW[post.owner]||post.owner||''}</div></td><td class="td-check" onclick="toggleRow('${post.id}')"><span class="chk-cnt" id="mc-${post.id}">${d}/${t}</span></td><td class="td-tog" onclick="toggleRow('${post.id}')"><div class="prog-border" id="pb-${post.id}" style="height:${p}%;background:${p===100?'var(--green)':`linear-gradient(to top, ${clr}, var(--green))`}"></div><span class="tog-arr" style="position:relative;z-index:1">v</span></td>`;
       tb.appendChild(tr);
-      if(post.warn){const wtr=document.createElement('tr');wtr.innerHTML='<td colspan="6" style="padding:0;background:var(--surface)"><div class="alert-strip">'+post.warnText+'</div></td>';tb.appendChild(wtr);}
+      if(post.warn){const wtr=document.createElement('tr');wtr.innerHTML='<td colspan="6" style="padding:0;background:var(--surface)"><div class="alert-strip">'+_escH(post.warnText||'')+'</div></td>';tb.appendChild(wtr);}
       const etr=document.createElement('tr');etr.id='exp-'+post.id;etr.style.display='none';
-      etr.innerHTML=`<td colspan="6" class="exp-td"><div class="exp-grid"><div class="exp-col"><div class="exp-lbl">Checklist de produccion</div>${post.notionErr?'<div class="notion-err">'+post.notionErr+'</div>':''}<div id="cl-${post.id}">${renderCL(post)}</div>${post.vis&&post.vis.length?'<div class="brief-blk"><div class="brief-blk-lbl">Referencias visuales</div>'+post.vis.map(v=>'<div class="brief-item">'+v+'</div>').join('')+'</div>':''}${post.nar&&post.nar.length?'<div class="brief-blk"><div class="brief-blk-lbl">Narrativa</div>'+post.nar.map(n=>'<div class="brief-item">'+n+'</div>').join('')+'</div>':''}</div><div class="exp-col"><div class="exp-lbl" style="margin-bottom:10px">Archivos por categoria</div><div class="file-cats">${buildFileCatSlots(post.id)}</div><div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)"><div class="exp-lbl" style="margin-bottom:5px">Notas del equipo</div><textarea class="notes-area" id="nt-${post.id}" placeholder="Notas, ideas, contexto..." oninput="debounceSave('${post.id}')" onblur="saveNote('${post.id}')">${getNote(post.id)}</textarea><div class="notes-saved" id="ntsv-${post.id}">Guardado</div></div></div></div><div class="notion-row"><span class="notion-st" id="nst-${post.id}">No sincronizado</span><select class="status-sel" id="nsel-${post.id}"><option value="idea"${post.stage==='idea'?' selected':''}>Idea</option><option value="brief"${post.stage==='brief'?' selected':''}>Brief</option><option value="planning"${post.stage==='planning'?' selected':''}>Planning</option><option value="produccion"${post.stage==='produccion'?' selected':''}>En produccion</option><option value="edicion"${post.stage==='edicion'?' selected':''}>En edicion</option><option value="aprobado"${post.stage==='aprobado'?' selected':''}>Aprobado</option><option value="publicado"${post.stage==='publicado'?' selected':''}>Publicado</option></select><button class="btn-notion" id="nbtn-${post.id}" onclick="pushEntry('${post.id}')">Guardar en Notion</button></div></td>`;
+      etr.innerHTML=`<td colspan="6" class="exp-td"><div class="exp-grid"><div class="exp-col"><div class="exp-lbl">Checklist de produccion</div>${post.notionErr?'<div class="notion-err">'+post.notionErr+'</div>':''}<div id="cl-${post.id}">${renderCL(post)}</div>${post.vis&&post.vis.length?'<div class="brief-blk"><div class="brief-blk-lbl">Referencias visuales</div>'+post.vis.map(v=>'<div class="brief-item">'+_escH(v)+'</div>').join('')+'</div>':''}${post.nar&&post.nar.length?'<div class="brief-blk"><div class="brief-blk-lbl">Narrativa</div>'+post.nar.map(n=>'<div class="brief-item">'+_escH(n)+'</div>').join('')+'</div>':''}</div><div class="exp-col"><div class="exp-lbl" style="margin-bottom:10px">Archivos por categoria</div><div class="file-cats">${buildFileCatSlots(post.id)}</div><div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)"><div class="exp-lbl" style="margin-bottom:5px">Notas del equipo</div><textarea class="notes-area" id="nt-${post.id}" placeholder="Notas, ideas, contexto..." oninput="debounceSave('${post.id}')" onblur="saveNote('${post.id}')">${getNote(post.id)}</textarea><div class="notes-saved" id="ntsv-${post.id}">Guardado</div></div></div></div><div class="notion-row"><span class="notion-st" id="nst-${post.id}">No sincronizado</span><select class="status-sel" id="nsel-${post.id}"><option value="idea"${post.stage==='idea'?' selected':''}>Idea</option><option value="brief"${post.stage==='brief'?' selected':''}>Brief</option><option value="planning"${post.stage==='planning'?' selected':''}>Planning</option><option value="produccion"${post.stage==='produccion'?' selected':''}>En produccion</option><option value="edicion"${post.stage==='edicion'?' selected':''}>En edicion</option><option value="aprobado"${post.stage==='aprobado'?' selected':''}>Aprobado</option><option value="publicado"${post.stage==='publicado'?' selected':''}>Publicado</option></select><button class="btn-notion" id="nbtn-${post.id}" onclick="pushEntry('${post.id}')">Guardar en Notion</button></div></td>`;
       tb.appendChild(etr);
       tr.addEventListener('click',function(){etr.style.display=tr.classList.contains('open')?'table-row':'none';});
       LINK_CAT_IDS.forEach(catKey=>renderFileCat(post.id,catKey));
@@ -1944,6 +1991,13 @@ document.addEventListener('visibilitychange',function(){
 // ── INIT ────────────────────────────────────────────────────────────────────
 loadState();
 renderCal();
+const subEl=document.getElementById('hdr-sub');
+if(subEl){
+  const active=POSTS.filter(p=>!p.archived);
+  const prod=active.filter(p=>p.type!=='otra');
+  const months=new Set(active.map(p=>p.iso?p.iso.slice(0,7):'')).size;
+  subEl.textContent=prod.length+' piezas · '+months+' meses';
+}
 renderRodaje();
 renderLinks();
 renderLevelsLegend();
