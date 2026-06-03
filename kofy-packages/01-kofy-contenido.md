@@ -1,4 +1,4 @@
-# 01-kofy-contenido.md · Department shard · Contenido (v1 · 2026-05-25)
+# 01-kofy-contenido.md · Department shard · Contenido (v2 · 2026-06-03)
 
 Load this together with `00-kofy-core.md` when working on the calendar, KPS production system, briefings, guiones, video bank, or anything content-side. Do **not** load it for warehouse / dinero / cliente sessions.
 
@@ -28,48 +28,42 @@ Phase 05 approved-but-unpublished pieces sit in the banco. Semanas pre-evento pr
 
 ## 4 · The calendar tool · current state
 
-**File:** `calendar.html` in workspace · also live at `app.kofy.io`.
+**File:** `calendar.html` · live at `app.kofy.io` · last updated 2026-06-03 (v9).
 
 **Tech:** plain HTML/CSS/JS · no framework · Notion sync via Cloudflare Worker proxy (`https://kofy-notion-proxy.delicate-surf-529c.workers.dev`) · Notion DB ID `3509b62600a080468cbedcaa3b6e4bc6`.
 
-**Current version on disk:** `calendar-v8.html` (the swap to `calendar.html` was the last step pending in the prior session). v8 introduced KPS visualization. v7 introduced add/edit form, pill-style month grid, tab rename (Checklist + Calendario).
-
-**Data shape per entry:**
+**Data shape per entry (v9):**
 ```
 {id, iso, name, sub, layer, pillar, track, fmt, stage, warn, warnText,
- temas[], vis, nar, groups[], notionId}
+ temas[], vis[], nar[], groups[], notionId,
+ type ('produccion'|'otra'), pubIso, archived, description}
 ```
+`vis`, `nar`, `sub`, `temas`, `warn`, `warnText`, `archived`, `type`, `pubIso`, `description` are persisted via `FileLinks.__meta` JSON blob in Notion. `syncFromNotion()` restores all fields from `__meta` on load. New Notion entries not in POSTS are created dynamically on sync (rolling year).
 
 **Tabs:**
-1. **Checklist** — list view, what was historically called "Calendario"
-2. **Calendario** — month grid, what was historically called "Vista Mes"
+1. **Checklist** — dynamic monthly list view, groups by YYYY-MM, all months in POSTS
+2. **Calendario** — month grid, navigate any month, KPS overview bar at top
+3. **Dias de Rodaje** — jornada cards (still May 2026 — update when June jornadas are defined)
+4. **Links y Docs** — file links per category
+5. **Puntos** — gamification / leaderboard
 
-**KPS integration (v8):**
-- `SL` constant updated to KPS labels with icons.
-- Each calendar pill shows the phase icon inline (`em-phase` span).
-- Detail panel shows a clickable 5-step stepper — Kafay can advance phases without entering the edit form. Writes to Notion immediately.
-- Overview bar at top of Calendario shows phase counts for the current month.
-- `KPS_REMAP` migrates old slugs (idea/brief/planning/produccion/aprobado/publicado) → KPS slugs at load time, both on initial POSTS eval and on Notion read.
+**v9 features shipped (2026-06-03):**
+- ✅ Click-away data loss fix — unsaved-changes confirm before backdrop/Escape close
+- ✅ vis/nar persistence — `FileLinks.__meta` survives page reloads across all devices
+- ✅ Soft-delete / archive — "Archivar" per entry, collapsible 🗃 section, "Recuperar"
+- ✅ Activity type toggle — 🎬 Producción (full KPS form) vs 📅 Otra (slim: name + date + description + owner)
+- ✅ Decouple recording from publish day — optional pubIso field; gold ghost 📅 pill on publish date in grid
+- ✅ Rolling year / multi-month — renderCal groups by month dynamically; syncFromNotion creates new entries; _wkFromIso works for any date; header is dynamic
+- ✅ June + July seed data (p17–p34) — 3 Producción + 12 Otra entries through 2026-07-05
 
-## 5 · Open backlog · v9 candidates (raised 2026-05-25 by Kafay)
-
-These are real bugs and feature gaps that were identified in production use. They are the actual priority for the next calendar pass.
-
-### Bugs (load-bearing fixes)
-- **Click-away data loss.** Adding/editing an activity and clicking away closes the panel and discards everything typed. Needs a "unsaved changes" warning before close. Auto-save is **not** wanted — explicit confirmation is the model.
-- **Visual notes (`vis`) and narrative notes (`nar`) not persisting.** Inputted data isn't reaching Notion. This caused a full session of 4 days of work to be lost. Critical fix.
+## 5 · Calendar backlog · remaining (scoped to this conversation only)
 
 ### Features
-- **Delete + retrieve activities.** Need to be able to delete a day's activity and pull it back if needed (soft-delete / archive pattern, not hard delete).
-- **Activity type toggle: Production vs Other.** Calendar is being repurposed as the team's full calendar, not only content. When adding an activity, choose between *Producción* (the rich KPS-aware form with all fields) or *Otra* (a slim, generic form for "meeting with X", "errand", etc.). Production stays the canonical detailed type. Other is intentionally minimal until a use case earns more structure.
-- **Briefing template (full structure) per video.** When a piece is in phase 01 Briefing, show the full briefing template per the KPS doc — Info básica · Sesión grupal · Objetivo · Concepto · Logística · Firma de aprobación (🔒 CERRADO when Kafay signs). Inputs save to Notion alongside the existing fields.
-- **Decouple recording day from publication day.** Today, all info for one video lives on the recording day. Need a way to mark *which day* a video will be published, and have a faded/subtle "publicación" entry on that publish day that links back to the recording-day source. One project, two visible days (recording = primary, publishing = ghost/shadow). When creating a new project, the user picks both dates so the link is made at creation.
-
-### Process / templates
-- **Plantilla 01 — Briefing Grupal** (with Kafay's firma flow) — mini-flow that initiates Monday briefing session and creates draft entries for all pieces discussed.
-- **Plantilla 02-B — Checklist de Props 100%** — auto-populate the `groups` checklist when a piece advances to fase 02 Guion, blocking phase 03 until 100% checked.
-- **Métricas in Google Sheets** — Hoja 1 "Registro de Videos" with per-phase times, to feed the goal of reducing 10–12h/video → 6–8h/video.
-- **Visual overlay for sagrados edit blocks** Mié / Vie / Sáb on the Calendario tab.
+- **Briefing template per video** — when a piece is in fase 01 Briefing, the detail panel shows the full KPS briefing structure: Info básica · Sesión grupal · Objetivo · Concepto · Logística · Firma de aprobación (🔒 CERRADO when Kafay signs). Inputs save to Notion alongside existing fields.
+- **Plantilla 01 — Briefing Grupal** — Monday briefing flow that creates draft entries for all pieces discussed, with Kafay's firma.
+- **Plantilla 02-B — Checklist de Props 100%** — auto-populates `groups` checklist when piece advances to fase 02 Guion; blocks fase 03 until 100% checked.
+- **Métricas in Google Sheets** — Hoja 1 "Registro de Videos" with per-phase times (goal: 10–12h/video → 6–8h/video).
+- **Sacred blocks overlay** — visual Mié / Vie / Sáb edit block markers on the Calendario month grid.
 
 ## 6 · KPS migration map (old → new)
 
@@ -85,8 +79,8 @@ For any module that displays content stages, route through this map. Operational
 
 ## 7 · Files in workspace (Contenido-relevant)
 
-- `calendar.html` — live tool (will be swapped to v8 contents)
-- `calendar-v8.html` — staged v8 build with KPS visualization
+- `calendar.html` — **live tool · v9 · 2026-06-03** (calendar-v8.html promoted, v9 features built in-session)
+- `calendar-v8.html` — development file (always mirrors calendar.html after promotion)
 - `KPS_Manual.docx` / `KPS_Manual.pdf` — master KPS manual v1.0
 - `KPS_Dashboard.html` — visual one-pager of the 5 fases, 5 fugas, semana tipo
 - `kofy-brain-complete.md` — consolidated master brain
