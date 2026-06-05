@@ -12,6 +12,7 @@
     { label: '🎞️ Footage',       href: 'footage.html',            group: 'contenido' },
     { label: '🤖 Kofy AI',        href: 'kofy-ai-test.html',       group: 'cliente' },
     { label: '🏪 Portal Cliente', href: 'warehouse-cliente.html',  group: 'cliente' },
+    { label: '🇪🇹 Origen Etiopía', href: 'origen-etiopia.html',     group: 'cliente' },
   ];
 
   const GROUPS = [
