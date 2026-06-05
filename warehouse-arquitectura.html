@@ -1,0 +1,241 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kofy · Warehouse · Arquitectura</title>
+<style>
+  :root {
+    --bg: #0a0610;
+    --surface: #15101f;
+    --surface-2: #1f1830;
+    --line: #2a2138;
+    --ink: #f3e8d4;
+    --ink-mute: #9e8db8;
+    --gold: #f5c842;
+    --plum: #5b3a8f;
+    --plum-soft: #7a52b8;
+    --green: #7fb069;
+    --red: #d9534f;
+    --cream: #f5e6d3;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--bg); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif; line-height: 1.55; }
+  body { padding: 32px 20px 80px; max-width: 1100px; margin: 0 auto; }
+
+  /* Header */
+  .head { border-bottom: 1px solid var(--line); padding-bottom: 24px; margin-bottom: 32px; }
+  .eyebrow { color: var(--gold); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 600; margin-bottom: 8px; }
+  h1 { font-size: 34px; font-weight: 700; color: var(--cream); letter-spacing: -0.02em; margin-bottom: 8px; }
+  .sub { color: var(--ink-mute); font-size: 15px; max-width: 640px; }
+  .anchor { display: inline-block; margin-top: 14px; padding: 4px 10px; background: rgba(245,200,66,0.1); color: var(--gold); border: 1px solid rgba(245,200,66,0.25); border-radius: 4px; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 600; }
+
+  h2 { font-size: 13px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); margin: 48px 0 16px; font-weight: 600; }
+  h3 { font-size: 18px; color: var(--cream); margin-bottom: 8px; font-weight: 600; }
+  p { color: var(--ink-mute); margin-bottom: 12px; }
+  p strong { color: var(--ink); font-weight: 600; }
+  code { font-family: ui-monospace, "JetBrains Mono", "SF Mono", monospace; font-size: 13px; color: var(--gold); background: var(--surface); padding: 2px 6px; border-radius: 3px; }
+
+  /* Pipeline */
+  .pipe { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 16px 0; }
+  .stage { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px 10px; text-align: center; position: relative; }
+  .stage .icon { font-size: 22px; margin-bottom: 6px; opacity: 0.85; }
+  .stage .name { font-size: 12px; font-weight: 600; color: var(--cream); letter-spacing: 0.04em; }
+  .stage .who { font-size: 10px; color: var(--ink-mute); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.08em; }
+  @media (max-width: 720px) { .pipe { grid-template-columns: repeat(2, 1fr); } }
+
+  /* DB Map */
+  .dbgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .db { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 18px; }
+  .db-num { font-size: 11px; color: var(--plum-soft); letter-spacing: 0.12em; font-weight: 600; margin-bottom: 4px; }
+  .db-name { font-size: 16px; color: var(--cream); font-weight: 600; margin-bottom: 8px; }
+  .db-desc { font-size: 13px; color: var(--ink-mute); line-height: 1.5; }
+  .db-rel { font-size: 11px; color: var(--gold); margin-top: 10px; font-family: ui-monospace, monospace; opacity: 0.8; }
+  @media (max-width: 720px) { .dbgrid { grid-template-columns: 1fr; } }
+
+  /* ID conventions */
+  .ids { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .id-card { background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--gold); padding: 16px; border-radius: 4px; }
+  .id-card .pat { font-family: ui-monospace, monospace; font-size: 13px; color: var(--gold); margin-bottom: 6px; }
+  .id-card .ex { font-family: ui-monospace, monospace; font-size: 14px; color: var(--cream); font-weight: 600; margin-bottom: 8px; }
+  .id-card .note { font-size: 12px; color: var(--ink-mute); }
+  @media (max-width: 720px) { .ids { grid-template-columns: 1fr; } }
+
+  /* Flow box */
+  .flow { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 20px; margin: 12px 0; font-family: ui-monospace, monospace; font-size: 12px; line-height: 1.9; color: var(--ink); overflow-x: auto; white-space: pre; }
+
+  /* Tostado legend */
+  .tostados { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+  .tost { background: var(--surface); border: 1px solid var(--line); padding: 12px 8px; border-radius: 4px; text-align: center; }
+  .tost .code { font-family: ui-monospace, monospace; color: var(--gold); font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+  .tost .lbl { font-size: 11px; color: var(--ink-mute); }
+  @media (max-width: 720px) { .tostados { grid-template-columns: repeat(2, 1fr); } }
+
+  /* Member chips */
+  .miembros { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { background: var(--surface); border: 1px solid var(--line); padding: 6px 12px; border-radius: 20px; font-size: 12px; color: var(--cream); }
+  .chip .role { color: var(--ink-mute); font-size: 11px; }
+
+  /* Footer */
+  .foot { margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--line); color: var(--ink-mute); font-size: 12px; }
+</style>
+</head>
+<body>
+
+<header class="head">
+  <div class="eyebrow">Kofy · Sistema Interno</div>
+  <h1>Warehouse · Arquitectura</h1>
+  <p class="sub">Mapa del sistema de órdenes, inventario de café verde, y accountability. Una sola fuente de verdad (Notion), tres front-ends (HTML), un proxy (Cloudflare). El ORDER ID es el eje. La FIRMA es la cadena de responsabilidad.</p>
+  <span class="anchor">Ancla · Conexión</span>
+</header>
+
+<h2>El flujo · 5 etapas</h2>
+<p>Cada etapa exige <strong>check + firma + fecha</strong>. La firma se vincula a un Miembro, no es texto libre — así cada orden lleva consigo quién hizo qué.</p>
+<div class="pipe">
+  <div class="stage"><div class="icon">🌱</div><div class="name">Café Verde</div><div class="who">apartado</div></div>
+  <div class="stage"><div class="icon">🔥</div><div class="name">Tostado</div><div class="who">leo</div></div>
+  <div class="stage"><div class="icon">📦</div><div class="name">Empaquetado</div><div class="who">equipo</div></div>
+  <div class="stage"><div class="icon">🏷️</div><div class="name">Etiquetas / Caja</div><div class="who">listo p/ envío</div></div>
+  <div class="stage"><div class="icon">✅</div><div class="name">Entregado</div><div class="who">archivo</div></div>
+</div>
+
+<h2>Los 6 Notion DBs</h2>
+<p>Notion es la base de datos. Los HTMLs solo leen y escriben vía el Cloudflare Worker que ya existe.</p>
+<div class="dbgrid">
+  <div class="db">
+    <div class="db-num">DB 01</div>
+    <div class="db-name">Órdenes</div>
+    <div class="db-desc">Una fila por pedido. Encabezado del cliente, estado actual, las 5 etapas (cada una con firma + fecha), notas QC, notas tostador, número de tostados.</div>
+    <div class="db-rel">→ Clientes, ← Items, ← Usos</div>
+  </div>
+  <div class="db">
+    <div class="db-num">DB 02</div>
+    <div class="db-name">Items de Orden</div>
+    <div class="db-desc">Líneas del pedido. Presentación × Tostado × Cantidad × Grano/Molido × Origen. Una orden tiene N items.</div>
+    <div class="db-rel">→ Órdenes, → Orígenes</div>
+  </div>
+  <div class="db">
+    <div class="db-num">DB 03</div>
+    <div class="db-name">Clientes</div>
+    <div class="db-desc">Nombre / Razón Social, Cédula / RIF, contacto, historial (rollup de Órdenes). Re-uso: si ya existe un cliente, una nueva orden lo encuentra.</div>
+    <div class="db-rel">← Órdenes</div>
+  </div>
+  <div class="db">
+    <div class="db-num">DB 04</div>
+    <div class="db-name">Orígenes</div>
+    <div class="db-desc">Un origen = un caficultor × varietal × tostado default. Caficultor, hacienda, MSNM, proceso. KG totales y remanente son rollups desde Quintales.</div>
+    <div class="db-rel">← Quintales, ← Items, ← Usos</div>
+  </div>
+  <div class="db">
+    <div class="db-num">DB 05</div>
+    <div class="db-name">Quintales</div>
+    <div class="db-desc">Cada saco físico. Linked a un Origen. KG iniciales, letra (A/B/C), fecha de compra, status (activo / agotado). El remanente por quintal lo calcula la app desde Usos.</div>
+    <div class="db-rel">→ Orígenes, ← Usos</div>
+  </div>
+  <div class="db">
+    <div class="db-num">DB 06</div>
+    <div class="db-name">Usos de Café Verde</div>
+    <div class="db-desc">El libro mayor. Cada vez que se aparta café verde para una orden, una fila: quintal, kg, orden, firma, fecha. Es el corazón del accountability.</div>
+    <div class="db-rel">→ Quintales, → Órdenes, → Miembros</div>
+  </div>
+</div>
+
+<div style="margin-top: 12px;">
+  <div class="db" style="border-left: 3px solid var(--gold);">
+    <div class="db-num">DB 07 · auxiliar</div>
+    <div class="db-name">Miembros</div>
+    <div class="db-desc">Kafay, Partner, Leo, Primo (José). Cuatro filas, fijas. Cada firma en cualquier DB apunta aquí — eso permite dashboards por persona sin escribir nombres a mano.</div>
+    <div class="db-rel">← firmas en Órdenes y Usos</div>
+  </div>
+</div>
+
+<h2>Cómo se conecta · vista del Order ID</h2>
+<div class="flow">CLIENTE  ─→  ORDEN (PETIT-3003)
+                  │
+                  ├─→ ITEMS  ─→  ORÍGENES (MG-MC-CM, etc.)
+                  │
+                  ├─→ ESTADO 5 etapas ─→ cada una: firma → MIEMBRO
+                  │
+                  └─→ USOS DE CAFÉ VERDE
+                            │
+                            ├─→ QUINTAL (MG-MC-CM-2603-A)  ─→ ORIGEN
+                            └─→ MIEMBRO (firma)</div>
+<p>El <code>ORDER ID</code> aparece en Órdenes, en Items, y en cada fila de Usos que se haya apartado para esa orden. Ese vínculo permite preguntar a Notion: <em>"¿de qué quintal salió cada gramo del pedido PETIT-3003, y quién lo apartó?"</em> — y obtener la respuesta en una sola consulta.</p>
+
+<h2>Convenciones de ID</h2>
+<div class="ids">
+  <div class="id-card">
+    <div class="pat">ORDER ID</div>
+    <div class="ex">PETIT-3003</div>
+    <div class="note">Nombre del cliente (en mayúsculas, abreviado si hace falta) + DDMM de la fecha de pedido. Único, legible, no requiere base de datos para generar.</div>
+  </div>
+  <div class="id-card">
+    <div class="pat">ID ORIGEN</div>
+    <div class="ex">MG-MC-CM</div>
+    <div class="note">Iniciales del caficultor + iniciales del varietal + iniciales del tostado default. Tres bloques separados por guión. Si no aplica tostado default → dos bloques.</div>
+  </div>
+  <div class="id-card">
+    <div class="pat">ID QUINTAL</div>
+    <div class="ex">MG-MC-CM-2603-A</div>
+    <div class="note">ID Origen + DDMM de la compra + letra (A, B, C…) para distinguir sacos de la misma compra. Un quintal físico = una letra.</div>
+  </div>
+  <div class="id-card">
+    <div class="pat">USO ID</div>
+    <div class="ex">USO-PETIT-3003-001</div>
+    <div class="note">Auto: prefijo USO + Order ID + índice secuencial. Solo para referencia interna del libro mayor; nadie lo escribe a mano.</div>
+  </div>
+</div>
+
+<h2>Tostados · enum</h2>
+<div class="tostados">
+  <div class="tost"><div class="code">AN</div><div class="lbl">Blend Kofy</div></div>
+  <div class="tost"><div class="code">CM</div><div class="lbl">Blend Kofy</div></div>
+  <div class="tost"><div class="code">MT</div><div class="lbl">Blend Kofy</div></div>
+  <div class="tost"><div class="code">GRADO A</div><div class="lbl">Blend regional</div></div>
+  <div class="tost"><div class="code">SINGLE O</div><div class="lbl">Origen único</div></div>
+</div>
+<p style="margin-top: 12px;">AN, CM y MT son los tres blends propios de Kofy. <strong>Grado A</strong> es un blend regional (combina varios orígenes de una misma zona, escogidos por calidad). <strong>Single O</strong> es origen único — una sola finca, un solo lote. Las presentaciones BOX y SACHET solo admiten Single O.</p>
+
+<h2>Presentaciones · enum</h2>
+<p><code>1 KG</code> · <code>500g</code> · <code>250g</code> · <code>BOX</code> · <code>SACHET</code></p>
+<p>BOX y SACHET son formatos retail listos para mostrador. Los demás son bolsas tradicionales.</p>
+
+<h2>Inventario · regla de deducción</h2>
+<p>El sistema rastrea <strong>remanente por quintal</strong> (cada saco físico), pero las <strong>alertas de stock bajo</strong> se calculan a nivel de origen (suma de remanentes de todos los quintales activos). Esto refleja la realidad operativa: Leo trabaja con sacos individuales, pero el inventario crítico es por origen — si se acaba MG-MC-CM, se acaba para todas las órdenes que lo pidieron.</p>
+<p>Cuando se registra un Uso, la app:</p>
+<div class="flow">1. Resta KG del quintal seleccionado → nuevo remanente del quintal.
+2. Si el quintal queda en 0 o &lt;0.5 kg → status: agotado.
+3. Suma remanentes de todos los quintales activos del mismo Origen.
+4. Si esa suma cae bajo umbral (default: 10 kg) → alerta en /inventario.</div>
+
+<h2>Miembros · equipo Kofy</h2>
+<div class="miembros">
+  <div class="chip">Kafay <span class="role">· fundadora</span></div>
+  <div class="chip">Partner <span class="role">· co-fundador / ops</span></div>
+  <div class="chip">Leo <span class="role">· barista, tostador, cámara</span></div>
+  <div class="chip">Primo / José <span class="role">· soporte</span></div>
+</div>
+<p style="margin-top: 12px;">Cuatro filas en Notion, fijas. La firma en cualquier parte del sistema (etapa de orden, uso de café verde) es una <em>relation</em> a este DB. Eso desbloquea el dashboard <code>/yo</code> sin trabajo extra: cada quien ve sus propias firmas.</p>
+
+<h2>Stack · de papel a pantalla</h2>
+<div class="flow">PAPEL (impresiones del warehouse — opcional, para transición)
+       ↓
+NOTION (DBs 01-07 · fuente de verdad)
+       ↓
+CLOUDFLARE WORKER  (kofy-notion-proxy.delicate-surf-529c.workers.dev)
+       ↓
+HTMLs en GitHub Pages (app.kofy.io)
+   · /ordenes        Kanban + Nueva Orden
+   · /inventario     Orígenes + Quintales + Registrar Uso
+   · /yo             Accountability por Miembro</div>
+
+<h2>Próximos pasos</h2>
+<p><strong>1.</strong> Revisar este mapa, corregir cualquier supuesto incorrecto. <strong>2.</strong> Abrir <code>warehouse-notion-schema.html</code> y crear los 7 DBs en Notion siguiendo la guía. <strong>3.</strong> Pegar los DB IDs en el archivo de config de los HTMLs. <strong>4.</strong> Probar el flujo end-to-end con la orden de prueba <code>PETIT-3003</code> usando los mismos datos del PDF de muestra.</p>
+
+<div class="foot">
+  Kofy · Warehouse v1 · Mayo 2026 · Documento vivo · Si markdown y HTML difieren, gana este HTML.
+</div>
+
+<script src="kofy-nav.js"></script>
+</body>
+</html>

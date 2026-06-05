@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kofy · Warehouse · Setup</title>
+<style>
+  :root {
+    --bg: #0a0610;
+    --surface: #15101f;
+    --surface-2: #1f1830;
+    --line: #2a2138;
+    --ink: #f3e8d4;
+    --ink-mute: #9e8db8;
+    --gold: #f5c842;
+    --plum: #5b3a8f;
+    --plum-soft: #7a52b8;
+    --green: #7fb069;
+    --yellow: #e8b94e;
+    --red: #d9534f;
+    --cream: #f5e6d3;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--bg); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif; line-height: 1.5; }
+  body { max-width: 900px; margin: 0 auto; padding: 32px 20px 80px; }
+
+  .head { border-bottom: 1px solid var(--line); padding-bottom: 24px; margin-bottom: 32px; }
+  .eyebrow { color: var(--gold); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 600; margin-bottom: 8px; }
+  h1 { font-size: 30px; font-weight: 700; color: var(--cream); letter-spacing: -0.02em; margin-bottom: 8px; }
+  .sub { color: var(--ink-mute); font-size: 15px; max-width: 640px; }
+
+  h2 { font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); margin: 32px 0 12px; font-weight: 600; }
+  p { color: var(--ink-mute); margin-bottom: 12px; font-size: 14px; }
+  code { font-family: ui-monospace, "JetBrains Mono", monospace; font-size: 12px; color: var(--gold); background: var(--surface); padding: 2px 6px; border-radius: 3px; }
+
+  .callout { background: var(--surface); border-left: 3px solid var(--gold); padding: 14px 18px; border-radius: 4px; margin: 14px 0; font-size: 13px; color: var(--ink); }
+  .callout.warn { border-left-color: var(--red); background: rgba(217,83,79,0.08); }
+  .callout.ok { border-left-color: var(--green); background: rgba(127,176,105,0.06); }
+  .callout strong { color: var(--cream); }
+
+  .config-display { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px; font-family: ui-monospace, monospace; font-size: 11px; line-height: 1.8; }
+  .config-display .key { color: var(--gold); }
+  .config-display .val { color: var(--cream); }
+  .config-display .val.empty { color: var(--red); font-style: italic; }
+
+  /* Phase cards */
+  .phases { display: grid; grid-template-columns: 1fr; gap: 12px; margin: 16px 0; }
+  .phase { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 18px; }
+  .phase-head { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+  .phase-num { width: 32px; height: 32px; border-radius: 50%; background: var(--surface-2); color: var(--plum-soft); display: flex; align-items: center; justify-content: center; font-weight: 700; font-family: ui-monospace, monospace; flex-shrink: 0; }
+  .phase.done .phase-num { background: var(--green); color: var(--bg); }
+  .phase.running .phase-num { background: var(--gold); color: var(--bg); }
+  .phase.error .phase-num { background: var(--red); color: var(--cream); }
+  .phase-title { font-size: 15px; color: var(--cream); font-weight: 600; flex: 1; }
+  .phase-desc { font-size: 12px; color: var(--ink-mute); }
+  .phase-status { font-size: 11px; color: var(--ink-mute); font-family: ui-monospace, monospace; }
+  .phase.done .phase-status { color: var(--green); }
+  .phase.running .phase-status { color: var(--gold); }
+  .phase.error .phase-status { color: var(--red); }
+
+  /* Buttons */
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; margin: 20px 0; }
+  .btn { background: var(--plum); color: var(--cream); border: none; padding: 12px 22px; border-radius: 4px; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; cursor: pointer; font-family: inherit; }
+  .btn:hover { background: var(--plum-soft); }
+  .btn.primary { background: var(--gold); color: var(--bg); font-size: 14px; padding: 14px 28px; }
+  .btn.primary:hover { background: #ffd863; }
+  .btn.ghost { background: transparent; border: 1px solid var(--line); color: var(--ink-mute); }
+  .btn.ghost:hover { color: var(--cream); border-color: var(--plum-soft); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* Log */
+  .log { background: #050309; border: 1px solid var(--line); border-radius: 6px; padding: 16px; font-family: ui-monospace, monospace; font-size: 11px; line-height: 1.6; max-height: 460px; overflow-y: auto; }
+  .log-line { padding: 2px 0; color: var(--ink-mute); }
+  .log-line.info { color: var(--ink); }
+  .log-line.ok { color: var(--green); }
+  .log-line.err { color: var(--red); }
+  .log-line.warn { color: var(--yellow); }
+  .log-line.head { color: var(--gold); font-weight: 700; margin-top: 8px; }
+  .log-line .ts { color: #555; margin-right: 8px; }
+
+  /* DB grid */
+  .db-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin: 12px 0; }
+  .db-card { background: var(--surface-2); border: 1px solid var(--line); border-radius: 4px; padding: 10px 14px; display: flex; align-items: center; gap: 10px; font-size: 12px; }
+  .db-card .ic { font-size: 14px; }
+  .db-card .nm { color: var(--cream); flex: 1; font-weight: 600; }
+  .db-card .st { font-family: ui-monospace, monospace; color: var(--ink-mute); font-size: 11px; }
+  .db-card.done { border-color: var(--green); }
+  .db-card.done .st { color: var(--green); }
+  .db-card.err { border-color: var(--red); }
+  .db-card.err .st { color: var(--red); }
+  @media (max-width: 620px) { .db-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<header class="head">
+  <div class="eyebrow">Kofy · Warehouse · Instalador</div>
+  <h1>Configurar Notion en un click</h1>
+  <p class="sub">Llama al API de Notion y crea todas las propiedades, relaciones, rollups y fórmulas en los 7 DBs. No necesitas tocar Notion. Solo asegúrate de que cada DB esté compartido con la integración del Cloudflare Worker.</p>
+</header>
+
+<h2>Config detectada</h2>
+<div class="config-display" id="config-display">cargando…</div>
+
+<div class="callout warn" id="config-warn" style="display:none;">
+  <strong>Faltan DB IDs.</strong> Abre <code>warehouse-notion-schema.html</code>, llena los inputs amarillos, y vuelve aquí. (Esta página lee los IDs del mismo <code>localStorage</code>.)
+</div>
+
+<h2>Pre-requisitos en Notion</h2>
+<p>Cada uno de los 7 DBs debe estar compartido con la integración. En cada DB en Notion: <strong>···</strong> arriba a la derecha → <em>Connections</em> → seleccionar la integración que ya usa el calendario. Sin esto el API devuelve 404.</p>
+
+<h2>Lo que va a crear</h2>
+<div class="db-grid" id="db-grid"></div>
+
+<h2>Fases</h2>
+<div class="phases">
+  <div class="phase" data-phase="1">
+    <div class="phase-head">
+      <div class="phase-num">1</div>
+      <div style="flex:1;">
+        <div class="phase-title">Propiedades simples</div>
+        <div class="phase-desc">Renombra el title de cada DB, crea selects, números, fechas, texto, checkboxes.</div>
+      </div>
+      <div class="phase-status" id="status-1">esperando</div>
+    </div>
+  </div>
+  <div class="phase" data-phase="2">
+    <div class="phase-head">
+      <div class="phase-num">2</div>
+      <div style="flex:1;">
+        <div class="phase-title">Relaciones</div>
+        <div class="phase-desc">Crea las 12 relations entre DBs (dual-property; auto-genera las inversas).</div>
+      </div>
+      <div class="phase-status" id="status-2">esperando</div>
+    </div>
+  </div>
+  <div class="phase" data-phase="3">
+    <div class="phase-head">
+      <div class="phase-num">3</div>
+      <div style="flex:1;">
+        <div class="phase-title">Rollups y fórmulas</div>
+        <div class="phase-desc">Crea los rollups de inventario y las fórmulas (KG remanente, Status, Etapa actual, Stock).</div>
+      </div>
+      <div class="phase-status" id="status-3">esperando</div>
+    </div>
+  </div>
+</div>
+
+<div class="actions">
+  <button class="btn primary" id="btn-all">▶ Configurar todo</button>
+  <button class="btn ghost" id="btn-test">Probar conexión</button>
+  <button class="btn ghost" id="btn-clear-log">Limpiar log</button>
+</div>
+
+<h2>Datos semilla</h2>
+<p>Después de que Configurar todo termine, podés sembrar los datos iniciales con un click. Ambos botones son idempotentes — si la fila ya existe, la saltan.</p>
+<div class="actions">
+  <button class="btn" id="btn-seed-miembros">👥 Sembrar Miembros (Kafay · Partner · Leo · Primo)</button>
+  <button class="btn" id="btn-seed-order">🧪 Sembrar orden de prueba PETIT-3003</button>
+</div>
+
+<h2>Migraciones v2</h2>
+<p>Estas migraciones agregan propiedades nuevas a DBs existentes sin tocar los datos. Cada una es idempotente.</p>
+<div class="actions">
+  <button class="btn" id="btn-migrate-b2b">🔄 Migrar Clientes para B2B (Pedido estándar · Cadencia · B2B)</button>
+  <button class="btn" id="btn-migrate-cancel">🚫 Migrar Órdenes para cancelaciones</button>
+  <button class="btn" id="btn-migrate-audit">📋 Migrar Usos para auditoría (Tipo · Notas)</button>
+  <button class="btn" id="btn-migrate-gratis">🎁 Migrar Órdenes para café gratis (Gratis · Razón gratis)</button>
+</div>
+
+<h2>DB de Empaque (v2 · opcional)</h2>
+<p>Para trackear inventario de cajas, bolsas, etiquetas y QR por diseño. <strong>Paso 1:</strong> en Notion creá un DB vacío llamado <code>Empaque</code>, compartilo con la integración Kofy Forms, copiá su Database ID. <strong>Paso 2:</strong> pegalo acá abajo. <strong>Paso 3:</strong> click "Configurar schema". El ID queda guardado y la sección Empaque del inventario aparece automáticamente.</p>
+<div class="dbid-slot">
+  <span class="lbl">DB_ID_EMPAQUE =</span>
+  <input type="text" id="empaque-id-input" placeholder="32 caracteres del Database ID">
+  <span class="status" id="empaque-id-status"></span>
+</div>
+<div class="actions">
+  <button class="btn" id="btn-configure-empaque">📦 Configurar schema de Empaque</button>
+</div>
+<p style="font-size: 12px; color: var(--ink-mute); margin-top: 10px;">
+  La orden de prueba recrea exactamente la del PDF de muestra: cliente PETIT (RIF J-838220919), origen MG-MC-CM (Maria Guerra · La Comarca · Monteclaro · 1680msnm), 3 quintales A/B/C de 46 kg cada uno comprados el 26.03.26 (138 kg totales), orden PETIT-3003 con 12 × 1 KG · CM · Grano, y los 4 usos del PDF (15 + 2.5 + 28.5 + 1.5 = 47.5 kg apartados). Después de sembrar, la app de inventario debe mostrar <strong style="color: var(--cream);">90.5 kg remanente</strong> en el origen MG-MC-CM — si ese número aparece, todo el sistema funciona end-to-end.
+</p>
+
+<h2>Log</h2>
+<div class="log" id="log"><div class="log-line">— sin actividad aún —</div></div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// CONFIG · IDs ya pegados de la sesión
+// ═══════════════════════════════════════════════════════
+const CONFIG = {
+  PROXY_URL: "https://kofy-notion-proxy.delicate-surf-529c.workers.dev",
+  DB_MIEMBROS:  "3649b62600a080308dc6cf556b0d8c4b",
+  DB_CLIENTES:  "3649b62600a08020ae9ed625e57044bb",
+  DB_ORIGENES:  "3649b62600a080b5a056c4a03d3fbc2b",
+  DB_QUINTALES: "3649b62600a080df9a7ac6c932fa9d5b",
+  DB_ORDENES:   "3649b62600a0800ea228d8d8dcf2ada4",
+  DB_ITEMS:     "3649b62600a0806db145c919a7927ac2",
+  DB_USOS:      "3649b62600a080108754c2eaadac2455",
+};
+
+// Permitir override desde localStorage del schema doc
+try {
+  const stored = JSON.parse(localStorage.getItem("kofy_warehouse_db_ids") || "{}");
+  const map = { DB_ID_MIEMBROS:"DB_MIEMBROS", DB_ID_CLIENTES:"DB_CLIENTES", DB_ID_ORIGENES:"DB_ORIGENES",
+                DB_ID_QUINTALES:"DB_QUINTALES", DB_ID_ORDENES:"DB_ORDENES", DB_ID_ITEMS:"DB_ITEMS", DB_ID_USOS:"DB_USOS" };
+  for (const [k, v] of Object.entries(stored)) {
+    const norm = (v || "").trim().replace(/[^a-f0-9]/gi, "").toLowerCase();
+    if (norm.length === 32 && map[k]) CONFIG[map[k]] = norm;
+  }
+} catch {}
+
+// ═══════════════════════════════════════════════════════
+// DBs (catálogo para UI)
+// ═══════════════════════════════════════════════════════
+const DBS = [
+  { key: "DB_MIEMBROS",  name: "Miembros",       icon: "👤" },
+  { key: "DB_CLIENTES",  name: "Clientes",       icon: "🤝" },
+  { key: "DB_ORIGENES",  name: "Orígenes",       icon: "🌍" },
+  { key: "DB_QUINTALES", name: "Quintales",      icon: "🌾" },
+  { key: "DB_ORDENES",   name: "Órdenes",        icon: "📋" },
+  { key: "DB_ITEMS",     name: "Items de Orden", icon: "📦" },
+  { key: "DB_USOS",      name: "Usos Café Verde",icon: "⚖️" },
+];
+
+// ═══════════════════════════════════════════════════════
+// SCHEMA · qué crear en cada fase
+// ═══════════════════════════════════════════════════════
+const SELECT = (...names) => ({ select: { options: names.map(n => ({ name: n })) } });
+const TEXT = { rich_text: {} };
+const NUM = { number: { format: "number" } };
+const DATE = { date: {} };
+const CHK = { checkbox: {} };
+const EMAIL = { email: {} };
+const PHONE = { phone_number: {} };
+const REL_DUAL = (db_id, synced) => ({
+  relation: { database_id: db_id, type: "dual_property", dual_property: { synced_property_name: synced } }
+});
+const FORMULA = expr => ({ formula: { expression: expr } });
+const ROLLUP = (rel_name, prop_name, fn) => ({
+  rollup: { relation_property_name: rel_name, rollup_property_name: prop_name, function: fn }
+});
+
+// Fase 1: propiedades simples (title se renombra dinámicamente al detectar nombre actual)
+function phase1Schema() {
+  return {
+    DB_MIEMBROS: {
+      titleTo: "Nombre",
+      props: {
+        "Rol": SELECT("Fundadora","Co-fundador","Tostador","Soporte"),
+        "Iniciales": TEXT,
+        "Activo": CHK,
+      },
+    },
+    DB_CLIENTES: {
+      titleTo: "Nombre / Razón Social",
+      props: {
+        "Cédula / RIF": TEXT,
+        "Tipo": SELECT("Persona","Empresa","Café","Restaurante","Hotel"),
+        "Teléfono": PHONE,
+        "Email": EMAIL,
+        "Dirección": TEXT,
+        "Notas": TEXT,
+      },
+    },
+    DB_ORIGENES: {
+      titleTo: "ID Origen",
+      props: {
+        "Caficultor": TEXT,
+        "Hacienda": TEXT,
+        "Varietal": TEXT,
+        "MSNM": NUM,
+        "Proceso": SELECT("Lavado","Honey","Natural","Anaeróbico"),
+        "Tostado default": SELECT("AN","CM","MT","Grado A","Single O"),
+        "Notas": TEXT,
+        "Activo": CHK,
+      },
+    },
+    DB_QUINTALES: {
+      titleTo: "ID Quintal",
+      props: {
+        "Letra": SELECT("A","B","C","D","E","F"),
+        "Fecha de compra": DATE,
+        "KG iniciales": NUM,
+        "Costo total ($)": { number: { format: "dollar" } },
+      },
+    },
+    DB_ORDENES: {
+      titleTo: "Order ID",
+      props: {
+        "Fecha de pedido": DATE,
+        "Fecha de entrega estimada": DATE,
+        "Número de tostados": NUM,
+        "Notas QC": TEXT,
+        "Notas tostador": TEXT,
+        "CV ✓": CHK, "CV fecha": DATE,
+        "T ✓":  CHK, "T fecha":  DATE,
+        "E ✓":  CHK, "E fecha":  DATE,
+        "L ✓":  CHK, "L fecha":  DATE,
+        "EN ✓": CHK, "EN fecha": DATE,
+      },
+    },
+    DB_ITEMS: {
+      titleTo: "Item ID",
+      props: {
+        "Presentación": SELECT("1 KG","500g","250g","BOX","SACHET"),
+        "Tostado": SELECT("AN","CM","MT","Grado A","Single O"),
+        "Cantidad": NUM,
+        "Grano / Molido": SELECT("Grano","Molido"),
+      },
+    },
+    DB_USOS: {
+      titleTo: "Uso ID",
+      props: {
+        "KG usados": NUM,
+        "Fecha": DATE,
+      },
+    },
+  };
+}
+
+// Fase 2: relaciones (dual_property crea la inversa automáticamente)
+function phase2Schema() {
+  return {
+    DB_QUINTALES: {
+      "Origen": REL_DUAL(CONFIG.DB_ORIGENES, "Quintales"),
+    },
+    DB_ORDENES: {
+      "Cliente":  REL_DUAL(CONFIG.DB_CLIENTES, "Órdenes"),
+      "CV firma": REL_DUAL(CONFIG.DB_MIEMBROS, "Firmas CV"),
+      "T firma":  REL_DUAL(CONFIG.DB_MIEMBROS, "Firmas T"),
+      "E firma":  REL_DUAL(CONFIG.DB_MIEMBROS, "Firmas E"),
+      "L firma":  REL_DUAL(CONFIG.DB_MIEMBROS, "Firmas L"),
+      "EN firma": REL_DUAL(CONFIG.DB_MIEMBROS, "Firmas EN"),
+    },
+    DB_ITEMS: {
+      "Orden":  REL_DUAL(CONFIG.DB_ORDENES,  "Items"),
+      "Origen": REL_DUAL(CONFIG.DB_ORIGENES, "Items"),
+    },
+    DB_USOS: {
+      "Quintal": REL_DUAL(CONFIG.DB_QUINTALES, "Usos"),
+      "Orden":   REL_DUAL(CONFIG.DB_ORDENES,   "Usos"),
+      "Firma":   REL_DUAL(CONFIG.DB_MIEMBROS,  "Firmas Usos"),
+    },
+  };
+}
+
+// Fase 3: rollups + fórmulas (dependen de relaciones existentes)
+function phase3Schema() {
+  return {
+    DB_QUINTALES: {
+      "KG usados":    ROLLUP("Usos", "KG usados", "sum"),
+      "KG remanente": FORMULA('prop("KG iniciales") - prop("KG usados")'),
+      "Status":       FORMULA('if(prop("KG remanente") <= 0.5, "Agotado", "Activo")'),
+    },
+    DB_ORIGENES: {
+      "KG total origen":     ROLLUP("Quintales", "KG iniciales",  "sum"),
+      "KG remanente origen": ROLLUP("Quintales", "KG remanente",  "sum"),
+      "Stock":               FORMULA('if(prop("KG remanente origen") < 10, "🔴 Bajo", if(prop("KG remanente origen") < 25, "🟡 Medio", "🟢 OK"))'),
+    },
+    DB_ORDENES: {
+      "Etapa actual": FORMULA(
+        'if(prop("EN ✓"), "🎉 Entregado", ' +
+        'if(prop("L ✓"), "🏷️ Listo p/ envío", ' +
+        'if(prop("E ✓"), "📦 Empaquetado", ' +
+        'if(prop("T ✓"), "🔥 Tostado", ' +
+        'if(prop("CV ✓"), "🌱 Café Verde", "📥 Recibida")))))'
+      ),
+    },
+    DB_ITEMS: {
+      "KG estimados": FORMULA(
+        'if(prop("Presentación") == "1 KG", prop("Cantidad"), ' +
+        'if(prop("Presentación") == "500g", prop("Cantidad") * 0.5, ' +
+        'if(prop("Presentación") == "250g", prop("Cantidad") * 0.25, ' +
+        'prop("Cantidad") * 0.25)))'
+      ),
+    },
+  };
+}
+
+// ═══════════════════════════════════════════════════════
+// API — usa rutas del worker (NO las de Notion directamente)
+// ═══════════════════════════════════════════════════════
+async function notion(endpoint, body, method) {
+  method = method || (body ? "POST" : "GET");
+  const res = await fetch(`${CONFIG.PROXY_URL}${endpoint}`, {
+    method,
+    headers: { "Content-Type": "application/json" },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const text = await res.text();
+  if (!res.ok) {
+    throw new Error(`${method} ${endpoint} → ${res.status}\n${text.substring(0, 300)}`);
+  }
+  return JSON.parse(text);
+}
+
+// El worker no expone GET /database/:id. Para leer el schema hacemos un PATCH no-op
+// (con properties: {}) — Notion devuelve la base de datos completa en la respuesta.
+async function patchDb(id, props)   { return notion(`/database/${id}`, { properties: props }, "PATCH"); }
+async function readDb(id)           { return patchDb(id, {}); }
+async function queryDb(id)          { return notion(`/query`, { database_id: id }); }
+async function createPage(id, props){ return notion(`/pages`, { parent: { database_id: id }, properties: props }); }
+
+// Helper: lee el title de una página sin importar cómo se llama el prop
+function pageTitle(page) {
+  for (const v of Object.values(page.properties)) {
+    if (v.type === "title") return v.title.map(t => t.plain_text).join("");
+  }
+  return "";
+}
+
+// ═══════════════════════════════════════════════════════
+// Log
+// ═══════════════════════════════════════════════════════
+function ts() { return new Date().toLocaleTimeString("es-VE", { hour12: false }); }
+function log(msg, type = "info") {
+  const el = document.getElementById("log");
+  if (el.firstChild && el.firstChild.textContent === "— sin actividad aún —") el.innerHTML = "";
+  const line = document.createElement("div");
+  line.className = "log-line " + type;
+  line.innerHTML = `<span class="ts">${ts()}</span>${msg}`;
+  el.appendChild(line);
+  el.scrollTop = el.scrollHeight;
+}
+
+function setPhase(n, state, msg) {
+  const phase = document.querySelector(`.phase[data-phase="${n}"]`);
+  phase.classList.remove("done","running","error");
+  if (state) phase.classList.add(state);
+  document.getElementById(`status-${n}`).textContent = msg || state || "esperando";
+}
+
+function setDb(key, state, msg) {
+  const card = document.querySelector(`.db-card[data-key="${key}"]`);
+  if (!card) return;
+  card.classList.remove("done","err");
+  if (state === "ok") card.classList.add("done");
+  if (state === "err") card.classList.add("err");
+  card.querySelector(".st").textContent = msg || "";
+}
+
+// ═══════════════════════════════════════════════════════
+// Render config + DB grid
+// ═══════════════════════════════════════════════════════
+function renderConfig() {
+  const lines = [];
+  let missing = 0;
+  lines.push(`<span class="key">PROXY_URL</span> : <span class="val">${CONFIG.PROXY_URL}</span>`);
+  DBS.forEach(d => {
+    const v = CONFIG[d.key];
+    const valid = v && v.length === 32 && /^[a-f0-9]+$/i.test(v);
+    if (!valid) missing++;
+    lines.push(`<span class="key">${d.key.padEnd(13)}</span> : <span class="val ${valid?'':'empty'}">${valid ? v : '(falta)'}</span>`);
+  });
+  document.getElementById("config-display").innerHTML = lines.join("\n");
+  document.getElementById("config-warn").style.display = missing ? "block" : "none";
+  document.getElementById("btn-all").disabled = missing > 0;
+  document.getElementById("btn-test").disabled = missing > 0;
+}
+
+function renderDbGrid() {
+  const c = document.getElementById("db-grid");
+  c.innerHTML = "";
+  DBS.forEach(d => {
+    const card = document.createElement("div");
+    card.className = "db-card";
+    card.dataset.key = d.key;
+    card.innerHTML = `<span class="ic">${d.icon}</span><span class="nm">${d.name}</span><span class="st">pendiente</span>`;
+    c.appendChild(card);
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// Probar conexión
+// ═══════════════════════════════════════════════════════
+async function testConnection() {
+  log("Probando conexión con Notion (vía PATCH no-op)…", "info");
+  try {
+    for (const d of DBS) {
+      const id = CONFIG[d.key];
+      setDb(d.key, null, "probando…");
+      const db = await readDb(id);
+      const titleProp = Object.entries(db.properties).find(([_, p]) => p.type === "title");
+      log(`  ✓ ${d.name.padEnd(20)} → title actual: "${titleProp ? titleProp[0] : '?'}"`, "ok");
+      setDb(d.key, "ok", "OK");
+    }
+    log("Conexión OK. Listo para configurar.", "ok");
+  } catch (e) {
+    log("✗ " + e.message, "err");
+    if (e.message.includes("404")) log("  → Probablemente la integración no está compartida con ese DB. En Notion: ··· → Connections → Kofy Forms.", "warn");
+    if (e.message.includes("401")) log("  → Token de Notion inválido en el Cloudflare Worker.", "warn");
+    if (e.message.includes("Failed to fetch") || e.message.includes("405")) log("  → El worker no acepta PATCH. Revisa que el código del worker reenvíe todos los métodos.", "warn");
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// Phase runners
+// ═══════════════════════════════════════════════════════
+async function findTitlePropName(dbId) {
+  const db = await readDb(dbId);
+  const entry = Object.entries(db.properties).find(([_, p]) => p.type === "title");
+  return entry ? entry[0] : null;
+}
+
+async function runPhase1() {
+  setPhase(1, "running", "en progreso…");
+  log("═══ FASE 1 · Propiedades simples ═══", "head");
+  const schema = phase1Schema();
+  try {
+    for (const d of DBS) {
+      const cfg = schema[d.key];
+      if (!cfg) continue;
+      setDb(d.key, null, "fase 1…");
+      log(`→ ${d.name}`, "info");
+      // 1. Buscar nombre actual del title y renombrar
+      const currentTitle = await findTitlePropName(CONFIG[d.key]);
+      const propsToSend = { ...cfg.props };
+      if (currentTitle && currentTitle !== cfg.titleTo) {
+        propsToSend[currentTitle] = { name: cfg.titleTo };
+        log(`   · renombrando title "${currentTitle}" → "${cfg.titleTo}"`, "info");
+      }
+      // 2. PATCH
+      await patchDb(CONFIG[d.key], propsToSend);
+      log(`   ✓ ${Object.keys(cfg.props).length} props creadas`, "ok");
+      setDb(d.key, "ok", "fase 1 ✓");
+    }
+    setPhase(1, "done", "completada ✓");
+    log("FASE 1 completada.", "ok");
+    return true;
+  } catch (e) {
+    log("✗ " + e.message, "err");
+    setPhase(1, "error", "error");
+    return false;
+  }
+}
+
+async function runPhase2() {
+  setPhase(2, "running", "en progreso…");
+  log("═══ FASE 2 · Relaciones ═══", "head");
+  const schema = phase2Schema();
+  try {
+    for (const [dbKey, props] of Object.entries(schema)) {
+      const name = DBS.find(d => d.key === dbKey).name;
+      log(`→ ${name}`, "info");
+      setDb(dbKey, null, "fase 2…");
+      await patchDb(CONFIG[dbKey], props);
+      const relNames = Object.keys(props).join(", ");
+      log(`   ✓ ${Object.keys(props).length} relations: ${relNames}`, "ok");
+      setDb(dbKey, "ok", "fase 2 ✓");
+    }
+    setPhase(2, "done", "completada ✓");
+    log("FASE 2 completada.", "ok");
+    return true;
+  } catch (e) {
+    log("✗ " + e.message, "err");
+    setPhase(2, "error", "error");
+    return false;
+  }
+}
+
+async function runPhase3() {
+  setPhase(3, "running", "en progreso…");
+  log("═══ FASE 3 · Rollups y fórmulas ═══", "head");
+  // Cada PATCH solo puede referenciar props que YA existen.
+  // Las fórmulas que referencian otras fórmulas a veces fallan por type-resolution en Notion v2.
+  // Workaround: inlinear las matemáticas en lugar de referenciar fórmulas intermedias.
+  // Cada paso es opcional — si falla, el front-end calcula lo mismo client-side.
+  const steps = [
+    // QUINTALES
+    { db: "DB_QUINTALES", label: "Quintales · rollup KG usados", critical: true,
+      props: { "KG usados": ROLLUP("Usos", "KG usados", "sum") } },
+    { db: "DB_QUINTALES", label: "Quintales · fórmula KG remanente",
+      props: { "KG remanente": FORMULA('prop("KG iniciales") - prop("KG usados")') } },
+    { db: "DB_QUINTALES", label: "Quintales · fórmula Status (math inline)",
+      props: { "Status": FORMULA(
+        'if(prop("KG iniciales") - prop("KG usados") <= 0.5, "Agotado", "Activo")'
+      ) } },
+    // ORÍGENES
+    { db: "DB_ORIGENES", label: "Orígenes · rollup KG total origen",
+      props: { "KG total origen": ROLLUP("Quintales", "KG iniciales", "sum") } },
+    { db: "DB_ORIGENES", label: "Orígenes · rollup KG remanente origen",
+      props: { "KG remanente origen": ROLLUP("Quintales", "KG remanente", "sum") } },
+    { db: "DB_ORIGENES", label: "Orígenes · fórmula Stock",
+      props: { "Stock": FORMULA(
+        'if(prop("KG remanente origen") < 10, "🔴 Bajo", if(prop("KG remanente origen") < 25, "🟡 Medio", "🟢 OK"))'
+      ) } },
+    // ÓRDENES
+    { db: "DB_ORDENES", label: "Órdenes · fórmula Etapa actual",
+      props: { "Etapa actual": FORMULA(
+        'if(prop("EN ✓"), "🎉 Entregado", ' +
+        'if(prop("L ✓"), "🏷️ Listo p/ envío", ' +
+        'if(prop("E ✓"), "📦 Empaquetado", ' +
+        'if(prop("T ✓"), "🔥 Tostado", ' +
+        'if(prop("CV ✓"), "🌱 Café Verde", "📥 Recibida")))))'
+      ) } },
+    // ITEMS
+    { db: "DB_ITEMS", label: "Items · fórmula KG estimados",
+      props: { "KG estimados": FORMULA(
+        'if(prop("Presentación") == "1 KG", prop("Cantidad"), ' +
+        'if(prop("Presentación") == "500g", prop("Cantidad") * 0.5, ' +
+        'if(prop("Presentación") == "250g", prop("Cantidad") * 0.25, ' +
+        'prop("Cantidad") * 0.25)))'
+      ) } },
+  ];
+
+  let okCount = 0, failCount = 0, criticalFail = false;
+  for (const step of steps) {
+    log(`→ ${step.label}`, "info");
+    setDb(step.db, null, "fase 3…");
+    try {
+      await patchDb(CONFIG[step.db], step.props);
+      log(`   ✓ ${Object.keys(step.props).join(", ")}`, "ok");
+      setDb(step.db, "ok", "fase 3 ✓");
+      okCount++;
+    } catch (e) {
+      failCount++;
+      log(`   ✗ ${e.message.split("\n")[0]}`, "err");
+      if (step.critical) {
+        log("   ⚠ CRÍTICO — el front-end depende de esta propiedad.", "warn");
+        criticalFail = true;
+      } else {
+        log("   ⓘ opcional — el front-end calcula esto client-side, no bloquea nada.", "warn");
+      }
+    }
+    // pequeño respiro para que Notion termine de indexar la prop antes del siguiente paso
+    await new Promise(r => setTimeout(r, 350));
+  }
+
+  log(`Resumen: ${okCount} ✓ · ${failCount} ✗`, failCount === 0 ? "ok" : "warn");
+  if (criticalFail) {
+    setPhase(3, "error", `${okCount}/${steps.length} (faltan críticos)`);
+  } else if (failCount > 0) {
+    setPhase(3, "done", `${okCount}/${steps.length} (fórmulas opcionales falladas)`);
+    log("Las fórmulas opcionales falladas las puedes crear a mano en Notion si las quieres como vistas — pero la app funciona sin ellas.", "warn");
+  } else {
+    setPhase(3, "done", "completada ✓");
+  }
+  return !criticalFail;
+}
+
+async function runAll() {
+  document.getElementById("btn-all").disabled = true;
+  log("Iniciando setup completo…", "head");
+  const ok1 = await runPhase1();
+  if (!ok1) { log("Setup detenido en Fase 1. Revisa el error y vuelve a intentar.", "warn"); document.getElementById("btn-all").disabled = false; return; }
+  const ok2 = await runPhase2();
+  if (!ok2) { log("Setup detenido en Fase 2. Las propiedades de Fase 1 ya están creadas — al re-correr solo se reintenta lo que falta.", "warn"); document.getElementById("btn-all").disabled = false; return; }
+  const ok3 = await runPhase3();
+  if (!ok3) { log("Setup detenido en Fase 3.", "warn"); document.getElementById("btn-all").disabled = false; return; }
+  log("═══ ¡TODO LISTO! ═══", "head");
+  log("Notion configurado. Ya puedes ir a:", "ok");
+  log("  · orders.html", "info");
+  log("  · inventory.html", "info");
+  log("  · game.html", "info");
+  log("Recuerda crear las 4 filas de Miembros en Notion (Kafay/Partner/Leo/Primo) antes de usar la app.", "warn");
+  document.getElementById("btn-all").disabled = false;
+}
+
+// ═══════════════════════════════════════════════════════
+// Sembrar Miembros (4 filas: Kafay, Partner, Leo, Primo)
+// ═══════════════════════════════════════════════════════
+const MIEMBROS_SEED = [
+  { name: "Kafay",   rol: "Fundadora",   ini: "KL" },
+  { name: "Partner", rol: "Co-fundador", ini: "P"  },
+  { name: "Leo",     rol: "Tostador",    ini: "L"  },
+  { name: "Primo",   rol: "Soporte",     ini: "J"  },
+];
+
+async function seedMiembros() {
+  log("═══ Sembrando Miembros ═══", "head");
+  const btn = document.getElementById("btn-seed-miembros");
+  btn.disabled = true;
+  try {
+    const titleName = await findTitlePropName(CONFIG.DB_MIEMBROS);
+    if (!titleName) throw new Error("No se encontró el title prop en Miembros");
+    log(`Title de Miembros: "${titleName}"`, "info");
+    const existing = await queryDb(CONFIG.DB_MIEMBROS);
+    const have = new Set(existing.results.map(pageTitle));
+    let added = 0, skipped = 0;
+    for (const m of MIEMBROS_SEED) {
+      if (have.has(m.name)) {
+        log(`  ⓘ ${m.name} ya existe — skip`, "warn");
+        skipped++;
+        continue;
+      }
+      await createPage(CONFIG.DB_MIEMBROS, {
+        [titleName]: { title: [{ text: { content: m.name } }] },
+        "Rol":       { select: { name: m.rol } },
+        "Iniciales": { rich_text: [{ text: { content: m.ini } }] },
+        "Activo":    { checkbox: true },
+      });
+      log(`  ✓ ${m.name} (${m.rol} · ${m.ini})`, "ok");
+      added++;
+    }
+    log(`Resumen: ${added} agregado(s), ${skipped} ya existía(n).`, "ok");
+  } catch (e) {
+    log("✗ " + e.message, "err");
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// Sembrar orden de prueba PETIT-3003 (del PDF)
+// ═══════════════════════════════════════════════════════
+async function seedTestOrder() {
+  log("═══ Sembrando orden de prueba PETIT-3003 ═══", "head");
+  const btn = document.getElementById("btn-seed-order");
+  btn.disabled = true;
+  try {
+    // Resolver title names de los DBs involucrados
+    log("→ Resolviendo title names…", "info");
+    const tCli = await findTitlePropName(CONFIG.DB_CLIENTES);
+    const tOri = await findTitlePropName(CONFIG.DB_ORIGENES);
+    const tQu  = await findTitlePropName(CONFIG.DB_QUINTALES);
+    const tOr  = await findTitlePropName(CONFIG.DB_ORDENES);
+    const tIt  = await findTitlePropName(CONFIG.DB_ITEMS);
+    const tUs  = await findTitlePropName(CONFIG.DB_USOS);
+    const tMi  = await findTitlePropName(CONFIG.DB_MIEMBROS);
+
+    // Cliente PETIT
+    log("→ Cliente PETIT…", "info");
+    const cliRes = await queryDb(CONFIG.DB_CLIENTES);
+    let petit = cliRes.results.find(p => pageTitle(p) === "PETIT");
+    if (!petit) {
+      petit = await createPage(CONFIG.DB_CLIENTES, {
+        [tCli]: { title: [{ text: { content: "PETIT" } }] },
+        "Cédula / RIF": { rich_text: [{ text: { content: "J-838220919" } }] },
+        "Tipo": { select: { name: "Empresa" } },
+      });
+      log("  ✓ PETIT creado", "ok");
+    } else log("  ⓘ PETIT ya existía", "warn");
+
+    // Origen MG-MC-CM
+    log("→ Origen MG-MC-CM…", "info");
+    const oriRes = await queryDb(CONFIG.DB_ORIGENES);
+    let origen = oriRes.results.find(p => pageTitle(p) === "MG-MC-CM");
+    if (!origen) {
+      origen = await createPage(CONFIG.DB_ORIGENES, {
+        [tOri]: { title: [{ text: { content: "MG-MC-CM" } }] },
+        "Caficultor": { rich_text: [{ text: { content: "Maria Guerra" } }] },
+        "Hacienda":   { rich_text: [{ text: { content: "La Comarca" } }] },
+        "Varietal":   { rich_text: [{ text: { content: "Monteclaro" } }] },
+        "MSNM":       { number: 1680 },
+        "Tostado default": { select: { name: "CM" } },
+        "Activo":     { checkbox: true },
+      });
+      log("  ✓ MG-MC-CM creado", "ok");
+    } else log("  ⓘ MG-MC-CM ya existía", "warn");
+
+    // 3 quintales A/B/C
+    log("→ Quintales A · B · C (46 kg c/u)…", "info");
+    const quRes = await queryDb(CONFIG.DB_QUINTALES);
+    const quintales = {};
+    for (const letra of ["A","B","C"]) {
+      const id = `MG-MC-CM-2603-${letra}`;
+      let q = quRes.results.find(p => pageTitle(p) === id);
+      if (!q) {
+        q = await createPage(CONFIG.DB_QUINTALES, {
+          [tQu]: { title: [{ text: { content: id } }] },
+          "Origen": { relation: [{ id: origen.id }] },
+          "Letra":  { select: { name: letra } },
+          "Fecha de compra": { date: { start: "2026-03-26" } },
+          "KG iniciales":    { number: 46 },
+        });
+        log(`  ✓ ${id}`, "ok");
+      } else log(`  ⓘ ${id} ya existía`, "warn");
+      quintales[letra] = q;
+    }
+
+    // Orden PETIT-3003
+    log("→ Orden PETIT-3003…", "info");
+    const orRes = await queryDb(CONFIG.DB_ORDENES);
+    let orden = orRes.results.find(p => pageTitle(p) === "PETIT-3003");
+    if (!orden) {
+      orden = await createPage(CONFIG.DB_ORDENES, {
+        [tOr]: { title: [{ text: { content: "PETIT-3003" } }] },
+        "Cliente": { relation: [{ id: petit.id }] },
+        "Fecha de pedido": { date: { start: "2026-03-30" } },
+        "Número de tostados": { number: 1 },
+        "Notas tostador": { rich_text: [{ text: { content: "Notas florales, dulce. Reposo de 3 días. Tostado de X grados, X tiempo de tostado." } }] },
+      });
+      log("  ✓ PETIT-3003 creada", "ok");
+    } else log("  ⓘ PETIT-3003 ya existía", "warn");
+
+    // Item: 12 × 1 KG · CM · Grano · MG-MC-CM
+    log("→ Item: 12 × 1 KG · CM · Grano…", "info");
+    const itRes = await queryDb(CONFIG.DB_ITEMS);
+    const itemId = "PETIT-3003-ITEM-1";
+    if (!itRes.results.find(p => pageTitle(p) === itemId)) {
+      await createPage(CONFIG.DB_ITEMS, {
+        [tIt]: { title: [{ text: { content: itemId } }] },
+        "Orden":         { relation: [{ id: orden.id }] },
+        "Presentación":  { select: { name: "1 KG" } },
+        "Tostado":       { select: { name: "CM" } },
+        "Cantidad":      { number: 12 },
+        "Grano / Molido":{ select: { name: "Grano" } },
+        "Origen":        { relation: [{ id: origen.id }] },
+      });
+      log(`  ✓ ${itemId}`, "ok");
+    } else log(`  ⓘ ${itemId} ya existía`, "warn");
+
+    // Miembros para firma — Primo y Leo
+    const miRes = await queryDb(CONFIG.DB_MIEMBROS);
+    const primo = miRes.results.find(p => pageTitle(p) === "Primo");
+    const leo   = miRes.results.find(p => pageTitle(p) === "Leo");
+    if (!primo || !leo) {
+      log("⚠ Primo o Leo no existen en Miembros. Click 'Sembrar Miembros' primero.", "warn");
+      log("(Los Usos requieren la relación de firma. Esta orden quedó creada pero sin usos.)", "warn");
+      return;
+    }
+
+    // 4 Usos del PDF de muestra
+    // Nota: el PDF mostraba 4 usos pero 3 eran para otras órdenes (YULLI-3103, ORIGEN-0404)
+    // que no existen. Sembramos solo el primero (15 kg PETIT por Primo) que es el que
+    // pertenece a esta orden. Total origen tras este uso: 138 - 15 = 123 kg.
+    log("→ Uso: 15 kg MG-MC-CM-2603-A → PETIT-3003 (Primo, 30.03.26)…", "info");
+    const usRes = await queryDb(CONFIG.DB_USOS);
+    const usoId = "USO-PETIT-3003-001";
+    if (!usRes.results.find(p => pageTitle(p) === usoId)) {
+      await createPage(CONFIG.DB_USOS, {
+        [tUs]: { title: [{ text: { content: usoId } }] },
+        "Quintal":   { relation: [{ id: quintales.A.id }] },
+        "KG usados": { number: 15 },
+        "Orden":     { relation: [{ id: orden.id }] },
+        "Firma":     { relation: [{ id: primo.id }] },
+        "Fecha":     { date: { start: "2026-03-30" } },
+      });
+      log(`  ✓ ${usoId}`, "ok");
+    } else log(`  ⓘ ${usoId} ya existía`, "warn");
+
+    log("═══ Siembra completa ═══", "head");
+    log("Verificación esperada (abrir inventory.html):", "ok");
+    log("  · MG-MC-CM total: 138 kg · usado: 15 kg · remanente: 123 kg", "info");
+    log("  · Quintal A: 46 → 31 kg remanente", "info");
+    log("  · Quintales B y C: 46 kg cada uno (sin usar)", "info");
+    log("Y en orders.html:", "ok");
+    log("  · Orden PETIT-3003 visible en columna 'Recibida'", "info");
+  } catch (e) {
+    log("✗ " + e.message, "err");
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// Boot
+// ═══════════════════════════════════════════════════════
+document.getElementById("btn-all").onclick = runAll;
+document.getElementById("btn-test").onclick = testConnection;
+document.getElementById("btn-seed-miembros").onclick = seedMiembros;
+document.getElementById("btn-seed-order").onclick = seedTestOrder;
+document.getElementById("btn-migrate-b2b").onclick = migrateClientesB2B;
+document.getElementById("btn-migrate-cancel").onclick = migrateOrdenesCancelacion;
+document.getElementById("btn-migrate-audit").onclick = migrateUsosAudit;
+document.getElementById("btn-migrate-gratis").onclick = migrateOrdenesGratis;
+document.getElementById("btn-configure-empaque").onclick = configureEmpaque;
+// Persistir DB_ID_EMPAQUE en localStorage compartido con inventario
+(function bootEmpaqueId() {
+  const inp = document.getElementById("empaque-id-input");
+  const status = document.getElementById("empaque-id-status");
+  try {
+    const stored = JSON.parse(localStorage.getItem("kofy_warehouse_db_ids") || "{}");
+    if (stored.DB_ID_EMPAQUE) inp.value = stored.DB_ID_EMPAQUE;
+  } catch {}
+  function updateStatus() {
+    const norm = (inp.value || "").trim().replace(/[^a-f0-9]/gi, "").toLowerCase();
+    if (!norm) { status.textContent = ""; status.className = "status"; return; }
+    if (norm.length === 32) { status.textContent = "✓"; status.className = "status ok"; }
+    else { status.textContent = `${norm.length}/32 hex`; status.className = "status"; }
+  }
+  inp.addEventListener("input", () => {
+    const norm = (inp.value || "").trim().replace(/[^a-f0-9]/gi, "").toLowerCase();
+    try {
+      const stored = JSON.parse(localStorage.getItem("kofy_warehouse_db_ids") || "{}");
+      if (norm.length === 32) stored.DB_ID_EMPAQUE = norm;
+      else delete stored.DB_ID_EMPAQUE;
+      localStorage.setItem("kofy_warehouse_db_ids", JSON.stringify(stored));
+    } catch {}
+    updateStatus();
+  });
+  updateStatus();
+})();
+
+// ═══ #11 · Configurar DB de Empaque ═══
+async function configureEmpaque() {
+  log("═══ Configurando DB de Empaque ═══", "head");
+  const btn = document.getElementById("btn-configure-empaque");
+  btn.disabled = true;
+  try {
+    const idRaw = document.getElementById("empaque-id-input").value || "";
+    const id = idRaw.trim().replace(/[^a-f0-9]/gi, "").toLowerCase();
+    if (id.length !== 32) throw new Error("DB ID inválido (esperaba 32 hex)");
+
+    log("→ Leyendo schema actual…", "info");
+    const db = await readDb(id);
+    const titleEntry = Object.entries(db.properties).find(([_,p]) => p.type === "title");
+    const currentTitle = titleEntry ? titleEntry[0] : null;
+    log(`  · title actual: "${currentTitle}"`, "info");
+
+    log("→ Aplicando schema de Empaque…", "info");
+    const props = {
+      "Tipo": { select: { options: [
+        { name: "Bolsa" }, { name: "Caja" }, { name: "Etiqueta" }, { name: "Sticker" }, { name: "QR" }, { name: "Otro" },
+      ]}},
+      "Tamaño": { select: { options: [
+        { name: "1 KG" }, { name: "500g" }, { name: "250g" }, { name: "BOX" }, { name: "SACHET" }, { name: "N/A" },
+      ]}},
+      "Bind": { select: { options: [
+        { name: "1 KG · Trilaminated" }, { name: "Grado A · 500g Craft" },
+        { name: "AN · 250g" }, { name: "AN · 500g" }, { name: "AN · BOX" }, { name: "AN · SACHET" },
+        { name: "CM · 250g" }, { name: "CM · 500g" }, { name: "CM · BOX" }, { name: "CM · SACHET" },
+        { name: "MT · 250g" }, { name: "MT · 500g" }, { name: "MT · BOX" }, { name: "MT · SACHET" },
+        { name: "Etiqueta genérica" }, { name: "QR sticker" }, { name: "Otro / sin bind" },
+      ]}},
+      "Stock actual": { number: { format: "number" } },
+      "Umbral bajo":  { number: { format: "number" } },
+      "Proveedor":    { rich_text: {} },
+      "Notas":        { rich_text: {} },
+      "Activo":       { checkbox: {} },
+    };
+    if (currentTitle && currentTitle !== "Nombre / Diseño") {
+      props[currentTitle] = { name: "Nombre / Diseño" };
+    }
+    await patchDb(id, props);
+    log("  ✓ 7 propiedades configuradas", "ok");
+
+    // Persistir
+    const stored = JSON.parse(localStorage.getItem("kofy_warehouse_db_ids") || "{}");
+    stored.DB_ID_EMPAQUE = id;
+    localStorage.setItem("kofy_warehouse_db_ids", JSON.stringify(stored));
+    log("  ✓ DB_ID_EMPAQUE guardado", "ok");
+    log("Listo. Abrí inventory.html — la sección Empaque aparece al final.", "ok");
+  } catch (e) {
+    log("✗ " + e.message, "err");
+  } finally {
+    btn.disabled = false;
+  }
+}
+document.getElementById("btn-clear-log").onclick = () => {
+  document.getElementById("log").innerHTML = `<div class="log-line">— sin actividad aún —</div>`;
+};
+
+// ═══ Migración v2 · auditoría de stock en Usos ═══
+async function migrateUsosAudit() {
+  log("═══ Migrando Usos para auditoría ═══", "head");
+  const btn = document.getElementById("btn-migrate-audit");
+  btn.disabled = true;
+  try {
+    await patchDb(CONFIG.DB_USOS, {
+      "Tipo": { select: { options: [
+        { name: "Orden" }, { name: "Ajuste audit" }, { name: "Devolución" }, { name: "Cortesía" },
+      ]}},
+      "Notas / Razón": { rich_text: {} },
+    });
+    log("  ✓ Tipo (select: Orden / Ajuste audit / Devolución / Cortesía)", "ok");
+    log("  ✓ Notas / Razón (rich_text)", "ok");
+    log("Migración completa. Ya podés hacer auditorías de stock desde inventario.", "ok");
+  } catch (e) {
+    log("✗ " + e.message, "err");
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ═══ Migración v2 · café gratis (cortesía) ═══
+async function migrateOrdenesGratis() {
+  log("═══ Migrando Órdenes para café gratis ═══", "head");
+  const btn = document.getElementById("btn-migrate-gratis");
+  btn.disabled = true;
+  try {
+    await patchDb(CONFIG.DB_ORDENES, {
+      "Gratis": { checkbox: {} },
+      "Razón gratis": { rich_text: {} },
+    });
+    log("  ✓ Gratis (checkbox)", "ok");
+    log("  ✓ Razón gratis (rich_text)", "ok");
+    log("Migración completa. Ya podés marcar órdenes como cortesía.", "ok");
+  } catch (e) {
+    log("✗ " + e.message, "err");
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ═══ Migración v2 · cancelaciones de órdenes ═══
+async function migrateOrdenesCancelacion() {
+  log("═══ Migrando Órdenes para cancelaciones ═══", "head");
+  const btn = document.getElementById("btn-migrate-cancel");
+  btn.disabled = true;
+  try {
+    await patchDb(CONFIG.DB_ORDENES, {
+      "Cancelada":           { checkbox: {} },
+      "Razón cancelación":   { rich_text: {} },
+      "Firma cancelación":   { relation: { database_id: CONFIG.DB_MIEMBROS, type: "dual_property", dual_property: { synced_property_name: "Firmas Canceladas" } } },
+      "Fecha cancelación":   { date: {} },
+      "Reactivada · firma":  { relation: { database_id: CONFIG.DB_MIEMBROS, type: "dual_property", dual_property: { synced_property_name: "Firmas Reactivadas" } } },
+      "Reactivada · fecha":  { date: {} },
+    });
+    log("  ✓ Cancelada (checkbox)", "ok");
+    log("  ✓ Razón cancelación (rich_text)", "ok");
+    log("  ✓ Firma cancelación (relation → Miembros)", "ok");
+    log("  ✓ Fecha cancelación (date)", "ok");
+    log("  ✓ Reactivada · firma (relation → Miembros)", "ok");
+    log("  ✓ Reactivada · fecha (date)", "ok");
+    log("Migración completa. Ahora podés cancelar Y reactivar órdenes desde el detalle.", "ok");
+  } catch (e) {
+    log("✗ " + e.message, "err");
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ═══ Migración v2 · agrega B2B fields a Clientes ═══
+async function migrateClientesB2B() {
+  log("═══ Migrando Clientes para B2B ═══", "head");
+  const btn = document.getElementById("btn-migrate-b2b");
+  btn.disabled = true;
+  try {
+    await patchDb(CONFIG.DB_CLIENTES, {
+      "Pedido estándar": { rich_text: {} },
+      "Cadencia días":   { number: { format: "number" } },
+      "B2B":             { checkbox: {} },
+    });
+    log("  ✓ Pedido estándar (rich_text) creado", "ok");
+    log("  ✓ Cadencia días (number) creado",      "ok");
+    log("  ✓ B2B (checkbox) creado",              "ok");
+    log("Migración completa. Ya podés guardar pedidos estándar desde el detalle de orden.", "ok");
+  } catch (e) {
+    log("✗ " + e.message, "err");
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+renderConfig();
+renderDbGrid();
+</script>
+
+</body>
+</html>

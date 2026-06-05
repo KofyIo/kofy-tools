@@ -1,0 +1,1104 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Kofy Production System — KPS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,800;9..144,900&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0E0B08;
+    --bg-2:#15110D;
+    --paper:#F4ECDD;
+    --paper-2:#E7DBC2;
+    --ink:#1A1410;
+    --espresso:#3A2316;
+    --crema:#D4A574;
+    --crema-2:#C08C5A;
+    --red:#C73E1D;
+    --green:#3F6634;
+    --amber:#D49B3B;
+    --line:rgba(244,236,221,.12);
+    --line-strong:rgba(244,236,221,.24);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--paper);font-family:'Inter',sans-serif;line-height:1.55;-webkit-font-smoothing:antialiased}
+  body{
+    background:
+      radial-gradient(ellipse at 20% 0%, rgba(212,165,116,.08), transparent 50%),
+      radial-gradient(ellipse at 80% 100%, rgba(199,62,29,.06), transparent 50%),
+      var(--bg);
+    min-height:100vh;
+    background-attachment:fixed;
+  }
+  /* grain */
+  body::before{
+    content:"";
+    position:fixed;inset:0;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .15 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    opacity:.5;pointer-events:none;z-index:1;mix-blend-mode:overlay;
+  }
+  .wrap{position:relative;z-index:2;max-width:1280px;margin:0 auto;padding:48px 32px 96px}
+
+  /* HEADER */
+  header.top{
+    border-bottom:1px solid var(--line);
+    padding-bottom:32px;margin-bottom:48px;
+    display:flex;align-items:flex-end;justify-content:space-between;gap:32px;flex-wrap:wrap;
+  }
+  .brand{display:flex;align-items:center;gap:16px}
+  .badge-k{
+    width:56px;height:56px;border-radius:50%;
+    background:linear-gradient(135deg,var(--crema),var(--crema-2));
+    display:grid;place-items:center;
+    font-family:'Fraunces',serif;font-weight:900;font-size:28px;color:var(--espresso);
+    box-shadow:0 8px 24px rgba(212,165,116,.25),inset 0 -2px 4px rgba(0,0,0,.15);
+  }
+  .brand h1{font-family:'Fraunces',serif;font-weight:300;font-size:32px;letter-spacing:-.02em;line-height:1}
+  .brand h1 em{font-style:italic;font-weight:600;color:var(--crema)}
+  .brand p{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--paper-2);opacity:.6;margin-top:6px}
+  .meta{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--paper-2);opacity:.55;text-align:right}
+  .meta strong{color:var(--crema);opacity:1}
+
+  /* HERO */
+  .hero{
+    display:grid;grid-template-columns:1.4fr 1fr;gap:48px;align-items:start;
+    margin-bottom:80px;padding-bottom:64px;border-bottom:1px solid var(--line);
+  }
+  .hero h2{
+    font-family:'Fraunces',serif;font-weight:300;font-size:clamp(40px,5.5vw,72px);
+    line-height:1.02;letter-spacing:-.025em;margin-bottom:24px;
+  }
+  .hero h2 em{font-style:italic;font-weight:600;color:var(--crema)}
+  .hero h2 .strike{text-decoration:line-through;text-decoration-color:var(--red);text-decoration-thickness:2px;opacity:.5}
+  .hero p.lead{font-size:17px;color:var(--paper-2);opacity:.85;max-width:540px;margin-bottom:32px}
+  .hero .tags{display:flex;flex-wrap:wrap;gap:8px}
+  .tag{
+    font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+    padding:6px 12px;border:1px solid var(--line-strong);border-radius:999px;color:var(--paper-2);
+  }
+  .tag.k{background:rgba(212,165,116,.1);border-color:var(--crema-2);color:var(--crema)}
+
+  /* HERO KPI CARD */
+  .kpi-card{
+    background:linear-gradient(160deg,var(--paper) 0%,var(--paper-2) 100%);
+    color:var(--ink);border-radius:24px;padding:32px;
+    position:relative;overflow:hidden;
+    box-shadow:0 24px 60px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.6);
+  }
+  .kpi-card::after{
+    content:"";position:absolute;top:-40px;right:-40px;width:160px;height:160px;
+    border-radius:50%;background:radial-gradient(circle,rgba(199,62,29,.15),transparent 70%);
+  }
+  .kpi-card h3{font-family:'Fraunces',serif;font-weight:600;font-size:18px;margin-bottom:24px;letter-spacing:-.01em}
+  .kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;position:relative;z-index:1}
+  .kpi-item{padding:16px;background:rgba(26,20,16,.04);border-radius:12px;border:1px solid rgba(26,20,16,.08)}
+  .kpi-item .num{font-family:'Fraunces',serif;font-weight:800;font-size:32px;line-height:1;color:var(--espresso);letter-spacing:-.02em}
+  .kpi-item .num small{font-size:14px;font-weight:400;color:var(--crema-2);margin-left:4px}
+  .kpi-item .lbl{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink);opacity:.65;margin-top:6px}
+  .kpi-arrow{
+    margin-top:20px;padding-top:20px;border-top:1px dashed rgba(26,20,16,.2);
+    font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.05em;color:var(--ink);opacity:.75;
+  }
+  .kpi-arrow strong{color:var(--green);background:rgba(63,102,52,.12);padding:2px 6px;border-radius:4px}
+
+  /* SECTION HEADER */
+  .section{margin-bottom:96px}
+  .section-head{display:flex;align-items:baseline;gap:24px;margin-bottom:40px;padding-bottom:16px;border-bottom:1px solid var(--line)}
+  .section-num{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--crema);letter-spacing:.1em}
+  .section-head h3{font-family:'Fraunces',serif;font-weight:400;font-size:38px;letter-spacing:-.02em;line-height:1.1}
+  .section-head h3 em{font-style:italic;font-weight:600;color:var(--crema)}
+  .section-head .desc{margin-left:auto;font-size:14px;color:var(--paper-2);opacity:.6;max-width:320px;text-align:right}
+
+  /* DIAGNÓSTICO - LAS FUGAS */
+  .fugas{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
+  .fuga{
+    border:1px solid var(--line-strong);border-radius:16px;padding:24px;
+    background:rgba(244,236,221,.02);position:relative;transition:all .3s ease;
+    cursor:pointer;
+  }
+  .fuga:hover{background:rgba(244,236,221,.04);transform:translateY(-2px);border-color:var(--red)}
+  .fuga .num{font-family:'Fraunces',serif;font-weight:800;font-size:54px;line-height:1;color:var(--red);opacity:.4;letter-spacing:-.03em}
+  .fuga h4{font-family:'Fraunces',serif;font-weight:600;font-size:19px;margin:12px 0 10px;letter-spacing:-.01em}
+  .fuga p{font-size:14px;color:var(--paper-2);opacity:.8;margin-bottom:16px}
+  .fuga .loss{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--red);background:rgba(199,62,29,.1);padding:8px 12px;border-radius:6px;border-left:3px solid var(--red)}
+
+  .math-box{
+    margin-top:40px;padding:32px;border-radius:20px;
+    background:linear-gradient(135deg,rgba(199,62,29,.08),rgba(199,62,29,.02));
+    border:1px solid rgba(199,62,29,.2);
+    display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:24px;align-items:center;
+  }
+  .math-item{text-align:center}
+  .math-item .v{font-family:'Fraunces',serif;font-weight:300;font-size:48px;line-height:1;letter-spacing:-.03em}
+  .math-item .v.red{color:var(--red)}
+  .math-item .v.green{color:var(--green)}
+  .math-item .l{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--paper-2);opacity:.7;margin-top:8px}
+  .math-arrow{font-family:'Fraunces',serif;font-weight:300;font-size:36px;color:var(--crema);opacity:.6}
+
+  /* FASES */
+  .fases{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+  .fase{
+    background:linear-gradient(180deg,rgba(244,236,221,.03),rgba(244,236,221,.01));
+    border:1px solid var(--line-strong);border-radius:14px;padding:20px;
+    position:relative;transition:all .3s ease;cursor:pointer;
+  }
+  .fase:hover{transform:translateY(-4px);border-color:var(--crema)}
+  .fase .num{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--crema);letter-spacing:.15em;margin-bottom:8px}
+  .fase h4{font-family:'Fraunces',serif;font-weight:600;font-size:16px;margin-bottom:12px;letter-spacing:-.01em}
+  .fase .time{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--paper-2);opacity:.7;margin-bottom:12px}
+  .fase .icon{font-size:24px;margin-bottom:12px;display:block}
+  .fase ul{list-style:none;font-size:12px;color:var(--paper-2);opacity:.75}
+  .fase ul li{padding:4px 0;border-bottom:1px dashed var(--line);padding-left:14px;position:relative}
+  .fase ul li::before{content:"·";position:absolute;left:4px;color:var(--crema);font-weight:bold;font-size:16px;line-height:1}
+  .fase ul li:last-child{border-bottom:none}
+
+  /* REGLA DE ORO */
+  .regla-oro{
+    margin-top:32px;padding:40px;border-radius:20px;
+    background:linear-gradient(135deg,var(--espresso),var(--bg-2));
+    border:1px solid var(--crema-2);
+    text-align:center;position:relative;overflow:hidden;
+  }
+  .regla-oro::before{
+    content:"★";position:absolute;top:24px;left:24px;font-size:24px;color:var(--crema);opacity:.4;
+  }
+  .regla-oro::after{
+    content:"★";position:absolute;bottom:24px;right:24px;font-size:24px;color:var(--crema);opacity:.4;
+  }
+  .regla-oro .label{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2em;color:var(--crema);text-transform:uppercase;margin-bottom:16px}
+  .regla-oro blockquote{font-family:'Fraunces',serif;font-style:italic;font-weight:300;font-size:28px;line-height:1.3;max-width:780px;margin:0 auto;letter-spacing:-.01em}
+  .regla-oro blockquote em{color:var(--crema);font-style:italic;font-weight:600}
+
+  /* ROLES */
+  .roles{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+  .rol{
+    border:1px solid var(--line-strong);border-radius:16px;padding:24px;
+    background:rgba(244,236,221,.02);text-align:center;
+  }
+  .rol .avatar{
+    width:64px;height:64px;border-radius:50%;margin:0 auto 16px;
+    display:grid;place-items:center;
+    font-family:'Fraunces',serif;font-weight:800;font-size:24px;
+  }
+  .rol.a1 .avatar{background:linear-gradient(135deg,#C73E1D,#8B2D14);color:var(--paper)}
+  .rol.a2 .avatar{background:linear-gradient(135deg,#D49B3B,#A06E22);color:var(--ink)}
+  .rol.a3 .avatar{background:linear-gradient(135deg,#D4A574,#8B5A2B);color:var(--ink)}
+  .rol.a4 .avatar{background:linear-gradient(135deg,#3F6634,#1F3E18);color:var(--paper)}
+  .rol h4{font-family:'Fraunces',serif;font-weight:600;font-size:18px;margin-bottom:6px}
+  .rol .who{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--crema);text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px}
+  .rol .fn{font-size:13px;color:var(--paper-2);opacity:.8;line-height:1.5}
+
+  /* CALENDARIO */
+  .calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+  .day{
+    border:1px solid var(--line-strong);border-radius:12px;padding:16px;min-height:240px;
+    background:rgba(244,236,221,.02);position:relative;
+  }
+  .day.sacred{border-color:var(--red);background:linear-gradient(180deg,rgba(199,62,29,.06),rgba(199,62,29,.01))}
+  .day.edit{border-color:var(--crema-2);background:linear-gradient(180deg,rgba(212,165,116,.06),rgba(212,165,116,.01))}
+  .day-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px;padding-bottom:10px;border-bottom:1px dashed var(--line-strong)}
+  .day-head .name{font-family:'Fraunces',serif;font-weight:600;font-size:15px;letter-spacing:-.01em}
+  .day-head .tag{font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--paper-2);opacity:.6;border:none;padding:0}
+  .day.sacred .tag{color:var(--red);opacity:.9}
+  .day.edit .tag{color:var(--crema);opacity:.9}
+  .slot{margin-bottom:10px;font-size:11px}
+  .slot .time{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--crema);letter-spacing:.05em;display:block;margin-bottom:2px}
+  .slot .act{color:var(--paper-2);opacity:.85;line-height:1.4}
+
+  /* BUFFER */
+  .buffer{
+    margin-top:32px;display:grid;grid-template-columns:1fr 2fr;gap:32px;align-items:center;
+    padding:32px;border-radius:20px;
+    background:linear-gradient(135deg,rgba(63,102,52,.08),rgba(63,102,52,.02));
+    border:1px solid rgba(63,102,52,.2);
+  }
+  .buffer-icon{font-family:'Fraunces',serif;font-size:96px;font-weight:800;color:var(--green);opacity:.4;text-align:center;line-height:1;letter-spacing:-.04em}
+  .buffer h4{font-family:'Fraunces',serif;font-weight:600;font-size:24px;margin-bottom:10px;letter-spacing:-.01em}
+  .buffer h4 em{color:var(--green);font-style:italic}
+  .buffer p{font-size:14px;color:var(--paper-2);opacity:.85;margin-bottom:14px}
+  .buffer-rules{display:flex;gap:12px;flex-wrap:wrap;margin-top:14px}
+  .buffer-rules div{font-family:'JetBrains Mono',monospace;font-size:11px;padding:8px 14px;border-radius:8px;background:rgba(63,102,52,.12);border:1px solid rgba(63,102,52,.25);color:var(--paper-2)}
+  .buffer-rules div strong{color:var(--green)}
+
+  /* PLANTILLAS / CHECKLIST EXPANDIBLES */
+  .accordion{display:flex;flex-direction:column;gap:12px}
+  details.acc{
+    background:rgba(244,236,221,.02);border:1px solid var(--line-strong);border-radius:14px;
+    overflow:hidden;transition:all .3s ease;
+  }
+  details.acc[open]{background:rgba(244,236,221,.04);border-color:var(--crema-2)}
+  details.acc summary{
+    list-style:none;cursor:pointer;padding:20px 24px;
+    display:flex;justify-content:space-between;align-items:center;gap:16px;
+  }
+  details.acc summary::-webkit-details-marker{display:none}
+  .sum-l{display:flex;align-items:center;gap:16px;flex:1;min-width:0}
+  .sum-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--crema);letter-spacing:.1em;flex-shrink:0}
+  .sum-title{font-family:'Fraunces',serif;font-weight:600;font-size:18px;letter-spacing:-.01em}
+  .sum-sub{font-size:12px;color:var(--paper-2);opacity:.6;margin-left:auto;margin-right:16px;flex-shrink:0}
+  .chevron{
+    width:24px;height:24px;border-radius:50%;
+    background:rgba(212,165,116,.15);display:grid;place-items:center;color:var(--crema);
+    transition:transform .3s ease;font-size:12px;flex-shrink:0;
+  }
+  details.acc[open] .chevron{transform:rotate(45deg);background:var(--crema);color:var(--ink)}
+  .acc-body{padding:0 24px 28px;border-top:1px dashed var(--line-strong);padding-top:24px;margin:0 4px}
+
+  /* PLANTILLA CONTENIDO */
+  .plantilla{
+    background:var(--bg-2);border-radius:12px;padding:24px;
+    font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.7;color:var(--paper-2);
+    border:1px solid var(--line);position:relative;overflow-x:auto;
+  }
+  .plantilla h5{font-family:'Fraunces',serif;font-style:italic;color:var(--crema);font-size:15px;margin:18px 0 10px;font-weight:500}
+  .plantilla h5:first-child{margin-top:0}
+  .plantilla .lbl{color:var(--crema);font-weight:500}
+  .plantilla .field{color:var(--paper);opacity:.6}
+  .plantilla .sep{color:var(--line-strong);letter-spacing:-1px}
+  .plantilla ul{list-style:none;padding-left:14px;margin:6px 0}
+  .plantilla ul li{padding:2px 0;position:relative}
+  .plantilla ul li::before{content:"›";position:absolute;left:-12px;color:var(--crema)}
+
+  /* CHECKLIST */
+  .check-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+  .check-card{padding:20px;background:rgba(26,20,16,.3);border-radius:12px;border:1px solid var(--line)}
+  .check-card h5{font-family:'Fraunces',serif;font-weight:600;font-size:15px;margin-bottom:12px;color:var(--crema);display:flex;align-items:center;gap:8px}
+  .check-card h5 span{font-family:'JetBrains Mono',monospace;font-size:10px;background:var(--crema);color:var(--ink);padding:2px 6px;border-radius:4px;font-weight:700}
+  .check-card ul{list-style:none;font-size:13px}
+  .check-card ul li{padding:8px 0;padding-left:28px;position:relative;color:var(--paper-2);opacity:.9;line-height:1.4;border-bottom:1px dashed var(--line)}
+  .check-card ul li:last-child{border-bottom:none}
+  .check-card ul li::before{
+    content:"";position:absolute;left:0;top:10px;
+    width:16px;height:16px;border:1.5px solid var(--crema-2);border-radius:3px;
+  }
+
+  /* TABLA REVISIONES */
+  .table-rev{
+    border:1px solid var(--line-strong);border-radius:14px;overflow:hidden;
+    background:rgba(244,236,221,.02);
+  }
+  .table-rev table{width:100%;border-collapse:collapse}
+  .table-rev th,.table-rev td{padding:18px 20px;text-align:left;border-bottom:1px solid var(--line)}
+  .table-rev th{
+    font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.15em;
+    text-transform:uppercase;color:var(--crema);background:rgba(26,20,16,.5);font-weight:500;
+  }
+  .table-rev td{font-size:14px;color:var(--paper-2);vertical-align:top}
+  .table-rev tr:last-child td{border-bottom:none}
+  .badge-red{background:rgba(199,62,29,.15);color:#E55836;padding:4px 10px;border-radius:6px;font-size:11px;font-family:'JetBrains Mono',monospace;font-weight:500;display:inline-block;border:1px solid rgba(199,62,29,.3)}
+  .badge-amber{background:rgba(212,155,59,.15);color:#E0AD4D;padding:4px 10px;border-radius:6px;font-size:11px;font-family:'JetBrains Mono',monospace;font-weight:500;display:inline-block;border:1px solid rgba(212,155,59,.3)}
+  .si{color:var(--green);font-weight:600}
+  .no{color:var(--red);font-weight:600}
+
+  /* MÉTRICAS */
+  .metricas-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}
+  .metrica{
+    border:1px solid var(--line-strong);border-radius:14px;padding:24px;background:rgba(244,236,221,.02);
+    position:relative;overflow:hidden;
+  }
+  .metrica::before{
+    content:"";position:absolute;top:0;left:0;width:4px;height:100%;background:var(--crema);
+  }
+  .metrica.green::before{background:var(--green)}
+  .metrica.amber::before{background:var(--amber)}
+  .metrica .lbl{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--paper-2);opacity:.65;margin-bottom:10px}
+  .metrica .val{font-family:'Fraunces',serif;font-weight:300;font-size:36px;line-height:1;letter-spacing:-.02em}
+  .metrica .val em{font-style:italic;font-weight:600;color:var(--crema)}
+  .metrica .sub{font-size:12px;color:var(--paper-2);opacity:.7;margin-top:8px}
+
+  /* SHEETS PREVIEW */
+  .sheet{
+    background:rgba(244,236,221,.96);color:var(--ink);border-radius:12px;overflow:hidden;
+    box-shadow:0 16px 40px rgba(0,0,0,.4);margin-top:24px;
+  }
+  .sheet-head{background:#0F9D58;color:white;padding:12px 20px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;display:flex;align-items:center;gap:10px}
+  .sheet-head::before{content:"⊞";font-size:18px}
+  .sheet table{width:100%;border-collapse:collapse;font-size:12px}
+  .sheet th,.sheet td{padding:8px 12px;border-right:1px solid rgba(0,0,0,.1);border-bottom:1px solid rgba(0,0,0,.08);text-align:left}
+  .sheet th{background:#F1F3F4;font-weight:600;font-family:'Inter',sans-serif;font-size:11px;color:#3C4043}
+  .sheet td{color:var(--ink);background:white}
+  .sheet td.ok{background:rgba(63,102,52,.1);color:var(--green);font-weight:600}
+
+  /* NOTION STRUCTURE */
+  .tree{font-family:'JetBrains Mono',monospace;font-size:13px;background:var(--bg-2);border-radius:14px;padding:32px;border:1px solid var(--line);line-height:1.9;color:var(--paper-2)}
+  .tree .root{color:var(--crema);font-weight:600;font-size:14px}
+  .tree .branch{color:var(--paper)}
+  .tree .leaf{color:var(--paper-2);opacity:.75}
+  .tree .com{color:var(--crema-2);opacity:.6;font-style:italic;font-family:'Inter',sans-serif;font-size:11px}
+
+  /* IMPACT GRID */
+  .impact{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px;margin-top:24px}
+  .imp{padding:24px;border-radius:14px;background:rgba(244,236,221,.03);border:1px solid var(--line-strong);text-align:center}
+  .imp .from{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--red);text-decoration:line-through;margin-bottom:4px}
+  .imp .arrow{font-family:'Fraunces',serif;font-size:18px;color:var(--crema);margin:6px 0;display:block}
+  .imp .to{font-family:'Fraunces',serif;font-weight:700;font-size:22px;color:var(--green);letter-spacing:-.01em;line-height:1.1}
+  .imp .what{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--paper-2);opacity:.6;margin-top:10px}
+
+  /* FOOTER */
+  footer{
+    border-top:1px solid var(--line);padding-top:32px;margin-top:64px;
+    display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap;
+  }
+  footer .l{font-family:'Fraunces',serif;font-style:italic;font-size:18px;color:var(--crema)}
+  footer .r{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--paper-2);opacity:.5}
+
+  /* RESPONSIVE */
+  @media(max-width:900px){
+    .hero,.math-box{grid-template-columns:1fr}
+    .math-arrow{transform:rotate(90deg)}
+    .fases{grid-template-columns:1fr 1fr}
+    .calendar{grid-template-columns:1fr 1fr}
+    .impact{grid-template-columns:1fr 1fr}
+    .buffer{grid-template-columns:1fr}
+    .buffer-icon{font-size:64px}
+  }
+  @media(max-width:560px){
+    .wrap{padding:32px 20px}
+    .fases,.calendar,.impact{grid-template-columns:1fr}
+    .hero h2{font-size:36px}
+    .section-head{flex-direction:column;align-items:flex-start;gap:8px}
+    .section-head .desc{margin-left:0;text-align:left}
+  }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+  .anim{animation:fadeUp .8s ease both}
+  .anim:nth-child(2){animation-delay:.1s}
+  .anim:nth-child(3){animation-delay:.2s}
+  .anim:nth-child(4){animation-delay:.3s}
+  .anim:nth-child(5){animation-delay:.4s}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- HEADER -->
+  <header class="top">
+    <div class="brand">
+      <div class="badge-k">K</div>
+      <div>
+        <h1>Kofy <em>Production System</em></h1>
+        <p>KPS · v1.0 · Sistema operativo de producción</p>
+      </div>
+    </div>
+    <div class="meta">
+      Documento maestro<br>
+      <strong>4 videos / semana</strong> · Lun · Mié · Vie · Dom
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div>
+      <h2>De <span class="strike">10-12h</span><br><em>a 6-8h</em><br>por video.</h2>
+      <p class="lead">Un sistema quirúrgico de 5 fases para que Leonardo grabe, edite y publique sin fugas de tiempo. Diseñado para Kofy, escalable para nuevos editores, infalible por diseño.</p>
+      <div class="tags">
+        <span class="tag k">+ Briefing firmado</span>
+        <span class="tag k">+ Storyboard obligatorio</span>
+        <span class="tag k">+ 1 sola ronda de revisión</span>
+        <span class="tag">+ Banco de videos</span>
+        <span class="tag">+ Métricas semanales</span>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <h3>El impacto en una mirada</h3>
+      <div class="kpi-grid">
+        <div class="kpi-item">
+          <div class="num">−50<small>%</small></div>
+          <div class="lbl">Tiempo por video</div>
+        </div>
+        <div class="kpi-item">
+          <div class="num">1<small>ronda</small></div>
+          <div class="lbl">Revisión Kafay</div>
+        </div>
+        <div class="kpi-item">
+          <div class="num">+2<small>videos</small></div>
+          <div class="lbl">En banco siempre</div>
+        </div>
+        <div class="kpi-item">
+          <div class="num">95<small>%</small></div>
+          <div class="lbl">Cumplimiento calendario</div>
+        </div>
+      </div>
+      <div class="kpi-arrow">↳ Cada hora liberada → <strong>+1h para otros proyectos</strong></div>
+    </div>
+  </section>
+
+  <!-- DIAGNÓSTICO -->
+  <section class="section">
+    <div class="section-head">
+      <span class="section-num">01 / Diagnóstico</span>
+      <h3>Las 5 <em>fugas</em> que te están costando dinero</h3>
+      <span class="desc">El problema no es la edición. Es lo que llega (o no llega) a la mesa de edición.</span>
+    </div>
+    <div class="fugas">
+      <div class="fuga">
+        <div class="num">01</div>
+        <h4>Briefing verbal sin dueño</h4>
+        <p>Cuando un proceso es responsabilidad de todos sin que nadie firme el cierre, en la práctica no es responsabilidad de nadie. La info se pierde, se reinterpreta, y Leonardo decide creativamente durante la edición. Solución: briefing grupal con firma única de Kafay.</p>
+        <div class="loss">Pérdida: 1–2 h por video</div>
+      </div>
+      <div class="fuga">
+        <div class="num">02</div>
+        <h4>Storyboard opcional</h4>
+        <p>"Solo para videos no tan pesados" — pero esa decisión se toma sobre la marcha. Sin storyboard, editar deja de ser ejecución y se vuelve exploración.</p>
+        <div class="loss">Pérdida: 2–4 h por video</div>
+      </div>
+      <div class="fuga">
+        <div class="num">03</div>
+        <h4>Revisiones con cambios de opinión</h4>
+        <p>El asesino silencioso. "Errores reales" mezclados con "ahora que lo veo, mejor cambia esto". Cada cambio post-edición cuesta 30–60 min.</p>
+        <div class="loss">Pérdida: 1–2 h por video</div>
+      </div>
+      <div class="fuga">
+        <div class="num">04</div>
+        <h4>Edición en paralelo <small style="opacity:.6">(futuro)</small></h4>
+        <p>Hoy no aplica, pero cuando escalen: cambiar de contexto entre proyectos cuesta 15–25 min de "warm-up mental" cada vez. Para activarse cuando entre un segundo editor.</p>
+        <div class="loss">Pérdida futura: 1 h por video</div>
+      </div>
+      <div class="fuga">
+        <div class="num">05</div>
+        <h4>50/50 sin bloques protegidos</h4>
+        <p>La mitad del tiempo de Leonardo está en reuniones, cafeterías, eventos. No es malo, pero sin calendario blindado, fragmenta la edición de manera invisible.</p>
+        <div class="loss">Pérdida: variable, crítica</div>
+      </div>
+    </div>
+
+    <div class="math-box">
+      <div class="math-item">
+        <div class="v">3–4h</div>
+        <div class="l">Edición pura necesaria</div>
+      </div>
+      <div class="math-arrow">vs</div>
+      <div class="math-item">
+        <div class="v red">10–12h</div>
+        <div class="l">Tiempo real actual</div>
+      </div>
+      <div class="math-arrow">=</div>
+      <div class="math-item">
+        <div class="v green">60–70%</div>
+        <div class="l">Fuga total recuperable</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LAS 5 FASES -->
+  <section class="section">
+    <div class="section-head">
+      <span class="section-num">02 / Arquitectura</span>
+      <h3>Las 5 <em>fases sagradas</em></h3>
+      <span class="desc">Cada video pasa por estas 5 fases en orden. Sin atajos. Sin excepciones.</span>
+    </div>
+    <div class="fases">
+      <div class="fase">
+        <span class="icon">📋</span>
+        <div class="num">FASE 01</div>
+        <h4>Briefing grupal</h4>
+        <div class="time">30–45 min · sesión presencial</div>
+        <ul>
+          <li>4 voces, 1 firma (Kafay)</li>
+          <li>Plantilla llenada en vivo</li>
+          <li>Cierre blindado</li>
+        </ul>
+      </div>
+      <div class="fase">
+        <span class="icon">🎨</span>
+        <div class="num">FASE 02</div>
+        <h4>Guion + Storyboard + Props</h4>
+        <div class="time">1–2 horas</div>
+        <ul>
+          <li>Escenas detalladas</li>
+          <li>Indicaciones visuales</li>
+          <li>Checklist de props ✓</li>
+        </ul>
+      </div>
+      <div class="fase">
+        <span class="icon">🎬</span>
+        <div class="num">FASE 03</div>
+        <h4>Grabación</h4>
+        <div class="time">Día completo · multi-video</div>
+        <ul>
+          <li>Bloque protegido</li>
+          <li>2 videos por sesión</li>
+          <li>Backup inmediato</li>
+        </ul>
+      </div>
+      <div class="fase">
+        <span class="icon">✂️</span>
+        <div class="num">FASE 04</div>
+        <h4>Edición</h4>
+        <div class="time">3–4 horas · sin interrupciones</div>
+        <ul>
+          <li>Storyboard al lado</li>
+          <li>Bloque sagrado</li>
+          <li>Export final</li>
+        </ul>
+      </div>
+      <div class="fase">
+        <span class="icon">✅</span>
+        <div class="num">FASE 05</div>
+        <h4>Revisión + Pub.</h4>
+        <div class="time">30–45 min</div>
+        <ul>
+          <li>UNA sola ronda</li>
+          <li>Solo errores reales</li>
+          <li>Publicación</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="regla-oro">
+      <div class="label">Regla de Oro · No negociable</div>
+      <blockquote>"Ningún video pasa a la siguiente fase si la anterior <em>no está 100% cerrada y firmada</em>."</blockquote>
+    </div>
+  </section>
+
+  <!-- ROLES -->
+  <section class="section">
+    <div class="section-head">
+      <span class="section-num">03 / Roles</span>
+      <h3>Un dueño por fase · <em>nunca tres</em></h3>
+      <span class="desc">La decisión final siempre cae en UNA persona. Otros aportan, pero firman solo los responsables.</span>
+    </div>
+    <div class="roles">
+      <div class="rol a1">
+        <div class="avatar">D</div>
+        <h4>Director Creativo</h4>
+        <div class="who">Tú</div>
+        <div class="fn">Facilita la sesión grupal, propone la idea base, dirige el concepto creativo.</div>
+      </div>
+      <div class="rol a2">
+        <div class="avatar">G</div>
+        <h4>Guionista</h4>
+        <div class="who">Computer · Partner · Gabriela</div>
+        <div class="fn">Aporta en briefing grupal. Escribe el guion con indicaciones visuales para edición.</div>
+      </div>
+      <div class="rol a3">
+        <div class="avatar">L</div>
+        <h4>Productor / Editor</h4>
+        <div class="who">Leonardo</div>
+        <div class="fn">Aporta en briefing. Storyboard, props, grabación, edición y entrega final.</div>
+      </div>
+      <div class="rol a4">
+        <div class="avatar">K</div>
+        <h4>Revisor + Firma</h4>
+        <div class="who">Kafay</div>
+        <div class="fn">Firma el briefing al cierre de la sesión grupal. Hace UNA ronda de revisión final.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CALENDARIO -->
+  <section class="section">
+    <div class="section-head">
+      <span class="section-num">04 / Ritmo</span>
+      <h3>La <em>semana tipo</em> de Kofy</h3>
+      <span class="desc">Dos días de grabación, dos días de edición, publicación Lun·Mié·Vie·Dom.</span>
+    </div>
+    <div class="calendar">
+      <div class="day">
+        <div class="day-head"><span class="name">Lun</span><span class="tag">Publicación + Briefing</span></div>
+        <div class="slot"><span class="time">08–10</span><span class="act">Publicación video Lun</span></div>
+        <div class="slot"><span class="time">10–11</span><span class="act">⚡ Sesión grupal de Briefing (los 4, en persona)</span></div>
+        <div class="slot"><span class="time">11–13</span><span class="act">Reuniones / cafeterías</span></div>
+        <div class="slot"><span class="time">14–17</span><span class="act">Guion + Storyboard + Props checklist</span></div>
+      </div>
+      <div class="day sacred">
+        <div class="day-head"><span class="name">Mar</span><span class="tag">★ Grabación</span></div>
+        <div class="slot"><span class="time">09–16</span><span class="act">Graba 2 videos seguidos (Mié + Vie)</span></div>
+        <div class="slot"><span class="time">16–18</span><span class="act">Backup + organización archivos</span></div>
+      </div>
+      <div class="day edit">
+        <div class="day-head"><span class="name">Mié</span><span class="tag">▲ Edición</span></div>
+        <div class="slot"><span class="time">08–12</span><span class="act">EDICIÓN video Mié (bloque protegido)</span></div>
+        <div class="slot"><span class="time">12–13</span><span class="act">Revisión con Kafay</span></div>
+        <div class="slot"><span class="time">13–14</span><span class="act">Ajustes + publicación</span></div>
+        <div class="slot"><span class="time">14–18</span><span class="act">Otras actividades</span></div>
+      </div>
+      <div class="day sacred">
+        <div class="day-head"><span class="name">Jue</span><span class="tag">★ Grabación</span></div>
+        <div class="slot"><span class="time">09–16</span><span class="act">Graba 2 videos seguidos (Vie + Dom)</span></div>
+        <div class="slot"><span class="time">16–18</span><span class="act">Backup + organización archivos</span></div>
+      </div>
+      <div class="day edit">
+        <div class="day-head"><span class="name">Vie</span><span class="tag">▲ Edición</span></div>
+        <div class="slot"><span class="time">08–12</span><span class="act">EDICIÓN video Vie (bloque protegido)</span></div>
+        <div class="slot"><span class="time">12–13</span><span class="act">Revisión con Kafay</span></div>
+        <div class="slot"><span class="time">13–14</span><span class="act">Publicación</span></div>
+        <div class="slot"><span class="time">14–18</span><span class="act">Otras actividades</span></div>
+      </div>
+      <div class="day edit">
+        <div class="day-head"><span class="name">Sáb</span><span class="tag">▲ Edición</span></div>
+        <div class="slot"><span class="time">10–14</span><span class="act">EDICIÓN video Dom</span></div>
+        <div class="slot"><span class="time">14–15</span><span class="act">Revisión con Kafay</span></div>
+        <div class="slot"><span class="time">Resto</span><span class="act">Adelanto banco / descanso</span></div>
+      </div>
+      <div class="day">
+        <div class="day-head"><span class="name">Dom</span><span class="tag">Publicación</span></div>
+        <div class="slot"><span class="time">10:00</span><span class="act">Publicación video Dom</span></div>
+        <div class="slot"><span class="time">Resto</span><span class="act">Descanso · planificación opcional</span></div>
+      </div>
+    </div>
+
+    <!-- BUFFER -->
+    <div class="buffer">
+      <div class="buffer-icon">2+</div>
+      <div>
+        <h4>El <em>Banco de Videos</em> · Buffer Estratégico</h4>
+        <p>Leonardo nunca debe editar un video que se publica al día siguiente. Antes de cualquier semana con evento confirmado, debe haber mínimo 2 videos editados y aprobados en el banco.</p>
+        <div class="buffer-rules">
+          <div>Semana normal · produce <strong>4</strong></div>
+          <div>Pre-evento · produce <strong>5–6</strong></div>
+          <div>Evento · consume <strong>0–2 del banco</strong></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PLANTILLAS -->
+  <section class="section">
+    <div class="section-head">
+      <span class="section-num">05 / Plantillas</span>
+      <h3>Las <em>herramientas</em> que matan las fugas</h3>
+      <span class="desc">Click para expandir. Cópialas a Notion tal cual.</span>
+    </div>
+    <div class="accordion">
+
+      <!-- BRIEFING -->
+      <details class="acc" open>
+        <summary>
+          <div class="sum-l">
+            <span class="sum-num">P01</span>
+            <span class="sum-title">Plantilla de Briefing Grupal</span>
+          </div>
+          <span class="sum-sub">Sesión presencial · 30–45 min · Firma Kafay</span>
+          <span class="chevron">+</span>
+        </summary>
+        <div class="acc-body">
+          <p style="color:var(--paper-2);font-size:14px;margin-bottom:20px;opacity:.85;">El briefing se construye en <strong style="color:var(--crema)">sesión grupal presencial</strong> los lunes en la mañana. Todos aportan, <strong style="color:var(--crema)">Kafay firma</strong>. Una vez firmado, el briefing queda blindado.</p>
+
+          <div class="table-rev" style="margin-bottom:20px">
+            <table>
+              <thead>
+                <tr><th>Tramo</th><th>Tiempo</th><th>Qué pasa</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><strong style="color:var(--crema)">1. Apertura</strong></td><td>0–10 min</td><td>Tú (Director Creativo) presentas la idea base y el objetivo.</td></tr>
+                <tr><td><strong style="color:var(--crema)">2. Aportes</strong></td><td>10–25 min</td><td>El grupo aporta: referencias, mejoras, hooks, ángulos, props.</td></tr>
+                <tr><td><strong style="color:var(--crema)">3. Llenado en vivo</strong></td><td>25–40 min</td><td>Se llena la plantilla en pantalla compartida, todos viendo.</td></tr>
+                <tr><td><strong style="color:var(--crema)">4. Cierre + Firma</strong></td><td>40–45 min</td><td>Tú lees el briefing en voz alta → todos confirman → <strong style="color:var(--green)">Kafay firma</strong>.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p style="color:var(--paper-2);font-size:13px;margin-bottom:20px;opacity:.75;font-style:italic;">→ Si alguien no puede asistir, deja sus aportes <strong style="color:var(--crema)">por escrito antes de la sesión</strong>. La sesión NO se reagenda.</p>
+
+          <div class="plantilla">
+<span class="sep">══════════════════════════════════════</span>
+<span style="color:var(--crema);font-weight:700">BRIEFING DE VIDEO — KOFY</span>
+<span class="sep">══════════════════════════════════════</span>
+
+<h5>📌 Info básica</h5>
+<span class="lbl">ID del video:</span> <span class="field">[KOFY-2026-001]</span>
+<span class="lbl">Fecha de publicación:</span> <span class="field">[Lun / Mié / Vie / Dom DD/MM]</span>
+<span class="lbl">Plataforma:</span> Instagram
+<span class="lbl">Duración objetivo:</span> 1–2 min
+
+<h5>👥 Sesión grupal</h5>
+<span class="lbl">Fecha sesión:</span> <span class="field">__________</span>
+<span class="lbl">Asistentes presentes:</span> <span class="field">Tú · Kafay · Leonardo · Gabriela</span>
+<span class="lbl">Aportes por escrito (si alguien faltó):</span> <span class="field">_______________________</span>
+
+<h5>🎯 Objetivo del video</h5>
+<span class="lbl">Mensaje central (1 frase):</span> <span class="field">_______________________</span>
+<span class="lbl">Acción que queremos en la audiencia:</span> <span class="field">_______________________</span>
+<span class="lbl">Tono:</span> Educativo · Aspiracional · Divertido · Documental · Otro
+
+<h5>🎬 Concepto</h5>
+<span class="lbl">Idea principal (3 líneas):</span> <span class="field">_______________________</span>
+<span class="lbl">Referencias visuales (links):</span> <span class="field">_______________________</span>
+<span class="lbl">Hook (primeros 3 seg):</span> <span class="field">_______________________</span>
+
+<h5>📍 Logística</h5>
+<span class="lbl">Locación:</span> <span class="field">_______________________</span>
+<span class="lbl">Talentos necesarios:</span> <span class="field">_______________________</span>
+<span class="lbl">Props / elementos especiales:</span> <span class="field">_______________________</span>
+
+<h5>✅ Firma de aprobación</h5>
+<span class="lbl">Firmado por:</span> <span style="color:var(--green);font-weight:700">KAFAY</span>
+<span class="lbl">Fecha / hora:</span> <span class="field">__________</span>
+<span class="lbl">Estado:</span> 🔒 CERRADO · No se modifica
+<span class="sep">══════════════════════════════════════</span>
+          </div>
+        </div>
+      </details>
+
+      <!-- STORYBOARD -->
+      <details class="acc">
+        <summary>
+          <div class="sum-l">
+            <span class="sum-num">P02</span>
+            <span class="sum-title">Plantilla de Storyboard + Checklist de Props</span>
+          </div>
+          <span class="sum-sub">Mata Fuga 02 · 5–45 min según complejidad</span>
+          <span class="chevron">+</span>
+        </summary>
+        <div class="acc-body">
+          <div class="plantilla">
+<span class="sep">══════════════════════════════════════</span>
+<span style="color:var(--crema);font-weight:700">STORYBOARD — [ID DEL VIDEO]</span>
+<span class="sep">══════════════════════════════════════</span>
+
+<h5>Escena 1 · Segundos 0–3 (HOOK)</h5>
+<span class="lbl">Plano:</span> Close-up / Plano general / etc.
+<span class="lbl">Acción:</span> <span class="field">_______________________</span>
+<span class="lbl">Audio / Diálogo:</span> <span class="field">_______________________</span>
+<span class="lbl">Texto en pantalla:</span> <span class="field">_______________________</span>
+
+<h5>Escena 2 · Segundos 3–15</h5>
+<span class="lbl">Plano:</span> <span class="field">_______________________</span>
+<span class="lbl">Acción:</span> <span class="field">_______________________</span>
+<span class="lbl">Audio / Diálogo:</span> <span class="field">_______________________</span>
+<span class="lbl">B-roll necesario:</span> <span class="field">_______________________</span>
+
+<h5>Escena 3 · Segundos 15–45</h5>
+<span class="field">[mismo formato]</span>
+
+<h5>Escena 4 · Segundos 45–90</h5>
+<span class="field">[mismo formato]</span>
+
+<h5>Escena final · Últimos 10 segundos (CTA)</h5>
+<span class="lbl">Llamada a la acción:</span> <span class="field">_______________________</span>
+
+<span style="color:var(--crema)">═══ NOTAS PARA EDICIÓN ═══</span>
+<span class="lbl">Música sugerida:</span> <span class="field">_______________________</span>
+<span class="lbl">Estilo de cortes:</span> Rápido · Cinematográfico · Otro
+<span class="lbl">Color grading:</span> Cálido · Frío · Neutro · Branding Kofy
+<span class="sep">══════════════════════════════════════</span>
+          </div>
+
+          <p style="color:var(--paper-2);font-size:14px;margin:24px 0 16px;opacity:.85;">Antes del día de grabación, Leonardo llena esta <strong style="color:var(--crema)">checklist de props</strong>. Sin checklist completa al 100%, no se sale a grabar.</p>
+
+          <div class="plantilla">
+<span class="sep">══════════════════════════════════════</span>
+<span style="color:var(--crema);font-weight:700">📦 CHECKLIST DE PROPS — [ID DEL VIDEO]</span>
+<span class="sep">══════════════════════════════════════</span>
+
+<h5>☕ Productos / Bebidas</h5>
+<ul>
+<li>[ ] Granos de café necesarios — cantidad: <span class="field">___</span></li>
+<li>[ ] Leches (entera / vegetal / etc.): <span class="field">___</span></li>
+<li>[ ] Tazas / vasos específicos: <span class="field">___</span></li>
+<li>[ ] Otros ingredientes: <span class="field">___</span></li>
+</ul>
+
+<h5>🎬 Equipo de grabación</h5>
+<ul>
+<li>[ ] Cámara cargada (batería &gt; 80%)</li>
+<li>[ ] Tarjetas SD vacías y formateadas</li>
+<li>[ ] Micrófono + audio probado</li>
+<li>[ ] Trípode / estabilizador</li>
+<li>[ ] Iluminación lista (si aplica)</li>
+<li>[ ] Lentes adicionales: <span class="field">___</span></li>
+</ul>
+
+<h5>🪑 Set / Locación</h5>
+<ul>
+<li>[ ] Locación reservada / disponible</li>
+<li>[ ] Mesa / barra limpia y lista</li>
+<li>[ ] Fondo / backdrop preparado</li>
+<li>[ ] Elementos decorativos: <span class="field">___</span></li>
+</ul>
+
+<h5>👤 Talento / Vestuario</h5>
+<ul>
+<li>[ ] Persona(s) que aparece(n) confirmada(s)</li>
+<li>[ ] Vestuario / uniforme Kofy listo</li>
+<li>[ ] Maquillaje / peinado (si aplica)</li>
+</ul>
+
+<h5>📋 Misceláneo</h5>
+<ul>
+<li>[ ] Storyboard impreso o en tablet</li>
+<li>[ ] Guion impreso</li>
+<li>[ ] Disco duro / backup listo</li>
+<li>[ ] Otros: <span class="field">___</span></li>
+</ul>
+
+<h5>✅ Confirmación</h5>
+<span class="lbl">Revisado por:</span> <span class="field">Leonardo</span>
+<span class="lbl">Fecha de revisión:</span> <span class="field">__________</span>
+<span class="lbl">Estado:</span> 🟢 TODO LISTO PARA GRABAR
+<span class="sep">══════════════════════════════════════</span>
+          </div>
+        </div>
+      </details>
+
+      <!-- REVISIÓN -->
+      <details class="acc">
+        <summary>
+          <div class="sum-l">
+            <span class="sum-num">P03</span>
+            <span class="sum-title">Protocolo de Revisión · UNA sola ronda</span>
+          </div>
+          <span class="sum-sub">Mata Fuga 03 · La pieza más importante</span>
+          <span class="chevron">+</span>
+        </summary>
+        <div class="acc-body">
+          <p style="color:var(--paper-2);font-size:14px;margin-bottom:16px;opacity:.85;">Kafay revisa <strong style="color:var(--crema)">UNA sola vez</strong>. El feedback se divide en dos categorías claras:</p>
+
+          <div class="table-rev" style="margin-bottom:20px">
+            <table>
+              <thead>
+                <tr><th>Tipo</th><th>Definición</th><th>¿Se corrige?</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="badge-red">🔴 Error crítico</span></td>
+                  <td>Algo que rompe el video: audio malo, error de marca, dato incorrecto, frame en negro.</td>
+                  <td><span class="si">SÍ, inmediato</span></td>
+                </tr>
+                <tr>
+                  <td><span class="badge-amber">🟡 Preferencia</span></td>
+                  <td>"Me gustaría más así", "y si cambiamos...", "qué tal si..."</td>
+                  <td><span class="no">NO en este video.</span><br><span style="font-size:11px;opacity:.7">Va al doc "Lecciones próximos videos".</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="plantilla">
+<span class="sep">══════════════════════════════════════</span>
+<span style="color:var(--crema);font-weight:700">REVISIÓN VIDEO [ID]</span>
+<span class="sep">══════════════════════════════════════</span>
+
+<h5>🔴 Errores críticos (corregir ahora)</h5>
+<ul>
+<li><span class="field">_______________________</span></li>
+<li><span class="field">_______________________</span></li>
+</ul>
+
+<h5>🟡 Preferencias (para próximos videos)</h5>
+<ul>
+<li><span class="field">_______________________</span></li>
+<li><span class="field">_______________________</span></li>
+</ul>
+
+<h5>✅ Aprobación</h5>
+[ ] Aprobado para publicar tras correcciones
+<span class="lbl">Firmado por:</span> Kafay
+<span class="lbl">Fecha / hora:</span> <span class="field">__________</span>
+<span class="sep">══════════════════════════════════════</span>
+          </div>
+
+          <p style="color:var(--paper-2);font-size:13px;margin-top:16px;opacity:.75;font-style:italic;">→ Si en un video hay <strong style="color:var(--red)">más de 3 errores críticos reales</strong>, se hace <strong>Post-Mortem</strong> del sistema (no se culpa a Leonardo · se mejora el proceso).</p>
+        </div>
+      </details>
+
+    </div>
+  </section>
+
+  <!-- CHECKLISTS -->
+  <section class="section">
+    <div class="section-head">
+      <span class="section-num">06 / Checklists</span>
+      <h3>A prueba de <em>bobos</em></h3>
+      <span class="desc">Una lista por fase. No se pasa sin checkear todo.</span>
+    </div>
+    <div class="check-grid">
+      <div class="check-card">
+        <h5><span>F01</span> Briefing Grupal</h5>
+        <ul>
+          <li>Sesión grupal agendada y realizada (los 4)</li>
+          <li>Aportes por escrito recogidos (si alguien faltó)</li>
+          <li>Plantilla llenada al 100% en pantalla compartida</li>
+          <li>Briefing leído en voz alta y confirmado</li>
+          <li>Kafay firmó la aprobación</li>
+          <li>Estado: 🔒 CERRADO · No se modifica</li>
+        </ul>
+      </div>
+      <div class="check-card">
+        <h5><span>F02</span> Guion + Storyboard + Props</h5>
+        <ul>
+          <li>Guion escrito con indicaciones visuales</li>
+          <li>Storyboard completo de todas las escenas</li>
+          <li>Música / CTA / estilo definidos</li>
+          <li>Checklist de props llenada al 100%</li>
+          <li>Productos / bebidas confirmados disponibles</li>
+          <li>Equipo de grabación verificado y cargado</li>
+          <li>Set / locación reservada y lista</li>
+          <li>Leonardo confirmó que es grabable</li>
+          <li>Estado: 🟢 LISTO PARA GRABAR</li>
+        </ul>
+      </div>
+      <div class="check-card">
+        <h5><span>F03</span> Grabación</h5>
+        <ul>
+          <li>Locación lista</li>
+          <li>Equipo cargado (baterías, SD vacías)</li>
+          <li>Audio probado</li>
+          <li>Todos los planos del storyboard grabados</li>
+          <li>Material respaldado en disco/nube</li>
+          <li>Estado: 📁 EN POST-PRODUCCIÓN</li>
+        </ul>
+      </div>
+      <div class="check-card">
+        <h5><span>F04</span> Edición</h5>
+        <ul>
+          <li>Bloque de 3–4h sin interrupciones</li>
+          <li>Storyboard abierto al lado de DaVinci</li>
+          <li>Primer corte completo</li>
+          <li>Audio mezclado</li>
+          <li>Color grading aplicado</li>
+          <li>Texto / gráficos insertados</li>
+          <li>Exportado en calidad de Instagram</li>
+          <li>Estado: 👀 LISTO PARA REVISIÓN</li>
+        </ul>
+      </div>
+      <div class="check-card">
+        <h5><span>F05</span> Revisión + Publicación</h5>
+        <ul>
+          <li>Kafay revisó (UNA sola vez)</li>
+          <li>Errores críticos corregidos</li>
+          <li>Preferencias anotadas en "Lecciones"</li>
+          <li>Caption + hashtags preparados</li>
+          <li>Publicado en Instagram</li>
+          <li>Estado: ✅ PUBLICADO</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- MÉTRICAS -->
+  <section class="section">
+    <div class="section-head">
+      <span class="section-num">07 / Métricas</span>
+      <h3>Lo que <em>no se mide</em>, no se mejora</h3>
+      <span class="desc">Google Sheets · 3 hojas que te dicen si el sistema está vivo.</span>
+    </div>
+
+    <div class="metricas-grid">
+      <div class="metrica green">
+        <div class="lbl">Tiempo prom / video</div>
+        <div class="val"><em>&lt; 8h</em></div>
+        <div class="sub">objetivo a 3 meses</div>
+      </div>
+      <div class="metrica">
+        <div class="lbl">Cumplimiento calendario</div>
+        <div class="val"><em>95%</em>+</div>
+        <div class="sub">videos publicados a tiempo</div>
+      </div>
+      <div class="metrica amber">
+        <div class="lbl">Rondas de revisión</div>
+        <div class="val"><em>1</em></div>
+        <div class="sub">promedio por video</div>
+      </div>
+      <div class="metrica green">
+        <div class="lbl">Buffer mínimo</div>
+        <div class="val"><em>2</em></div>
+        <div class="sub">videos en banco · siempre</div>
+      </div>
+    </div>
+
+    <div class="sheet">
+      <div class="sheet-head">Hoja 1 · Registro de Videos</div>
+      <table>
+        <thead>
+          <tr><th>ID</th><th>Fecha Pub</th><th>Briefing (h)</th><th>Storyboard (h)</th><th>Grabación (h)</th><th>Edición (h)</th><th>Revisión (h)</th><th>Total</th><th>Rondas</th><th>Errores</th><th>¿En tiempo?</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>001</td><td>10/06</td><td>0.5</td><td>1.5</td><td>4</td><td>3.5</td><td>0.5</td><td>10</td><td>1</td><td>0</td><td class="ok">✓ SÍ</td></tr>
+          <tr><td>002</td><td>12/06</td><td>0.5</td><td>1</td><td>3.5</td><td>3</td><td>0.5</td><td>8.5</td><td>1</td><td>1</td><td class="ok">✓ SÍ</td></tr>
+          <tr><td>003</td><td>14/06</td><td>0.75</td><td>1.5</td><td>4</td><td>4</td><td>1</td><td>11.25</td><td>2</td><td>3</td><td>⚠ Tarde</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- NOTION -->
+  <section class="section">
+    <div class="section-head">
+      <span class="section-num">08 / Notion</span>
+      <h3>El <em>sistema operativo</em></h3>
+      <span class="desc">Cómo se estructura todo dentro del workspace.</span>
+    </div>
+    <div class="tree">
+<span class="root">📁 KOFY PRODUCTION SYSTEM</span> <span class="com">(workspace)</span>
+│
+├── <span class="branch">🏠 DASHBOARD PRINCIPAL</span>
+│   ├── <span class="leaf">Videos en proceso</span> <span class="com">vista kanban</span>
+│   ├── <span class="leaf">Calendario de publicación</span>
+│   ├── <span class="leaf">Banco de videos</span> <span class="com">buffer estratégico</span>
+│   └── <span class="leaf">Próximos eventos</span>
+│
+├── <span class="branch">📋 BASES DE DATOS</span>
+│   ├── <span class="leaf">🎬 Videos</span> <span class="com">la base maestra · ID, estado, fase, responsable</span>
+│   ├── <span class="leaf">📅 Calendario de eventos</span>
+│   ├── <span class="leaf">💡 Banco de ideas</span>
+│   └── <span class="leaf">📚 Lecciones aprendidas</span>
+│
+├── <span class="branch">📝 PLANTILLAS</span>
+│   ├── <span class="leaf">Plantilla Briefing</span>
+│   ├── <span class="leaf">Plantilla Storyboard</span>
+│   ├── <span class="leaf">Plantilla Revisión</span>
+│   └── <span class="leaf">Plantilla Post-Mortem</span>
+│
+├── <span class="branch">📖 MANUAL DEL SISTEMA</span> <span class="com">para gente nueva</span>
+│   ├── <span class="leaf">Cómo funciona KPS</span>
+│   ├── <span class="leaf">Roles y responsabilidades</span>
+│   ├── <span class="leaf">Las 5 fases</span>
+│   ├── <span class="leaf">Reglas sagradas</span>
+│   └── <span class="leaf">FAQ</span>
+│
+└── <span class="branch">📊 LINK A GOOGLE SHEETS</span> <span class="com">métricas</span>
+    </div>
+  </section>
+
+  <!-- IMPACTO ESPERADO -->
+  <section class="section">
+    <div class="section-head">
+      <span class="section-num">09 / Resultado</span>
+      <h3>Lo que <em>cambia</em></h3>
+      <span class="desc">El antes y después, sin maquillar.</span>
+    </div>
+    <div class="impact">
+      <div class="imp">
+        <div class="from">10–12h</div>
+        <span class="arrow">↓</span>
+        <div class="to">6–8h</div>
+        <div class="what">Tiempo / video</div>
+      </div>
+      <div class="imp">
+        <div class="from">2–3 rondas</div>
+        <span class="arrow">↓</span>
+        <div class="to">1 ronda</div>
+        <div class="what">Revisiones Kafay</div>
+      </div>
+      <div class="imp">
+        <div class="from">Caos en eventos</div>
+        <span class="arrow">↓</span>
+        <div class="to">Buffer 2+</div>
+        <div class="what">Semanas blindadas</div>
+      </div>
+      <div class="imp">
+        <div class="from">Memoria verbal</div>
+        <span class="arrow">↓</span>
+        <div class="to">Sistema escalable</div>
+        <div class="what">Listo para nuevos editores</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="l">"Cada segundo cuenta. Cada segundo vale dinero."</div>
+    <div class="r">KPS · v1.0 · Kofy Production System</div>
+  </footer>
+
+</div>
+<script src="kofy-nav.js"></script>
+</body>
+</html>

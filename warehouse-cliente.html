@@ -1,0 +1,1418 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Kofy · Mi Portal</title>
+<style>
+/* ═══ TOKENS ═══ */
+:root {
+  --bg:         #0a0610;
+  --surface:    #15101f;
+  --surface-2:  #1f1830;
+  --surface-3:  #2a2138;
+  --line:       #2a2138;
+  --ink:        #f3e8d4;
+  --ink-mute:   #9e8db8;
+  --gold:       #f5c842;
+  --plum:       #5b3a8f;
+  --plum-soft:  #7a52b8;
+  --green:      #7fb069;
+  --red:        #d9534f;
+  --cream:      #f5e6d3;
+  --shadow:     0 8px 32px rgba(0,0,0,0.4);
+  --radius:     12px;
+}
+
+/* ═══ RESET ═══ */
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { background: var(--bg); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif; line-height: 1.5; min-height: 100vh; }
+
+/* ═══ SCREENS ═══ */
+.screen { display: none; min-height: 100vh; padding-bottom: 84px; }
+.screen.active { display: block; }
+#screen-login.active { display: flex; align-items: center; justify-content: center; padding: 24px; }
+
+/* ═══ HEADER ═══ */
+.portal-header {
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(10,6,16,0.96); backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
+  padding: 13px 18px;
+  display: flex; align-items: center; gap: 10px;
+}
+.header-greeting { font-size: 16px; font-weight: 600; color: var(--cream); flex: 1; }
+.header-title    { font-size: 15px; font-weight: 600; color: var(--cream); flex: 1; text-align: center; letter-spacing: 0.02em; }
+.header-order-id { font-family: ui-monospace, monospace; font-size: 11px; color: var(--gold); min-width: 80px; text-align: right; }
+.btn-back   { background: none; border: none; color: var(--ink-mute); font-size: 14px; cursor: pointer; padding: 4px 2px; white-space: nowrap; }
+.btn-back:hover { color: var(--cream); }
+.btn-logout { background: none; border: 1px solid var(--line); color: var(--ink-mute); font-size: 11px; cursor: pointer; padding: 4px 10px; border-radius: 6px; font-family: inherit; white-space: nowrap; }
+.btn-logout:hover { color: var(--cream); border-color: var(--ink-mute); }
+
+/* ═══ MAIN CONTENT ═══ */
+.portal-main { max-width: 480px; margin: 0 auto; padding: 18px 16px; }
+
+/* ═══ LOGIN ═══ */
+.login-wrap { width: 100%; max-width: 340px; }
+.login-logo { text-align: center; margin-bottom: 36px; }
+.logo-mark  { font-size: 38px; margin-bottom: 6px; }
+.logo-name  { font-size: 26px; font-weight: 800; color: var(--cream); letter-spacing: 0.1em; text-transform: uppercase; }
+.logo-sub   { font-size: 11px; color: var(--ink-mute); letter-spacing: 0.14em; text-transform: uppercase; margin-top: 4px; }
+.login-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 26px 22px; }
+.login-label { font-size: 11px; color: var(--ink-mute); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 10px; }
+.login-input {
+  width: 100%; background: var(--surface-2); color: var(--cream);
+  border: 1px solid var(--line); border-radius: 8px;
+  padding: 14px 16px; font-size: 22px; font-weight: 700;
+  letter-spacing: 0.16em; text-align: center; text-transform: uppercase;
+  font-family: ui-monospace, monospace;
+  outline: none; transition: border-color 0.15s; margin-bottom: 10px;
+}
+.login-input:focus { border-color: var(--gold); }
+.login-input::placeholder { color: var(--ink-mute); font-size: 14px; letter-spacing: 0.06em; font-weight: 400; }
+.login-error { color: var(--red); font-size: 12px; margin-bottom: 12px; padding: 8px 12px; background: rgba(217,83,79,0.1); border-radius: 6px; line-height: 1.5; }
+.btn-primary {
+  width: 100%; background: var(--gold); color: var(--bg);
+  border: none; border-radius: 8px; padding: 14px;
+  font-size: 15px; font-weight: 700; cursor: pointer;
+  font-family: inherit; letter-spacing: 0.04em;
+  transition: opacity 0.15s, transform 0.1s; margin-top: 2px;
+}
+.btn-primary:hover  { opacity: 0.9; }
+.btn-primary:active { transform: scale(0.98); }
+.btn-primary:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+.login-help { text-align: center; margin-top: 18px; font-size: 12px; color: var(--ink-mute); line-height: 1.6; }
+
+/* ═══ PUNTOS CARD ═══ */
+.puntos-card {
+  background: linear-gradient(135deg, var(--surface) 0%, #1a1428 100%);
+  border: 1px solid rgba(245,200,66,0.2); border-radius: var(--radius);
+  padding: 20px; margin-bottom: 14px; position: relative; overflow: hidden;
+}
+.puntos-card::before {
+  content: ""; position: absolute; top: -40px; right: -40px;
+  width: 140px; height: 140px;
+  background: radial-gradient(circle, rgba(245,200,66,0.07) 0%, transparent 70%);
+  pointer-events: none;
+}
+.puntos-header  { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; }
+.puntos-number  { font-size: 38px; font-weight: 800; color: var(--gold); font-family: ui-monospace, monospace; line-height: 1; }
+.puntos-label   { font-size: 11px; color: var(--ink-mute); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 4px; }
+.nivel-badge    { display: flex; align-items: center; gap: 6px; background: rgba(245,200,66,0.1); border: 1px solid rgba(245,200,66,0.25); border-radius: 20px; padding: 6px 12px; }
+.nivel-icon     { font-size: 16px; }
+.nivel-name     { font-size: 12px; font-weight: 700; color: var(--gold); letter-spacing: 0.04em; }
+.puntos-bar-wrap { margin-top: 2px; }
+.puntos-bar-label { display: flex; justify-content: space-between; font-size: 10px; color: var(--ink-mute); margin-bottom: 6px; }
+.puntos-bar-track { height: 4px; background: var(--surface-3); border-radius: 2px; overflow: hidden; }
+.puntos-bar-fill  { height: 100%; background: linear-gradient(90deg, var(--plum-soft), var(--gold)); border-radius: 2px; transition: width 0.7s ease; }
+
+/* ═══ ACTIVE ORDER CARD ═══ */
+.active-order-card {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 20px; margin-bottom: 14px;
+  cursor: pointer; transition: border-color 0.15s;
+}
+.active-order-card:hover { border-color: var(--plum-soft); }
+.aoc-badge    { display: inline-flex; align-items: center; gap: 5px; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--green); margin-bottom: 10px; }
+.aoc-badge::before { content: "●"; font-size: 7px; }
+.aoc-stage-icon { font-size: 40px; margin: 10px 0 8px; }
+.aoc-stage-name { font-size: 19px; font-weight: 700; color: var(--cream); margin-bottom: 4px; }
+.aoc-stage-desc { font-size: 13px; color: var(--ink-mute); line-height: 1.5; }
+.aoc-footer     { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--line); flex-wrap: wrap; gap: 6px; }
+.aoc-id  { font-family: ui-monospace, monospace; font-size: 11px; color: var(--gold); font-weight: 600; }
+.aoc-eta { font-size: 11px; color: var(--ink-mute); }
+.aoc-cta { font-size: 12px; color: var(--plum-soft); font-weight: 600; }
+.no-order-card  { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 28px 20px; text-align: center; margin-bottom: 14px; }
+.no-order-icon  { font-size: 32px; margin-bottom: 12px; }
+.no-order-text  { font-size: 14px; color: var(--ink-mute); margin-bottom: 18px; line-height: 1.5; }
+
+/* ═══ QUICK ACTIONS ═══ */
+.quick-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; }
+.action-tile {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: 10px; padding: 16px 8px;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  cursor: pointer; font-family: inherit;
+  transition: border-color 0.15s, background 0.15s;
+}
+.action-tile:hover { border-color: var(--plum-soft); background: var(--surface-2); }
+.action-icon  { font-size: 22px; }
+.action-label { font-size: 11px; color: var(--ink-mute); letter-spacing: 0.04em; }
+
+/* ═══ TRACKING / ORDER TIMELINE ═══ */
+.order-status-header { text-align: center; padding: 24px 0 16px; }
+.osh-icon  { font-size: 52px; margin-bottom: 12px; }
+.osh-title { font-size: 21px; font-weight: 700; color: var(--cream); margin-bottom: 6px; }
+.osh-desc  { font-size: 13px; color: var(--ink-mute); line-height: 1.5; }
+.pending-notice {
+  background: rgba(245,200,66,0.07); border: 1px solid rgba(245,200,66,0.18);
+  border-radius: 10px; padding: 14px 16px; margin-bottom: 20px;
+  font-size: 13px; color: var(--gold); text-align: center; line-height: 1.6;
+}
+.eta-bar { text-align: center; font-size: 12px; color: var(--ink-mute); margin-bottom: 18px; }
+.eta-bar strong { color: var(--cream); }
+
+.timeline { margin: 20px 0 24px; }
+.timeline-step { display: flex; gap: 16px; }
+.timeline-left { display: flex; flex-direction: column; align-items: center; }
+.timeline-node {
+  width: 38px; height: 38px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; flex-shrink: 0;
+  border: 2px solid var(--line); background: var(--surface);
+  transition: all 0.3s;
+}
+.timeline-step.done   .timeline-node { background: var(--green); border-color: var(--green); font-size: 14px; color: var(--bg); }
+.timeline-step.active .timeline-node { background: var(--plum); border-color: var(--plum-soft); box-shadow: 0 0 18px rgba(91,58,143,0.45); }
+.timeline-connector { width: 2px; flex: 1; background: var(--line); margin: 4px 0; min-height: 28px; }
+.timeline-step.done .timeline-connector { background: var(--green); }
+.timeline-step:last-child .timeline-connector { display: none; }
+.timeline-content { padding: 7px 0 26px; flex: 1; }
+.timeline-name { font-size: 14px; font-weight: 600; color: var(--ink-mute); }
+.timeline-step.done   .timeline-name,
+.timeline-step.active .timeline-name { color: var(--cream); }
+.timeline-date { font-size: 11px; color: var(--ink-mute); font-family: ui-monospace, monospace; margin-top: 2px; }
+.timeline-step.active .timeline-date { color: var(--gold); }
+
+/* ═══ ITEMS LIST ═══ */
+.section-title { font-size: 11px; color: var(--ink-mute); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 12px; }
+.items-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 22px; }
+.item-row {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: 8px; padding: 12px 14px;
+  display: flex; align-items: center; gap: 12px;
+}
+.item-qty  { font-family: ui-monospace, monospace; font-size: 20px; font-weight: 700; color: var(--gold); min-width: 30px; }
+.item-info { flex: 1; }
+.item-name { font-size: 13px; color: var(--cream); font-weight: 600; }
+.item-sub  { font-size: 11px; color: var(--ink-mute); margin-top: 2px; }
+
+/* ═══ ORIGIN STORY ═══ */
+.origin-card {
+  background: linear-gradient(135deg, #14102a 0%, var(--surface) 100%);
+  border: 1px solid rgba(122,82,184,0.28);
+  border-radius: var(--radius); padding: 18px; margin-bottom: 22px;
+}
+.origin-eyebrow { font-size: 10px; color: var(--plum-soft); letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: 6px; }
+.origin-name    { font-size: 16px; font-weight: 700; color: var(--cream); margin-bottom: 4px; }
+.origin-farm    { font-size: 12px; color: var(--ink-mute); margin-bottom: 12px; }
+.origin-tags    { display: flex; flex-wrap: wrap; gap: 6px; }
+.origin-tag     { background: rgba(122,82,184,0.14); border: 1px solid rgba(122,82,184,0.28); border-radius: 20px; padding: 3px 10px; font-size: 11px; color: var(--ink-mute); }
+
+/* ═══ HISTORY ═══ */
+.history-order { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; margin-bottom: 10px; overflow: hidden; }
+.history-head  { padding: 14px 16px; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: background 0.15s; }
+.history-head:hover { background: var(--surface-2); }
+.h-dot         { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.h-dot.delivered { background: var(--green); }
+.h-dot.cancelled { background: var(--red); }
+.h-dot.active    { background: var(--gold); }
+.h-id   { font-family: ui-monospace, monospace; font-size: 12px; color: var(--gold); font-weight: 700; flex: 1; }
+.h-date { font-size: 11px; color: var(--ink-mute); }
+.h-chevron { color: var(--ink-mute); font-size: 13px; transition: transform 0.2s; flex-shrink: 0; }
+.history-order.expanded .h-chevron { transform: rotate(90deg); }
+.history-body { display: none; padding: 0 16px 16px; border-top: 1px solid var(--line); }
+.history-order.expanded .history-body { display: block; }
+.h-summary { font-size: 12px; color: var(--ink-mute); padding: 10px 0; line-height: 1.7; }
+.h-puntos  { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--gold); font-weight: 600; }
+.btn-repeat {
+  width: 100%; background: var(--surface-2); border: 1px solid rgba(122,82,184,0.4);
+  color: var(--plum-soft); border-radius: 8px; padding: 10px;
+  font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit;
+  margin-top: 12px; transition: background 0.15s;
+}
+.btn-repeat:hover { background: rgba(122,82,184,0.12); }
+
+/* ═══ REORDER ═══ */
+.reorder-notice {
+  background: rgba(245,200,66,0.07); border: 1px solid rgba(245,200,66,0.15);
+  border-radius: 10px; padding: 14px 16px; margin-bottom: 20px;
+  font-size: 13px; color: var(--ink-mute); line-height: 1.6;
+}
+.reorder-notice strong { color: var(--gold); }
+.reorder-notice.warn   { background: rgba(217,83,79,0.06); border-color: rgba(217,83,79,0.25); }
+.reorder-notice.warn strong { color: var(--red); }
+.reorder-success { text-align: center; padding: 40px 16px; }
+.reorder-success-icon  { font-size: 52px; margin-bottom: 18px; }
+.reorder-success-title { font-size: 21px; font-weight: 700; color: var(--cream); margin-bottom: 10px; }
+.reorder-success-text  { font-size: 14px; color: var(--ink-mute); line-height: 1.6; }
+
+/* ═══ MESSAGE ═══ */
+.form-label    { font-size: 12px; color: var(--ink-mute); margin-bottom: 10px; }
+.message-input {
+  width: 100%; background: var(--surface); border: 1px solid var(--line);
+  color: var(--ink); border-radius: 10px; padding: 14px;
+  font-size: 14px; font-family: inherit; line-height: 1.6;
+  resize: vertical; min-height: 150px; outline: none;
+  transition: border-color 0.15s; margin-bottom: 14px;
+}
+.message-input:focus { border-color: var(--plum-soft); }
+.message-note { text-align: center; font-size: 11px; color: var(--ink-mute); margin-top: 12px; }
+.message-sent { text-align: center; padding: 48px 16px; }
+
+/* ═══ BOTTOM NAV ═══ */
+#bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: rgba(10,6,16,0.97); backdrop-filter: blur(12px);
+  border-top: 1px solid var(--line);
+  display: flex; z-index: 100;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+.nav-tab {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  gap: 3px; padding: 10px 4px 8px;
+  background: none; border: none; cursor: pointer; font-family: inherit;
+}
+.nav-tab .nav-icon  { font-size: 21px; }
+.nav-tab .nav-label { font-size: 10px; color: var(--ink-mute); letter-spacing: 0.04em; }
+.nav-tab.active .nav-label { color: var(--gold); }
+
+/* ═══ LOADING OVERLAY ═══ */
+#loading-overlay {
+  position: fixed; inset: 0; background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 200; flex-direction: column; gap: 16px;
+}
+.loading-spinner { width: 32px; height: 32px; border: 2px solid var(--surface-3); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.75s linear infinite; }
+.loading-text    { font-size: 13px; color: var(--ink-mute); }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ═══ TOAST ═══ */
+#toast { position: fixed; bottom: 94px; left: 50%; transform: translateX(-50%); z-index: 300; pointer-events: none; white-space: nowrap; }
+.toast-msg { background: var(--surface-3); border: 1px solid var(--line); color: var(--cream); padding: 9px 18px; border-radius: 20px; font-size: 13px; animation: fadeInUp 0.2s ease; }
+.toast-msg.success { border-color: var(--green); color: var(--green); }
+.toast-msg.error   { border-color: var(--red);   color: var(--red);   }
+@keyframes fadeInUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+/* ═══ ADMIN (migration screen) ═══ */
+#screen-admin { padding: 24px 18px; max-width: 480px; margin: 0 auto; }
+.admin-title   { font-size: 18px; font-weight: 700; color: var(--gold); margin-bottom: 18px; }
+.admin-section { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin-bottom: 14px; }
+.admin-section h3 { font-size: 13px; color: var(--cream); margin-bottom: 6px; }
+.admin-section p  { font-size: 12px; color: var(--ink-mute); line-height: 1.6; margin-bottom: 10px; }
+.admin-log { background: var(--surface-2); border-radius: 6px; padding: 10px; font-family: ui-monospace, monospace; font-size: 11px; color: var(--ink-mute); max-height: 220px; overflow-y: auto; white-space: pre-wrap; margin-top: 10px; display: none; }
+.admin-log .ok  { color: var(--green); }
+.admin-log .err { color: var(--red); }
+.btn-admin { background: var(--surface-3); border: 1px solid var(--line); color: var(--ink); padding: 8px 16px; border-radius: 6px; font-size: 12px; cursor: pointer; font-family: inherit; }
+.btn-admin:hover { border-color: var(--gold); color: var(--gold); }
+.code-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 12px; }
+.code-table td { padding: 6px 8px; border-bottom: 1px solid var(--line); }
+.code-table td:first-child { color: var(--cream); }
+.code-table td:last-child  { font-family: ui-monospace, monospace; color: var(--gold); font-weight: 700; letter-spacing: 0.1em; }
+
+/* ═══ UTILS ═══ */
+.divider    { height: 1px; background: var(--line); margin: 18px 0; }
+.text-muted { color: var(--ink-mute); font-size: 12px; line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<!-- LOADING OVERLAY -->
+<div id="loading-overlay">
+  <div class="loading-spinner"></div>
+  <div class="loading-text">Cargando tu portal…</div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN · Login
+════════════════════════════════════════ -->
+<div id="screen-login" class="screen">
+  <div class="login-wrap">
+    <div class="login-logo">
+      <div class="logo-mark">☕</div>
+      <div class="logo-name">Kofy</div>
+      <div class="logo-sub">Portal de Clientes</div>
+    </div>
+    <div class="login-card">
+      <div class="login-label">Código de acceso</div>
+      <input id="code-input" type="text" class="login-input" placeholder="Ej. CAFE4829"
+             maxlength="12" autocapitalize="characters" autocomplete="off" spellcheck="false"
+             oninput="this.value=this.value.toUpperCase()"
+             onkeydown="if(event.key==='Enter')doLogin()">
+      <div id="login-error" class="login-error" style="display:none"></div>
+      <button id="btn-acceder" class="btn-primary" onclick="doLogin()">Acceder →</button>
+      <div class="login-help">
+        ¿No tenés tu código?<br>Escribinos al WhatsApp o por email y te lo enviamos.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN · Home
+════════════════════════════════════════ -->
+<div id="screen-home" class="screen">
+  <header class="portal-header">
+    <div class="header-greeting">Hola, <span id="home-name">—</span> 👋</div>
+    <button class="btn-logout" onclick="logout()">Salir</button>
+  </header>
+  <div class="portal-main">
+    <div id="puntos-card" class="puntos-card"></div>
+    <div id="active-order-section"></div>
+    <div class="quick-actions">
+      <button class="action-tile" onclick="showScreen('history')">
+        <span class="action-icon">📋</span>
+        <span class="action-label">Historial</span>
+      </button>
+      <button class="action-tile" onclick="startReorder()">
+        <span class="action-icon">🔄</span>
+        <span class="action-label">Pedir de nuevo</span>
+      </button>
+      <button class="action-tile" onclick="showScreen('message')">
+        <span class="action-icon">💬</span>
+        <span class="action-label">Mensaje</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN · Tracking (Order Detail)
+════════════════════════════════════════ -->
+<div id="screen-tracking" class="screen">
+  <header class="portal-header">
+    <button class="btn-back" onclick="showScreen('home')">← Inicio</button>
+    <div class="header-title">Mi pedido</div>
+    <div id="tracking-order-id" class="header-order-id"></div>
+  </header>
+  <div class="portal-main" id="tracking-content">
+    <div style="text-align:center;padding:40px 0;color:var(--ink-mute)">Cargando…</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN · History
+════════════════════════════════════════ -->
+<div id="screen-history" class="screen">
+  <header class="portal-header">
+    <button class="btn-back" onclick="showScreen('home')">← Inicio</button>
+    <div class="header-title">Historial</div>
+    <div style="flex:1"></div>
+  </header>
+  <div class="portal-main" id="history-content">
+    <div style="text-align:center;padding:40px 0;color:var(--ink-mute)">Cargando…</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN · Reorder
+════════════════════════════════════════ -->
+<div id="screen-reorder" class="screen">
+  <header class="portal-header">
+    <button id="reorder-back-btn" class="btn-back" onclick="showScreen('home')">← Volver</button>
+    <div class="header-title">Confirmar pedido</div>
+    <div style="flex:1"></div>
+  </header>
+  <div class="portal-main" id="reorder-content"></div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN · Message
+════════════════════════════════════════ -->
+<div id="screen-message" class="screen">
+  <header class="portal-header">
+    <button class="btn-back" onclick="showScreen('home')">← Inicio</button>
+    <div class="header-title">Escríbenos</div>
+    <div style="flex:1"></div>
+  </header>
+  <div class="portal-main">
+    <div id="message-content">
+      <div class="message-form">
+        <div class="form-label">Tu mensaje para el equipo Kofy</div>
+        <textarea id="message-text" class="message-input"
+          placeholder="¿Qué necesitás? Pedidos, consultas, cualquier cosa…"></textarea>
+        <button class="btn-primary" onclick="sendMessage()">Enviar mensaje ✉</button>
+        <div class="message-note">Te respondemos por WhatsApp o Email</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     ADMIN · Migration (URL: ?admin=migrate)
+════════════════════════════════════════ -->
+<div id="screen-admin" style="display:none">
+  <div class="admin-title">⚙ Configuración del Portal · Cliente</div>
+
+  <div class="admin-section">
+    <h3>Paso 1 — Migrar esquema de Notion</h3>
+    <p>Agrega los campos necesarios: <code style="color:var(--gold)">Código</code> en Clientes, <code style="color:var(--gold)">Total ($)</code> y <code style="color:var(--gold)">Origen cliente</code> en Órdenes. Seguro de correr más de una vez.</p>
+    <button class="btn-admin" onclick="runMigration()">Ejecutar migración</button>
+    <div id="migration-log" class="admin-log"></div>
+  </div>
+
+  <div class="admin-section">
+    <h3>Paso 2 — Generar códigos de acceso</h3>
+    <p>Genera un código único de 8 caracteres para cada cliente que aún no tiene uno. Los códigos aparecen abajo para enviárselos manualmente.</p>
+    <button class="btn-admin" onclick="generateCodes()">Generar códigos</button>
+    <div id="codes-log" class="admin-log"></div>
+    <div id="codes-table-wrap"></div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV (hidden until login) -->
+<nav id="bottom-nav" style="display:none">
+  <button class="nav-tab active" data-screen="home" onclick="showScreen('home')">
+    <span class="nav-icon">🏠</span>
+    <span class="nav-label">Inicio</span>
+  </button>
+  <button class="nav-tab" data-screen="tracking" onclick="showScreen('tracking')">
+    <span class="nav-icon">📦</span>
+    <span class="nav-label">Pedido</span>
+  </button>
+  <button class="nav-tab" data-screen="history" onclick="showScreen('history')">
+    <span class="nav-icon">📋</span>
+    <span class="nav-label">Historial</span>
+  </button>
+  <button class="nav-tab" data-screen="message" onclick="showScreen('message')">
+    <span class="nav-icon">💬</span>
+    <span class="nav-label">Mensaje</span>
+  </button>
+</nav>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════════════════════════════════
+// CONSTANTS
+// ════════════════════════════════════════════════════════════════════════
+const WORKER      = "https://kofy-notion-proxy.delicate-surf-529c.workers.dev";
+const SESSION_KEY = "kofy_portal_session_v1";
+
+const DB = {
+  CLIENTES: "3649b62600a08020ae9ed625e57044bb",
+  ORDENES:  "3649b62600a0800ea228d8d8dcf2ada4",
+  ITEMS:    "3649b62600a0806db145c919a7927ac2",
+  ORIGENES: "3649b62600a080b5a056c4a03d3fbc2b",
+};
+
+// Order stages: what clients see (matches warehouse stages)
+const ORDER_STAGES = [
+  { code: "CV", icon: "🌱", name: "Café apartado",   desc: "Tu café verde está siendo seleccionado con cuidado" },
+  { code: "T",  icon: "🔥", name: "En tostado",      desc: "Tu café está siendo tostado a medida para vos" },
+  { code: "E",  icon: "📦", name: "Empaquetado",     desc: "Sellando y empaquetando tu pedido" },
+  { code: "L",  icon: "🏷️", name: "Listo p/ envío",  desc: "Etiquetado y listo para salir" },
+  { code: "EN", icon: "✅", name: "Entregado",        desc: "Tu pedido fue entregado. ¡Disfrutalo!" },
+];
+
+// Loyalty levels — 1 punto per $1 spent on completed orders
+const NIVELES = [
+  { min: 0,    max: 49,        icon: "🌱", name: "Curioso"  },
+  { min: 50,   max: 149,       icon: "☕", name: "Fanático"  },
+  { min: 150,  max: 399,       icon: "🔥", name: "Catador"   },
+  { min: 400,  max: 999,       icon: "🏆", name: "Maestro"   },
+  { min: 1000, max: Infinity,  icon: "👑", name: "Leyenda"   },
+];
+
+const PRES_LABEL = {
+  "1 KG": "1 kg", "500g": "500g", "250g": "250g",
+  "BOX": "Caja de sachets", "SACHET": "Sachet",
+};
+const TOS_LABEL = {
+  "AN": "Claro", "CM": "Medio", "MT": "Oscuro",
+  "Grado A": "Grado A", "Single O": "Single Origin",
+};
+
+// ════════════════════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════════════════════
+let SESSION      = null;  // { clientId, clientCode, clientName, clientPhone, clientEmail }
+let ALL_ORDERS   = [];    // orders for this client, sorted newest first
+let ALL_ORIGENES = [];
+let ITEMS_BY_ORDER = {};  // { [orderPageId]: items[] }
+let REORDER_SOURCE = null;
+let _allItemsLoaded = false;
+
+// ════════════════════════════════════════════════════════════════════════
+// API HELPERS
+// ════════════════════════════════════════════════════════════════════════
+async function apiQuery(dbId) {
+  const r = await fetch(WORKER + "/query", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ database_id: dbId }),
+  });
+  if (!r.ok) throw new Error(`Query ${dbId.slice(0,8)} failed: ${r.status}`);
+  const d = await r.json();
+  return d.results || [];
+}
+
+async function apiCreate(parentDbId, properties) {
+  const r = await fetch(WORKER + "/pages", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ parent: { database_id: parentDbId }, properties }),
+  });
+  if (!r.ok) throw new Error(`Create failed: ${r.status}`);
+  return r.json();
+}
+
+async function apiPatch(pageId, properties) {
+  const r = await fetch(`${WORKER}/pages/${pageId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ properties }),
+  });
+  if (!r.ok) throw new Error(`Patch failed: ${r.status}`);
+  return r.json();
+}
+
+async function apiPatchDb(dbId, properties) {
+  const r = await fetch(`${WORKER}/database/${dbId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ properties }),
+  });
+  if (!r.ok) throw new Error(`PatchDB failed: ${r.status}`);
+  return r.json();
+}
+
+async function apiNotify(channel, to, template, data) {
+  try {
+    await fetch(WORKER + "/notify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ channel, to, template, data }),
+    });
+  } catch(e) {
+    console.warn("Notify failed silently:", e);
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// READPROP — shared helper (same pattern as warehouse tools)
+// ════════════════════════════════════════════════════════════════════════
+function readProp(page, name) {
+  const p = page?.properties?.[name];
+  if (!p) return null;
+  switch (p.type) {
+    case "title":        return p.title.map(t => t.plain_text).join("") || null;
+    case "rich_text":    return p.rich_text.map(t => t.plain_text).join("") || null;
+    case "select":       return p.select?.name || null;
+    case "multi_select": return p.multi_select.map(s => s.name);
+    case "checkbox":     return p.checkbox;
+    case "date":         return p.date?.start || null;
+    case "number":       return p.number ?? null;
+    case "email":        return p.email || null;
+    case "phone_number": return p.phone_number || null;
+    case "relation":     return p.relation.map(r => r.id);
+    case "formula":
+      if (p.formula.type === "number") return p.formula.number;
+      if (p.formula.type === "string") return p.formula.string;
+      return null;
+    default: return null;
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// ORDER HELPERS
+// ════════════════════════════════════════════════════════════════════════
+function getStageCode(o) {
+  if (readProp(o, "EN ✓")) return "en";
+  if (readProp(o, "L ✓"))  return "l";
+  if (readProp(o, "E ✓"))  return "e";
+  if (readProp(o, "T ✓"))  return "t";
+  if (readProp(o, "CV ✓")) return "cv";
+  return "recibida";
+}
+const isDelivered = o => !!readProp(o, "EN ✓");
+const isCancelled = o => !!readProp(o, "Cancelada");
+const isActive    = o => !isDelivered(o) && !isCancelled(o);
+
+function getPuntos() {
+  return Math.floor(
+    ALL_ORDERS
+      .filter(o => isDelivered(o) && !readProp(o, "Gratis"))
+      .reduce((sum, o) => sum + (readProp(o, "Total ($)") || 0), 0)
+  );
+}
+
+function getNivel(pts) {
+  return NIVELES.find(n => pts >= n.min && pts <= n.max) || NIVELES[0];
+}
+function getNextNivel(pts) {
+  const idx = NIVELES.findIndex(n => pts >= n.min && pts <= n.max);
+  return idx >= 0 && idx < NIVELES.length - 1 ? NIVELES[idx + 1] : null;
+}
+
+function formatDate(iso) {
+  if (!iso) return "";
+  const d = new Date(iso + "T12:00:00Z");
+  return d.toLocaleDateString("es-VE", { day: "numeric", month: "short", year: "numeric" });
+}
+
+function genOrderId(clientName) {
+  const d  = new Date();
+  const dm = String(d.getDate()).padStart(2,"0") + String(d.getMonth()+1).padStart(2,"0");
+  const safe = (clientName || "CLIENTE").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0, 8);
+  return `${safe}-${dm}P`;
+}
+
+function itemSummaryStr(items) {
+  if (!items || !items.length) return "Sin items";
+  return items.slice(0,3).map(it => {
+    const c = readProp(it, "Cantidad") || 1;
+    const p = PRES_LABEL[readProp(it, "Presentación")] || readProp(it, "Presentación") || "—";
+    const t = TOS_LABEL[readProp(it, "Tostado")] || readProp(it, "Tostado") || "";
+    return `${c}× ${p}${t ? " " + t : ""}`;
+  }).join(" · ") + (items.length > 3 ? " …" : "");
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// ITEMS — lazy load, bulk cache
+// ════════════════════════════════════════════════════════════════════════
+async function getItemsForOrder(orderPageId) {
+  // Return from cache if already loaded
+  if (ITEMS_BY_ORDER[orderPageId] !== undefined) return ITEMS_BY_ORDER[orderPageId];
+
+  // First call: load ALL items at once and index them by order
+  if (!_allItemsLoaded) {
+    const allItems = await apiQuery(DB.ITEMS);
+    _allItemsLoaded = true;
+    for (const it of allItems) {
+      const orderIds = readProp(it, "Orden") || [];
+      for (const oid of orderIds) {
+        if (!ITEMS_BY_ORDER[oid]) ITEMS_BY_ORDER[oid] = [];
+        ITEMS_BY_ORDER[oid].push(it);
+      }
+    }
+  }
+
+  return ITEMS_BY_ORDER[orderPageId] || [];
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// SCREEN MANAGER
+// ════════════════════════════════════════════════════════════════════════
+function showScreen(name) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  const el = document.getElementById("screen-" + name);
+  if (el) el.classList.add("active");
+  document.querySelectorAll(".nav-tab").forEach(t => {
+    t.classList.toggle("active", t.dataset.screen === name);
+  });
+  window.scrollTo(0, 0);
+  // Trigger renders
+  if (name === "home")     renderHome();
+  if (name === "tracking") renderTracking();
+  if (name === "history")  renderHistory();
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// LOGIN
+// ════════════════════════════════════════════════════════════════════════
+async function doLogin() {
+  const code = document.getElementById("code-input").value.trim().toUpperCase();
+  if (!code) { showErr("Ingresá tu código de acceso."); return; }
+
+  const btn = document.getElementById("btn-acceder");
+  btn.disabled = true; btn.textContent = "Verificando…";
+  hideErr();
+
+  try {
+    showLoading("Verificando código…");
+    const clientes = await apiQuery(DB.CLIENTES);
+
+    const found = clientes.find(c => {
+      const stored = (readProp(c, "Código") || "").trim().toUpperCase();
+      return stored && stored === code;
+    });
+
+    if (!found) {
+      hideLoading(); showErr("Código no encontrado. Verificá que esté correcto o escríbenos.");
+      btn.disabled = false; btn.textContent = "Acceder →";
+      return;
+    }
+
+    SESSION = {
+      clientId:    found.id,
+      clientCode:  code,
+      clientName:  readProp(found, "Nombre / Razón Social") || "Cliente",
+      clientPhone: readProp(found, "WhatsApp") || readProp(found, "Teléfono") || null,
+      clientEmail: readProp(found, "Email") || null,
+    };
+    localStorage.setItem(SESSION_KEY, JSON.stringify(SESSION));
+
+    await loadClientData();
+    activatePortal();
+  } catch(e) {
+    hideLoading(); showErr("Error de conexión. Intentá de nuevo.");
+    btn.disabled = false; btn.textContent = "Acceder →";
+    console.error(e);
+  }
+}
+
+function showErr(msg) {
+  const el = document.getElementById("login-error");
+  el.textContent = msg; el.style.display = "block";
+}
+function hideErr() {
+  document.getElementById("login-error").style.display = "none";
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// LOAD CLIENT DATA (called after login or session restore)
+// ════════════════════════════════════════════════════════════════════════
+async function loadClientData() {
+  showLoading("Cargando tus pedidos…");
+  const [allOrders, origenes] = await Promise.all([
+    apiQuery(DB.ORDENES),
+    apiQuery(DB.ORIGENES),
+  ]);
+  ALL_ORIGENES = origenes;
+  ALL_ORDERS = allOrders
+    .filter(o => (readProp(o, "Cliente") || []).includes(SESSION.clientId))
+    .sort((a, b) => {
+      const da = readProp(a, "Fecha de pedido") || "";
+      const db = readProp(b, "Fecha de pedido") || "";
+      return db.localeCompare(da); // newest first
+    });
+  hideLoading();
+}
+
+function activatePortal() {
+  document.getElementById("bottom-nav").style.display = "flex";
+  showScreen("home");
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// RENDER · HOME
+// ════════════════════════════════════════════════════════════════════════
+function renderHome() {
+  if (!SESSION) return;
+  document.getElementById("home-name").textContent = SESSION.clientName.split(" ")[0];
+
+  // Puntos + nivel
+  const pts      = getPuntos();
+  const nivel    = getNivel(pts);
+  const next     = getNextNivel(pts);
+  const progress = next ? Math.round(((pts - nivel.min) / (next.min - nivel.min)) * 100) : 100;
+
+  document.getElementById("puntos-card").innerHTML = `
+    <div class="puntos-header">
+      <div>
+        <div class="puntos-number">${pts}</div>
+        <div class="puntos-label">Kofy Puntos</div>
+      </div>
+      <div class="nivel-badge">
+        <span class="nivel-icon">${nivel.icon}</span>
+        <span class="nivel-name">${nivel.name}</span>
+      </div>
+    </div>
+    <div class="puntos-bar-wrap">
+      <div class="puntos-bar-label">
+        <span>${nivel.name}</span>
+        <span>${next ? `→ ${next.name} (${next.min - pts} pts)` : "Nivel máximo 👑"}</span>
+      </div>
+      <div class="puntos-bar-track">
+        <div class="puntos-bar-fill" style="width:${progress}%"></div>
+      </div>
+    </div>
+  `;
+
+  // Active order card
+  const activeOrder = ALL_ORDERS.find(o => isActive(o));
+  const sec = document.getElementById("active-order-section");
+
+  if (activeOrder) {
+    const sc = getStageCode(activeOrder);
+    const si = sc === "recibida"
+      ? { icon: "📥", name: "Solicitud en revisión", desc: "El equipo Kofy está confirmando tu pedido" }
+      : ORDER_STAGES.find(s => s.code.toLowerCase() === sc) || ORDER_STAGES[0];
+    const orderId = readProp(activeOrder, "Order ID") || "—";
+    const eta     = readProp(activeOrder, "Fecha de entrega estimada");
+    sec.innerHTML = `
+      <div class="active-order-card" onclick="showScreen('tracking')">
+        <div class="aoc-badge">Pedido activo</div>
+        <div class="aoc-stage-icon">${si.icon}</div>
+        <div class="aoc-stage-name">${si.name}</div>
+        <div class="aoc-stage-desc">${si.desc}</div>
+        <div class="aoc-footer">
+          <span class="aoc-id">${orderId}</span>
+          ${eta ? `<span class="aoc-eta">ETA: ${formatDate(eta)}</span>` : ""}
+          <span class="aoc-cta">Ver detalle →</span>
+        </div>
+      </div>
+    `;
+  } else {
+    sec.innerHTML = `
+      <div class="no-order-card">
+        <div class="no-order-icon">☕</div>
+        <div class="no-order-text">No hay pedidos activos en este momento.</div>
+        <button class="btn-primary" style="max-width:200px;margin:0 auto;display:block" onclick="startReorder()">Pedir de nuevo</button>
+      </div>
+    `;
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// RENDER · TRACKING (Active Order Detail)
+// ════════════════════════════════════════════════════════════════════════
+async function renderTracking() {
+  const content = document.getElementById("tracking-content");
+  const activeOrder = ALL_ORDERS.find(o => isActive(o));
+
+  if (!activeOrder) {
+    document.getElementById("tracking-order-id").textContent = "";
+    content.innerHTML = `
+      <div style="text-align:center;padding:48px 0;">
+        <div style="font-size:36px;margin-bottom:14px">☕</div>
+        <div style="color:var(--ink-mute);font-size:14px">No hay pedidos activos en este momento.</div>
+      </div>`;
+    return;
+  }
+
+  const orderId = readProp(activeOrder, "Order ID") || "—";
+  const sc      = getStageCode(activeOrder);
+  const eta     = readProp(activeOrder, "Fecha de entrega estimada");
+  const fecha   = readProp(activeOrder, "Fecha de pedido");
+  document.getElementById("tracking-order-id").textContent = orderId;
+
+  // Load items + origin (parallel after items cache is warm)
+  const items = await getItemsForOrder(activeOrder.id);
+  const oriIds = items[0] ? (readProp(items[0], "Origen") || []) : [];
+  const origen = oriIds.length ? ALL_ORIGENES.find(o => o.id === oriIds[0]) : null;
+
+  let html = "";
+
+  if (sc === "recibida") {
+    html += `
+      <div class="order-status-header">
+        <div class="osh-icon">📥</div>
+        <div class="osh-title">Solicitud recibida</div>
+        <div class="osh-desc">El equipo Kofy está revisando tu pedido</div>
+      </div>
+      <div class="pending-notice">
+        ⏳ Tu pedido será confirmado en breve. Te avisamos por WhatsApp cuando quede listo para procesar.
+      </div>
+    `;
+  } else {
+    const current = ORDER_STAGES.find(s => s.code.toLowerCase() === sc);
+    if (current) {
+      html += `
+        <div class="order-status-header">
+          <div class="osh-icon">${current.icon}</div>
+          <div class="osh-title">${current.name}</div>
+          <div class="osh-desc">${current.desc}</div>
+        </div>
+        ${eta ? `<div class="eta-bar">Entrega estimada: <strong>${formatDate(eta)}</strong></div>` : ""}
+      `;
+    }
+
+    // Stage timeline
+    html += `<div class="timeline">`;
+    ORDER_STAGES.forEach((s, i) => {
+      const done   = !!readProp(activeOrder, `${s.code} ✓`);
+      const active = s.code.toLowerCase() === sc && !done;
+      const cls    = done ? "done" : (active ? "active" : "");
+      const dt     = readProp(activeOrder, `${s.code} fecha`);
+      html += `
+        <div class="timeline-step ${cls}">
+          <div class="timeline-left">
+            <div class="timeline-node">${done ? "✓" : s.icon}</div>
+            ${i < ORDER_STAGES.length - 1 ? '<div class="timeline-connector"></div>' : ""}
+          </div>
+          <div class="timeline-content">
+            <div class="timeline-name">${s.name}</div>
+            ${dt ? `<div class="timeline-date">${formatDate(dt)}</div>` : ""}
+          </div>
+        </div>
+      `;
+    });
+    html += `</div>`;
+  }
+
+  // Origin story (relevant during early stages)
+  if (origen && ["recibida","cv","t"].includes(sc)) {
+    const orName   = readProp(origen, "ID Origen") || "Tu origen";
+    const hacienda = readProp(origen, "Hacienda")  || "";
+    const varietal = readProp(origen, "Varietal")  || "";
+    const msnm     = readProp(origen, "MSNM");
+    const proceso  = readProp(origen, "Proceso")   || "";
+    html += `
+      <div class="origin-card">
+        <div class="origin-eyebrow">El café de tu pedido</div>
+        <div class="origin-name">${orName}</div>
+        ${hacienda ? `<div class="origin-farm">${hacienda}</div>` : ""}
+        <div class="origin-tags">
+          ${varietal ? `<span class="origin-tag">🌿 ${varietal}</span>` : ""}
+          ${msnm     ? `<span class="origin-tag">⛰ ${msnm} msnm</span>` : ""}
+          ${proceso  ? `<span class="origin-tag">💧 ${proceso}</span>`  : ""}
+        </div>
+      </div>
+    `;
+  }
+
+  // Items list
+  if (items.length) {
+    html += `<div class="section-title">Tu pedido</div><div class="items-list">`;
+    items.forEach(it => {
+      const cant  = readProp(it, "Cantidad") || 1;
+      const pres  = PRES_LABEL[readProp(it, "Presentación")] || readProp(it, "Presentación") || "—";
+      const tos   = TOS_LABEL[readProp(it, "Tostado")] || readProp(it, "Tostado") || "";
+      const grind = readProp(it, "Grano / Molido") || "";
+      html += `
+        <div class="item-row">
+          <div class="item-qty">${cant}×</div>
+          <div class="item-info">
+            <div class="item-name">${pres}${tos ? " · " + tos : ""}</div>
+            ${grind ? `<div class="item-sub">${grind}</div>` : ""}
+          </div>
+        </div>
+      `;
+    });
+    html += `</div>`;
+  }
+
+  if (fecha) {
+    html += `<div style="text-align:center;font-size:11px;color:var(--ink-mute);padding-top:4px">Pedido el ${formatDate(fecha)}</div>`;
+  }
+
+  content.innerHTML = html;
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// RENDER · HISTORY
+// ════════════════════════════════════════════════════════════════════════
+async function renderHistory() {
+  const content = document.getElementById("history-content");
+  content.innerHTML = `<div style="text-align:center;padding:32px 0;color:var(--ink-mute)">Cargando…</div>`;
+
+  if (!ALL_ORDERS.length) {
+    content.innerHTML = `
+      <div style="text-align:center;padding:48px 0;">
+        <div style="font-size:32px;margin-bottom:14px">📋</div>
+        <div style="color:var(--ink-mute);font-size:14px">Aún no hay pedidos en tu historial.</div>
+      </div>`;
+    return;
+  }
+
+  let html = "";
+
+  for (const o of ALL_ORDERS) {
+    const orderId   = readProp(o, "Order ID") || "—";
+    const fecha     = readProp(o, "Fecha de pedido");
+    const del       = isDelivered(o);
+    const can       = isCancelled(o);
+    const act       = isActive(o);
+    const total     = readProp(o, "Total ($)");
+    const gratis    = readProp(o, "Gratis");
+    const pts       = (del && !gratis && total) ? Math.floor(total) : null;
+    const dot       = can ? "cancelled" : (del ? "delivered" : "active");
+    const statusTxt = can ? "Cancelada" : (del ? "Entregada" : "En proceso");
+
+    const items   = await getItemsForOrder(o.id);
+    const summary = itemSummaryStr(items);
+
+    html += `
+      <div class="history-order" id="ho-${o.id}">
+        <div class="history-head" onclick="toggleHistory('${o.id}')">
+          <span class="h-dot ${dot}"></span>
+          <span class="h-id">${orderId}</span>
+          <span class="h-date">${formatDate(fecha)}</span>
+          <span class="h-chevron">›</span>
+        </div>
+        <div class="history-body">
+          <div class="h-summary">
+            ${summary}<br>
+            <span style="color:var(--ink-mute)">${statusTxt}</span>
+            ${total ? `<br><span style="color:var(--ink-mute)">Total · <strong style="color:var(--cream)">$${total.toFixed(2)}</strong></span>` : ""}
+            ${pts ? `<br><span class="h-puntos">✦ + ${pts} Kofy Puntos</span>` : ""}
+            ${gratis ? `<br><span style="font-size:11px;color:var(--gold)">🎁 Cortesía</span>` : ""}
+          </div>
+          ${!can && items.length ? `
+            <button class="btn-repeat" onclick="startReorderFromOrder('${o.id}')">
+              🔄 Repetir este pedido
+            </button>
+          ` : ""}
+        </div>
+      </div>
+    `;
+  }
+
+  content.innerHTML = html;
+}
+
+function toggleHistory(id) {
+  document.getElementById("ho-" + id)?.classList.toggle("expanded");
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// REORDER
+// ════════════════════════════════════════════════════════════════════════
+async function startReorder() {
+  // Default: use most recent completed order
+  const lastDone = ALL_ORDERS.find(o => isDelivered(o) && !isCancelled(o));
+  if (!lastDone) {
+    // Try most recent order of any state
+    const anyOrder = ALL_ORDERS.find(o => !isCancelled(o));
+    if (!anyOrder) { toast("No hay pedidos anteriores para repetir.", "error"); return; }
+    return startReorderFromOrder(anyOrder.id);
+  }
+  startReorderFromOrder(lastDone.id);
+}
+
+async function startReorderFromOrder(orderPageId) {
+  const order = ALL_ORDERS.find(o => o.id === orderPageId);
+  if (!order) return;
+
+  const items = await getItemsForOrder(orderPageId);
+  if (!items.length) { toast("No se encontraron items en ese pedido.", "error"); return; }
+
+  REORDER_SOURCE = {
+    orderId: readProp(order, "Order ID"),
+    orderPageId,
+    items,
+  };
+
+  const activeOrder = ALL_ORDERS.find(o => isActive(o));
+  let html = "";
+
+  if (activeOrder) {
+    html += `
+      <div class="reorder-notice warn">
+        ⚠ Ya tenés un pedido activo (<strong>${readProp(activeOrder,"Order ID")}</strong>).
+        Podés hacer otro de todas formas — el equipo los coordinará.
+      </div>
+    `;
+  }
+
+  html += `
+    <div class="reorder-notice">
+      Vas a repetir el pedido <strong>${REORDER_SOURCE.orderId}</strong>.
+      Tu equipo Kofy lo confirmará antes de procesarlo.
+    </div>
+    <div class="section-title">Items del pedido</div>
+    <div class="items-list">
+  `;
+
+  items.forEach(it => {
+    const cant  = readProp(it, "Cantidad") || 1;
+    const pres  = PRES_LABEL[readProp(it, "Presentación")] || readProp(it, "Presentación") || "—";
+    const tos   = TOS_LABEL[readProp(it, "Tostado")] || readProp(it, "Tostado") || "";
+    const grind = readProp(it, "Grano / Molido") || "";
+    html += `
+      <div class="item-row">
+        <div class="item-qty">${cant}×</div>
+        <div class="item-info">
+          <div class="item-name">${pres}${tos ? " · " + tos : ""}</div>
+          ${grind ? `<div class="item-sub">${grind}</div>` : ""}
+        </div>
+      </div>
+    `;
+  });
+
+  html += `
+    </div>
+    <p class="text-muted" style="margin-bottom:18px">
+      ¿Querés cambiar algo? Mandanos un mensaje después de solicitar el pedido.
+    </p>
+    <button class="btn-primary" id="btn-confirm-reorder" onclick="confirmReorder()">
+      Solicitar pedido →
+    </button>
+    <div style="margin-top:14px;text-align:center;font-size:11px;color:var(--ink-mute);line-height:1.6">
+      Tu pedido no está confirmado hasta que el equipo Kofy lo valide.<br>Te avisamos por WhatsApp.
+    </div>
+  `;
+
+  document.getElementById("reorder-content").innerHTML = html;
+  document.getElementById("reorder-back-btn").onclick = () => showScreen("home");
+  showScreen("reorder");
+}
+
+async function confirmReorder() {
+  if (!REORDER_SOURCE || !SESSION) return;
+  const btn = document.getElementById("btn-confirm-reorder");
+  if (btn) { btn.disabled = true; btn.textContent = "Enviando…"; }
+
+  try {
+    const newId = genOrderId(SESSION.clientName);
+    const today = new Date().toISOString().slice(0, 10);
+
+    // 1. Create order page (lands in "recibida" — no checkboxes ticked)
+    const orderPage = await apiCreate(DB.ORDENES, {
+      "Order ID":        { title:    [{ text: { content: newId } }] },
+      "Cliente":         { relation: [{ id: SESSION.clientId }] },
+      "Fecha de pedido": { date:     { start: today } },
+      "Origen cliente":  { checkbox: true },
+    });
+
+    // 2. Create item pages (copies from source order)
+    for (let idx = 0; idx < REORDER_SOURCE.items.length; idx++) {
+      const it    = REORDER_SOURCE.items[idx];
+      const pres  = readProp(it, "Presentación");
+      const tos   = readProp(it, "Tostado");
+      const cant  = readProp(it, "Cantidad");
+      const grind = readProp(it, "Grano / Molido");
+      const oriIds = readProp(it, "Origen") || [];
+
+      await apiCreate(DB.ITEMS, {
+        "Item ID":       { title:    [{ text: { content: `${newId}-ITEM-${idx+1}` } }] },
+        "Orden":         { relation: [{ id: orderPage.id }] },
+        ...(pres  ? { "Presentación":   { select: { name: pres  } } } : {}),
+        ...(tos   ? { "Tostado":        { select: { name: tos   } } } : {}),
+        ...(cant  ? { "Cantidad":       { number: cant }           } : {}),
+        ...(grind ? { "Grano / Molido": { select: { name: grind } } } : {}),
+        ...(oriIds.length ? { "Origen": { relation: oriIds.map(id => ({ id })) } } : {}),
+      });
+    }
+
+    // 3. Build items summary string for notifications
+    const summary = REORDER_SOURCE.items.map(it => {
+      const c = readProp(it, "Cantidad") || 1;
+      const p = PRES_LABEL[readProp(it,"Presentación")] || readProp(it,"Presentación") || "—";
+      const t = TOS_LABEL[readProp(it,"Tostado")]  || readProp(it,"Tostado") || "";
+      return `${c}× ${p}${t ? " "+t : ""}`;
+    }).join(", ");
+
+    // 4. Notify staff (WhatsApp via notify route)
+    await apiNotify("whatsapp", "(internal)", "portal_order_request_staff", {
+      clientName:   SESSION.clientName,
+      orderId:      newId,
+      itemsSummary: summary,
+    });
+
+    // 5. Notify client with confirmation
+    if (SESSION.clientPhone) {
+      await apiNotify("whatsapp", SESSION.clientPhone, "portal_order_confirm_client", {
+        clientName: SESSION.clientName.split(" ")[0],
+        orderId:    newId,
+      });
+    } else if (SESSION.clientEmail) {
+      await apiNotify("email", SESSION.clientEmail, "portal_order_confirm_client", {
+        clientName: SESSION.clientName.split(" ")[0],
+        orderId:    newId,
+      });
+    }
+
+    // 6. Update local state (optimistic)
+    ALL_ORDERS.unshift(orderPage);
+    ITEMS_BY_ORDER[orderPage.id] = REORDER_SOURCE.items;
+    REORDER_SOURCE = null;
+
+    // 7. Show success screen
+    document.getElementById("reorder-content").innerHTML = `
+      <div class="reorder-success">
+        <div class="reorder-success-icon">📥</div>
+        <div class="reorder-success-title">Pedido solicitado</div>
+        <div class="reorder-success-text">
+          El equipo Kofy revisará tu solicitud y te confirmará por WhatsApp en breve.<br><br>
+          <span style="font-family:ui-monospace,monospace;color:var(--gold);font-size:15px;font-weight:700">${newId}</span>
+        </div>
+        <button class="btn-primary" style="margin-top:28px;max-width:200px;margin-left:auto;margin-right:auto;display:block"
+          onclick="showScreen('home')">Ir a inicio</button>
+      </div>
+    `;
+
+  } catch(e) {
+    if (btn) { btn.disabled = false; btn.textContent = "Solicitar pedido →"; }
+    toast("Error al enviar el pedido. Intentá de nuevo.", "error");
+    console.error(e);
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// MESSAGE
+// ════════════════════════════════════════════════════════════════════════
+async function sendMessage() {
+  const txt = (document.getElementById("message-text")?.value || "").trim();
+  if (!txt) { toast("Escribí tu mensaje primero.", "error"); return; }
+
+  const btn = document.querySelector("#message-content .btn-primary");
+  if (btn) { btn.disabled = true; btn.textContent = "Enviando…"; }
+
+  try {
+    await apiNotify("email", "admin@kofy.io", "portal_message_client", {
+      clientName: SESSION?.clientName || "Cliente",
+      from:       SESSION?.clientName + (SESSION?.clientEmail ? ` <${SESSION.clientEmail}>` : ""),
+      message:    txt,
+    });
+
+    document.getElementById("message-content").innerHTML = `
+      <div class="message-sent">
+        <div style="font-size:44px;margin-bottom:18px">✉</div>
+        <div style="font-size:19px;font-weight:700;color:var(--cream);margin-bottom:10px">Mensaje enviado</div>
+        <div style="font-size:14px;color:var(--ink-mute);line-height:1.6">
+          Tu mensaje llegó al equipo Kofy.<br>Te respondemos por WhatsApp o Email.
+        </div>
+        <button class="btn-primary" style="margin-top:28px;max-width:180px;margin-left:auto;margin-right:auto;display:block"
+          onclick="resetMessage()">Listo</button>
+      </div>
+    `;
+  } catch(e) {
+    if (btn) { btn.disabled = false; btn.textContent = "Enviar mensaje ✉"; }
+    toast("Error al enviar. Intentá de nuevo.", "error");
+    console.error(e);
+  }
+}
+
+function resetMessage() {
+  document.getElementById("message-content").innerHTML = `
+    <div class="message-form">
+      <div class="form-label">Tu mensaje para el equipo Kofy</div>
+      <textarea id="message-text" class="message-input"
+        placeholder="¿Qué necesitás? Pedidos, consultas, cualquier cosa…"></textarea>
+      <button class="btn-primary" onclick="sendMessage()">Enviar mensaje ✉</button>
+      <div class="message-note">Te respondemos por WhatsApp o Email</div>
+    </div>
+  `;
+  showScreen("home");
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// SESSION
+// ════════════════════════════════════════════════════════════════════════
+function logout() {
+  if (!confirm("¿Cerrar sesión?")) return;
+  localStorage.removeItem(SESSION_KEY);
+  SESSION = null; ALL_ORDERS = []; ALL_ORIGENES = [];
+  ITEMS_BY_ORDER = {}; _allItemsLoaded = false;
+  document.getElementById("bottom-nav").style.display = "none";
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById("screen-login").classList.add("active");
+  document.getElementById("code-input").value = "";
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// TOAST
+// ════════════════════════════════════════════════════════════════════════
+let _toastTimer;
+function toast(msg, type = "") {
+  const el = document.getElementById("toast");
+  el.innerHTML = `<div class="toast-msg ${type}">${msg}</div>`;
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => { el.innerHTML = ""; }, 3200);
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// LOADING
+// ════════════════════════════════════════════════════════════════════════
+function showLoading(msg = "Cargando…") {
+  const ol = document.getElementById("loading-overlay");
+  ol.querySelector(".loading-text").textContent = msg;
+  ol.style.display = "flex";
+}
+function hideLoading() {
+  document.getElementById("loading-overlay").style.display = "none";
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// ADMIN — MIGRATION  (open: ?admin=migrate)
+// ════════════════════════════════════════════════════════════════════════
+function adminLog(msg, id, cls = "") {
+  const el = document.getElementById(id);
+  el.style.display = "block";
+  el.innerHTML += `<span class="${cls}">${msg}\n</span>`;
+  el.scrollTop = el.scrollHeight;
+}
+
+async function runMigration() {
+  const log = id => (msg, cls) => adminLog(msg, id, cls);
+  const L = log("migration-log");
+  L("Iniciando migración…");
+
+  try {
+    await apiPatchDb(DB.CLIENTES, { "Código": { rich_text: {} } });
+    L("✓ Código (text) → Clientes", "ok");
+  } catch(e) { L("• Código ya existe o error: " + e.message); }
+
+  try {
+    await apiPatchDb(DB.ORDENES, { "Total ($)": { number: { format: "dollar" } } });
+    L("✓ Total ($) (number) → Órdenes", "ok");
+  } catch(e) { L("• Total ($) ya existe o error: " + e.message); }
+
+  try {
+    await apiPatchDb(DB.ORDENES, { "Origen cliente": { checkbox: {} } });
+    L("✓ Origen cliente (checkbox) → Órdenes", "ok");
+  } catch(e) { L("• Origen cliente ya existe o error: " + e.message); }
+
+  L("Migración completada. Continuá con el Paso 2.", "ok");
+}
+
+function randCode() {
+  // 8 chars, uppercase, no confusable chars (0/O, 1/I)
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let c = "";
+  for (let i = 0; i < 8; i++) c += chars[Math.floor(Math.random() * chars.length)];
+  return c;
+}
+
+async function generateCodes() {
+  const L = (msg, cls) => adminLog(msg, "codes-log", cls);
+  L("Cargando clientes de Notion…");
+
+  try {
+    const clientes = await apiQuery(DB.CLIENTES);
+    const generated = [];
+    let count = 0;
+
+    for (const c of clientes) {
+      const name = readProp(c, "Nombre / Razón Social") || c.id.slice(0,8);
+      const existing = (readProp(c, "Código") || "").trim();
+      if (existing) {
+        L(`• ${name}: ya tiene código (${existing})`);
+        continue;
+      }
+      const code = randCode();
+      await apiPatch(c.id, { "Código": { rich_text: [{ text: { content: code } }] } });
+      L(`✓ ${name}: ${code}`, "ok");
+      generated.push({ name, code });
+      count++;
+    }
+
+    L(`\n${count} código${count !== 1 ? "s" : ""} generado${count !== 1 ? "s" : ""}.`, "ok");
+
+    // Show printable table
+    if (generated.length) {
+      const wrap = document.getElementById("codes-table-wrap");
+      wrap.innerHTML = `
+        <div style="margin-top:14px;font-size:11px;color:var(--ink-mute);margin-bottom:8px">
+          Enviá estos códigos a cada cliente (WhatsApp o Email):
+        </div>
+        <table class="code-table">
+          ${generated.map(g => `<tr><td>${g.name}</td><td>${g.code}</td></tr>`).join("")}
+        </table>
+      `;
+    }
+  } catch(e) {
+    L("Error: " + e.message, "err");
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════════════════════
+async function init() {
+  // Admin mode (staff only — URL: ?admin=migrate)
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("admin") === "migrate") {
+    hideLoading();
+    document.getElementById("screen-admin").style.display = "block";
+    return;
+  }
+
+  // Try to restore saved session
+  const saved = localStorage.getItem(SESSION_KEY);
+  if (saved) {
+    try {
+      SESSION = JSON.parse(saved);
+      await loadClientData();
+      activatePortal();
+      return;
+    } catch(e) {
+      localStorage.removeItem(SESSION_KEY);
+      SESSION = null;
+    }
+  }
+
+  // No session → show login
+  hideLoading();
+  document.getElementById("screen-login").classList.add("active");
+}
+
+init();
+</script>
+<script src="kofy-nav.js"></script>
+</body>
+</html>

@@ -1,0 +1,1024 @@
+﻿<!DOCTYPE html>
+<html lang="es" data-lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="La historia del café que tienes en tu taza hoy · Etiopía, Yirgacheffe · Kofy">
+  <meta name="theme-color" content="#080604">
+  <title>ETIOPÍA — Kofy</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Space+Grotesk:wght@300;400;500&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+    :root {
+      --bg:    #080604;
+      --bg2:   #0e0b08;
+      --cream: #f2ebe0;
+      --gold:  #c8a96e;
+      --goldB: #e8c87a;
+      --muted: #7a6a55;
+      --bdr:   rgba(200,169,110,0.14);
+      --FD:    'Cormorant Garamond', Georgia, serif;
+      --FB:    'Space Grotesk', system-ui, sans-serif;
+    }
+
+    html, body {
+      overflow: hidden;
+      height: 100%; width: 100%;
+      background: var(--bg);
+      color: var(--cream);
+      font-family: var(--FB);
+      -webkit-font-smoothing: antialiased;
+      cursor: none; /* hide default cursor — we have a custom one */
+    }
+
+    /* ── App shell ─────────────────────────────── */
+    #app { position:fixed; inset:0; height:100dvh; overflow:hidden; }
+
+    /* ── Grain ──────────────────────────────────── */
+    #grain {
+      position:fixed; inset:-50%;
+      width:200%; height:200%;
+      opacity:0.032; pointer-events:none; z-index:9000;
+      animation:grain 10s steps(10) infinite;
+      background-size:256px 256px;
+    }
+    @keyframes grain {
+      0%,100%{transform:translate(0,0)}10%{transform:translate(-5%,-10%)}
+      30%{transform:translate(7%,-25%)}50%{transform:translate(-15%,10%)}
+      70%{transform:translate(0%,15%)}90%{transform:translate(-10%,10%)}
+    }
+
+    /* ── Vignette ───────────────────────────────── */
+    #vignette {
+      position:fixed; inset:0; z-index:8500; pointer-events:none;
+      background:radial-gradient(ellipse 85% 85% at 50% 50%, transparent 30%, rgba(0,0,0,0.55) 100%);
+    }
+
+    /* ── Custom cursor ──────────────────────────── */
+    #cursor-glow {
+      position:fixed; z-index:8900; pointer-events:none;
+      width:320px; height:320px;
+      border-radius:50%;
+      background:radial-gradient(circle, rgba(200,169,110,0.07) 0%, transparent 68%);
+      transform:translate(-50%,-50%);
+      transition:width 0.4s ease, height 0.4s ease, opacity 0.4s ease;
+      opacity:0;
+      mix-blend-mode:screen;
+    }
+    #cursor-dot {
+      position:fixed; z-index:9100; pointer-events:none;
+      width:7px; height:7px;
+      border-radius:50%;
+      background:rgba(200,169,110,0.85);
+      transform:translate(-50%,-50%);
+      box-shadow:0 0 8px rgba(200,169,110,0.6);
+      opacity:0;
+      transition:opacity 0.3s, width 0.25s, height 0.25s, background 0.25s;
+    }
+    #cursor-dot.big {
+      width:28px; height:28px;
+      background:rgba(200,169,110,0.2);
+      box-shadow:0 0 16px rgba(200,169,110,0.35);
+    }
+
+    /* ── Burst particles ────────────────────────── */
+    .bp {
+      position:fixed; border-radius:50%;
+      background:var(--gold); pointer-events:none; z-index:9050;
+      transform:translate(-50%,-50%);
+      animation:bpOut 0.72s cubic-bezier(0,0.85,0.6,1) forwards;
+    }
+    @keyframes bpOut {
+      0%   { opacity:1; transform:translate(-50%,-50%) translate(0,0) scale(1); }
+      100% { opacity:0; transform:translate(-50%,-50%) translate(var(--dx),var(--dy)) scale(0); }
+    }
+
+    /* ── Parallax depth ─────────────────────────── */
+    [data-depth] {
+      will-change:transform;
+      transform:translate(var(--px-x,0px), var(--px-y,0px));
+    }
+
+    /* ── Fixed UI ───────────────────────────────── */
+    #kofy-mark {
+      position:fixed; top:22px; left:24px; z-index:1000;
+      font-family:var(--FD); font-size:16px; font-weight:600;
+      letter-spacing:0.16em; color:var(--gold); text-decoration:none;
+      opacity:0; animation:bFade 0.8s ease 1.6s forwards;
+    }
+    #lang-toggle {
+      position:fixed; top:20px; right:22px; z-index:1000;
+      display:flex; gap:2px;
+      background:rgba(8,6,4,0.75); backdrop-filter:blur(16px);
+      -webkit-backdrop-filter:blur(16px);
+      border:1px solid var(--bdr); border-radius:100px; padding:4px;
+      opacity:0; animation:bFade 0.8s ease 1.6s forwards;
+    }
+    #lang-toggle button {
+      background:none; border:none; color:var(--muted);
+      font-family:var(--FB); font-size:11px; font-weight:500;
+      letter-spacing:0.1em; padding:6px 13px; border-radius:100px;
+      cursor:none; transition:background 0.2s, color 0.2s;
+    }
+    #lang-toggle button.active { background:var(--gold); color:var(--bg); }
+    #nav-dots {
+      position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+      z-index:1000; display:flex; gap:10px; align-items:center;
+    }
+    .nd {
+      width:5px; height:5px; border-radius:50%;
+      background:rgba(200,169,110,0.18); border:none; cursor:none; padding:0;
+      transition:background 0.35s, width 0.35s; flex-shrink:0;
+    }
+    .nd.active { background:var(--gold); width:20px; border-radius:3px; }
+
+    /* Bilingual */
+    [data-lang="es"] .en { display:none !important; }
+    [data-lang="en"] .es { display:none !important; }
+
+    /* ── Slide base ──────────────────────────────── */
+    .slide {
+      position:absolute; inset:0; height:100dvh; overflow:hidden;
+      opacity:0; pointer-events:none;
+      transition:opacity 0.55s cubic-bezier(0.4,0,0.2,1);
+      display:flex; flex-direction:column; justify-content:center;
+      padding:0 clamp(28px,7vw,100px);
+    }
+    .slide.active { opacity:1; pointer-events:auto; }
+
+    /* ── Keyframes ───────────────────────────────── */
+    @keyframes bFade  { from{opacity:0} to{opacity:1} }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(28px)} to{opacity:1;transform:none} }
+    @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+    @keyframes charUp {
+      from{opacity:0;transform:translateY(1.1em) skewY(8deg)}
+      to{opacity:1;transform:none}
+    }
+    @keyframes lineH {
+      from{transform:scaleX(0);transform-origin:left}
+      to{transform:scaleX(1);transform-origin:left}
+    }
+    @keyframes lineV {
+      from{transform:scaleY(0);transform-origin:top}
+      to{transform:scaleY(1);transform-origin:top}
+    }
+    @keyframes curtain {
+      from{clip-path:inset(0 100% 0 0)}
+      to{clip-path:inset(0 0% 0 0)}
+    }
+    @keyframes fnIn {
+      from{opacity:0;transform:translateY(44px) scale(0.88);filter:blur(6px)}
+      to{opacity:1;transform:none;filter:blur(0)}
+    }
+    @keyframes phraseIn {
+      from{opacity:0;transform:translateY(56px);filter:blur(10px)}
+      to{opacity:1;transform:none;filter:blur(0)}
+    }
+    @keyframes nodeIn {
+      from{opacity:0;transform:translateX(-16px)}
+      to{opacity:1;transform:none}
+    }
+    @keyframes cardIn {
+      from{opacity:0;transform:translateY(18px);filter:blur(3px)}
+      to{opacity:1;transform:none;filter:blur(0)}
+    }
+    @keyframes glow { 0%,100%{opacity:0.55} 50%{opacity:0.8} }
+    @keyframes scrollBob {
+      0%,100%{transform:translateY(0)} 50%{transform:translateY(8px)}
+    }
+
+
+    /* ══════════════════════════════════════════
+       SLIDE 1 — HERO
+    ══════════════════════════════════════════ */
+    .s1 { justify-content:flex-end; padding-bottom:clamp(56px,10vh,112px); }
+    #hero-bg {
+      position:absolute; inset:0; z-index:0;
+      background:
+        radial-gradient(ellipse 100% 60% at 50% 100%, rgba(105,62,12,0.7) 0%, transparent 68%),
+        radial-gradient(ellipse 60% 80% at 12% 55%, rgba(32,18,6,0.9) 0%, transparent 65%),
+        linear-gradient(175deg,#080604 0%,#120b05 55%,#0d0804 100%);
+      animation:glow 8s ease-in-out infinite;
+    }
+    #hero-stars { position:absolute; inset:0; width:100%; height:100%; z-index:1; }
+    #steam {
+      position:absolute; bottom:0; left:0;
+      width:100%; height:72%;
+      z-index:2; pointer-events:none;
+    }
+    .s1 .hero-content { position:relative; z-index:2; }
+    .hero-label {
+      font-size:11px; font-weight:500; letter-spacing:0.24em;
+      color:var(--gold); text-transform:uppercase; margin-bottom:16px;
+    }
+    .hero-country {
+      font-family:var(--FD);
+      font-size:clamp(76px,17vw,188px);
+      font-weight:300; line-height:0.86; letter-spacing:-0.02em;
+      color:var(--cream); margin-bottom:18px; overflow:hidden;
+    }
+    .char { display:inline-block; will-change:transform,opacity; }
+    .hero-region {
+      font-family:var(--FD); font-size:clamp(20px,3.2vw,36px);
+      font-weight:300; font-style:italic; color:var(--gold); margin-bottom:28px;
+    }
+    .hero-tagline {
+      font-size:clamp(14px,1.5vw,16px); font-weight:300; letter-spacing:0.04em;
+      line-height:1.6; color:rgba(242,235,224,0.45); max-width:420px;
+    }
+    .hero-coords {
+      position:absolute; top:28px; left:50%; transform:translateX(-50%);
+      z-index:2; font-size:10px; letter-spacing:0.14em;
+      color:rgba(200,169,110,0.28); white-space:nowrap;
+    }
+    .scroll-cue {
+      position:absolute; bottom:28px; right:clamp(28px,7vw,100px);
+      z-index:2; display:flex; flex-direction:column; align-items:center; gap:10px;
+    }
+    .scroll-cue span { font-size:9px; letter-spacing:0.18em; color:var(--muted); writing-mode:vertical-rl; text-transform:uppercase; }
+    .scroll-cue::after { content:''; width:1px; height:50px; background:linear-gradient(to bottom,rgba(200,169,110,0.6),transparent); animation:scrollBob 2.4s ease-in-out infinite; }
+
+    .s1.active .hero-label  { animation:fadeUp 0.8s ease 0.25s both; }
+    .s1.active .char        { animation:charUp 0.75s cubic-bezier(0.16,1,0.3,1) calc(0.4s + var(--ci)*0.055s) both; }
+    .s1.active .hero-region { animation:fadeUp 0.8s ease 0.9s both; }
+    .s1.active .hero-tagline{ animation:fadeUp 0.7s ease 1.15s both; }
+    .s1.active .hero-coords { animation:bFade 0.8s ease 1.7s both; }
+    .s1.active .scroll-cue  { animation:bFade 0.8s ease 2.1s both; }
+
+
+    /* ══════════════════════════════════════════
+       SLIDE 2 — FICHA
+    ══════════════════════════════════════════ */
+    #ficha-bg {
+      position:absolute; inset:0; z-index:0;
+      background:radial-gradient(ellipse 70% 60% at 80% 20%, rgba(60,35,8,0.5) 0%, transparent 65%), var(--bg2);
+    }
+    .s2 .inner { position:relative; z-index:1; width:100%; }
+    .s-tag {
+      display:flex; align-items:center; gap:14px;
+      font-size:10px; font-weight:500; letter-spacing:0.26em; text-transform:uppercase; color:var(--gold); margin-bottom:28px;
+    }
+    .s-tag::after { content:''; width:40px; height:1px; background:var(--gold); opacity:0.35; }
+    .s-h { font-family:var(--FD); font-size:clamp(38px,6vw,72px); font-weight:300; line-height:1.08; color:var(--cream); margin-bottom:40px; }
+    .s-h em { font-style:italic; color:var(--gold); }
+    .ficha-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(20px,3vw,40px) clamp(16px,3vw,40px); }
+    .f-card label { display:block; font-size:10px; font-weight:500; letter-spacing:0.22em; text-transform:uppercase; color:var(--gold); opacity:0.6; margin-bottom:7px; }
+    .f-card .fval { font-family:var(--FD); font-size:clamp(20px,2.6vw,30px); font-weight:300; color:var(--cream); line-height:1.2; }
+    .f-card .fval small { font-size:0.58em; opacity:0.5; }
+
+    .s2.active .s-tag    { animation:fadeUp 0.7s ease 0.1s both; }
+    .s2.active .s-h      { animation:fadeUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.25s both; }
+    .s2.active .f-card:nth-child(1){ animation:cardIn 0.6s ease 0.42s both; }
+    .s2.active .f-card:nth-child(2){ animation:cardIn 0.6s ease 0.54s both; }
+    .s2.active .f-card:nth-child(3){ animation:cardIn 0.6s ease 0.66s both; }
+    .s2.active .f-card:nth-child(4){ animation:cardIn 0.6s ease 0.78s both; }
+    .s2.active .f-card:nth-child(5){ animation:cardIn 0.6s ease 0.90s both; }
+    .s2.active .f-card:nth-child(6){ animation:cardIn 0.6s ease 1.02s both; }
+
+
+    /* ══════════════════════════════════════════
+       SLIDE 3 — PERSONAS
+    ══════════════════════════════════════════ */
+    .s3 { flex-direction:row; gap:clamp(40px,6vw,96px); padding:0; overflow:hidden; }
+    .s3 .personas-visual {
+      flex:0 0 42%; height:100dvh; position:relative;
+      background:linear-gradient(155deg,#1c1008 0%,#2e1a08 35%,#1a0f07 65%,#0d0805 100%);
+      overflow:hidden; background-size:cover; background-position:center;
+    }
+    .s3 .personas-visual::before {
+      content:''; position:absolute; inset:0;
+      background:radial-gradient(ellipse 55% 35% at 50% 25%, rgba(190,130,55,0.2) 0%, transparent 70%), radial-gradient(ellipse 45% 55% at 75% 65%, rgba(110,65,20,0.28) 0%, transparent 60%);
+    }
+    .s3 .personas-visual::after {
+      content:''; position:absolute; inset:0;
+      background:linear-gradient(to right, transparent 60%, var(--bg) 100%);
+    }
+    .pv-label { position:absolute; bottom:20px; left:20px; z-index:1; font-size:10px; letter-spacing:0.1em; color:rgba(200,169,110,0.35); font-style:italic; }
+    .s3 .text-side {
+      flex:1; display:flex; flex-direction:column; justify-content:center;
+      padding-right:clamp(28px,7vw,100px);
+    }
+    .s-body { font-size:clamp(14px,1.5vw,17px); font-weight:300; line-height:1.85; color:rgba(242,235,224,0.7); max-width:560px; }
+    .s-body .es, .s-body .en { display:block; }
+    .s-quote { margin-top:28px; padding-left:18px; border-left:1px solid var(--bdr); font-family:var(--FD); font-size:clamp(17px,2vw,22px); font-style:italic; font-weight:300; color:rgba(200,169,110,0.7); line-height:1.5; }
+    @media(max-width:700px){
+      .s3{flex-direction:column;gap:0;}
+      .s3 .personas-visual{flex:0 0 38dvh;height:38dvh;width:100%;}
+      .s3 .personas-visual::after{background:linear-gradient(to bottom,transparent 60%,var(--bg) 100%);}
+      .s3 .text-side{padding:20px clamp(28px,7vw,60px) 0;justify-content:flex-start;}
+    }
+
+    .s3.active .personas-visual { animation:curtain 1.2s cubic-bezier(0.77,0,0.175,1) 0.1s both; }
+    .s3.active .s-tag   { animation:fadeUp 0.7s ease 0.65s both; }
+    .s3.active .s-h     { animation:fadeUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.82s both; }
+    .s3.active .s-body  { animation:fadeUp 0.7s ease 1.02s both; }
+    .s3.active .s-quote { animation:fadeUp 0.7s ease 1.22s both; }
+
+
+    /* ══════════════════════════════════════════
+       SLIDE 4 — PROCESO
+    ══════════════════════════════════════════ */
+    #proceso-bg {
+      position:absolute; inset:0; z-index:0;
+      background:radial-gradient(ellipse 80% 50% at 30% 80%, rgba(80,48,10,0.4) 0%, transparent 65%), var(--bg2);
+    }
+    .s4 .inner { position:relative; z-index:1; width:100%; }
+    .p-badge { display:inline-flex; align-items:center; gap:8px; border:1px solid rgba(200,169,110,0.4); border-radius:100px; padding:5px 16px; font-size:11px; font-weight:500; letter-spacing:0.14em; color:var(--gold); text-transform:uppercase; margin:12px 0 clamp(24px,4vh,48px); }
+    .p-badge::before { content:''; width:6px; height:6px; border-radius:50%; background:var(--gold); }
+    .p-steps-wrap { position:relative; }
+    .p-line { position:absolute; top:14px; left:calc(10% + 12px); right:calc(10% + 12px); height:1px; background:linear-gradient(to right,var(--gold),rgba(200,169,110,0.1)); opacity:0.25; transform-origin:left; }
+    .p-steps { display:grid; grid-template-columns:repeat(5,1fr); gap:0; }
+    .p-step { display:flex; flex-direction:column; align-items:center; text-align:center; padding:0 4px; }
+    .p-num { width:28px; height:28px; border-radius:50%; border:1px solid var(--bdr); display:flex; align-items:center; justify-content:center; font-family:var(--FD); font-size:13px; color:var(--muted); background:var(--bg2); margin-bottom:12px; position:relative; z-index:1; flex-shrink:0; transition:background 0.4s,color 0.4s,border-color 0.4s; }
+    .p-step.key .p-num { background:var(--gold); color:var(--bg); border-color:var(--gold); }
+    .p-step-name { font-size:clamp(11px,1.1vw,13px); font-weight:500; letter-spacing:0.04em; color:var(--cream); margin-bottom:5px; }
+    .p-step-desc { font-size:clamp(10px,0.9vw,11px); font-weight:300; color:var(--muted); line-height:1.4; }
+    @media(max-width:640px){
+      .p-line{display:none;}
+      .p-steps{grid-template-columns:1fr 1fr;gap:16px;}
+      .p-step:last-child{grid-column:span 2;}
+      .p-step{flex-direction:row;text-align:left;gap:12px;align-items:flex-start;}
+      .p-num{margin-bottom:0;flex-shrink:0;}
+    }
+
+    .s4.active .s-tag   { animation:fadeUp 0.7s ease 0.1s both; }
+    .s4.active .s-h     { animation:fadeUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.25s both; }
+    .s4.active .p-badge { animation:fadeUp 0.6s ease 0.42s both; }
+    .s4.active .p-line  { animation:lineH 0.8s ease 0.65s both; }
+    .s4.active .p-step:nth-child(1){ animation:cardIn 0.5s ease 0.72s both; }
+    .s4.active .p-step:nth-child(2){ animation:cardIn 0.5s ease 0.84s both; }
+    .s4.active .p-step:nth-child(3){ animation:cardIn 0.5s ease 0.96s both; }
+    .s4.active .p-step:nth-child(4){ animation:cardIn 0.5s ease 1.08s both; }
+    .s4.active .p-step:nth-child(5){ animation:cardIn 0.5s ease 1.20s both; }
+
+
+    /* ══════════════════════════════════════════
+       SLIDE 5 — TAZA
+    ══════════════════════════════════════════ */
+    #taza-bg {
+      position:absolute; inset:0; z-index:0;
+      background:radial-gradient(ellipse 65% 50% at 50% 50%, rgba(70,42,8,0.45) 0%, transparent 70%), var(--bg);
+    }
+    /* Full-bleed: override default slide padding */
+    .s5 { padding:0; }
+    /* Macro image stage — left half */
+    .macro-stage {
+      position:absolute; left:0; top:0; bottom:0;
+      width:56%; overflow:hidden; z-index:1;
+    }
+    .macro-img { position:absolute; overflow:hidden; }
+    .mi1 { inset:0; }
+    .mi2 {
+      top:6%; right:-20%; width:60%; height:52%;
+      border-radius:3px; box-shadow:0 12px 48px rgba(0,0,0,0.65);
+    }
+    .mi3 {
+      bottom:7%; right:-14%; width:46%; height:36%;
+      border-radius:3px; box-shadow:0 8px 36px rgba(0,0,0,0.5);
+    }
+    .macro-img img { width:100%; height:100%; object-fit:cover; display:block; }
+    /* Atmospheric placeholder — replace with <img> when photos are ready */
+    .macro-ph {
+      width:100%; height:100%; position:relative;
+      display:flex; align-items:flex-end; padding:12px 14px;
+      background:hsl(var(--hue),40%,6%);
+    }
+    .macro-ph::before {
+      content:''; position:absolute; inset:0;
+      background:radial-gradient(ellipse at 35% 45%, hsl(var(--hue),55%,22%) 0%, hsl(var(--hue),38%,5%) 68%);
+    }
+    .macro-label {
+      position:relative; z-index:1; font-family:var(--FB);
+      font-size:9px; letter-spacing:0.14em; text-transform:uppercase;
+      color:rgba(255,255,255,0.18);
+    }
+    /* Gradient veil: fades image into dark background towards the right */
+    .taza-veil {
+      position:absolute; inset:0; z-index:2; pointer-events:none;
+      background:linear-gradient(to right,
+        rgba(8,6,4,0) 0%,
+        rgba(8,6,4,0.18) 26%,
+        rgba(8,6,4,0.72) 48%,
+        rgba(8,6,4,0.95) 60%,
+        var(--bg) 72%
+      );
+    }
+    /* Text column: right side */
+    .s5 .inner {
+      position:absolute; right:0; top:0; bottom:0; width:52%;
+      z-index:3; display:flex; flex-direction:column; justify-content:center;
+      padding:clamp(32px,5vh,80px) clamp(28px,7vw,100px) clamp(32px,5vh,80px) clamp(12px,2.5vw,48px);
+    }
+    .fn-row { display:flex; flex-wrap:wrap; align-items:baseline; gap:0; margin:clamp(16px,2.5vh,32px) 0; line-height:1.1; }
+    .fn { font-family:var(--FD); font-size:clamp(36px,6.5vw,80px); font-weight:300; font-style:italic; color:var(--cream); display:inline-block; }
+    .fn-dot { font-family:var(--FD); font-size:clamp(24px,4vw,52px); color:var(--gold); opacity:0.5; display:inline-block; margin:0 clamp(8px,1.2vw,18px); }
+    .brew-row { display:flex; flex-wrap:wrap; gap:10px; margin-top:clamp(20px,3vh,40px); }
+    .brew-tag { display:flex; align-items:center; gap:7px; border:1px solid var(--bdr); border-radius:5px; padding:9px 16px; font-size:12px; font-weight:400; letter-spacing:0.06em; color:rgba(242,235,224,0.55); transition:border-color 0.2s,color 0.2s; }
+    .brew-tag:hover { border-color:rgba(200,169,110,0.4); color:var(--cream); }
+    .brew-tag .bdot { width:4px; height:4px; border-radius:50%; background:var(--gold); opacity:0.5; }
+
+    @keyframes imgIn { from{opacity:0;transform:scale(1.07)} to{opacity:1;transform:scale(1)} }
+    .s5.active .mi1                 { animation:imgIn 1.6s cubic-bezier(0.16,1,0.3,1) 0.05s both; }
+    .s5.active .mi2                 { animation:imgIn 1.3s cubic-bezier(0.16,1,0.3,1) 0.30s both; }
+    .s5.active .mi3                 { animation:imgIn 1.1s cubic-bezier(0.16,1,0.3,1) 0.55s both; }
+    .s5.active .taza-veil           { animation:bFade 1.0s ease 0.15s both; }
+    .s5.active .s-tag               { animation:fadeUp 0.7s ease 0.35s both; }
+    .s5.active .fn:nth-child(1)     { animation:fnIn 1s cubic-bezier(0.16,1,0.3,1) 0.55s both; }
+    .s5.active .fn-dot:nth-child(2) { animation:bFade 0.6s ease 0.78s both; }
+    .s5.active .fn:nth-child(3)     { animation:fnIn 1s cubic-bezier(0.16,1,0.3,1) 0.70s both; }
+    .s5.active .fn-dot:nth-child(4) { animation:bFade 0.6s ease 0.90s both; }
+    .s5.active .fn:nth-child(5)     { animation:fnIn 1s cubic-bezier(0.16,1,0.3,1) 0.84s both; }
+    .s5.active .fn-dot:nth-child(6) { animation:bFade 0.6s ease 1.02s both; }
+    .s5.active .fn:nth-child(7)     { animation:fnIn 1s cubic-bezier(0.16,1,0.3,1) 0.98s both; }
+    .s5.active .s-body              { animation:fadeUp 0.7s ease 1.22s both; }
+    .s5.active .brew-row            { animation:fadeUp 0.7s ease 1.42s both; }
+
+
+    /* ══════════════════════════════════════════
+       SLIDE 6 — VIAJE
+    ══════════════════════════════════════════ */
+    #viaje-bg {
+      position:absolute; inset:0; z-index:0;
+      background:radial-gradient(ellipse 55% 70% at 15% 50%, rgba(50,28,6,0.5) 0%, transparent 65%), var(--bg2);
+    }
+    .s6 .inner { position:relative; z-index:1; width:100%; }
+    .j-outer { display:grid; grid-template-columns:1fr 1fr; gap:clamp(40px,6vw,96px); align-items:start; margin-top:clamp(16px,2.5vh,32px); }
+    @media(max-width:640px){ .j-outer{grid-template-columns:1fr;gap:0;} }
+    .j-line-wrap { position:relative; padding-left:28px; }
+    .j-line-track { position:absolute; left:6px; top:8px; bottom:8px; width:1px; background:linear-gradient(to bottom,var(--gold) 0%,rgba(200,169,110,0.06) 100%); opacity:0.35; transform-origin:top; }
+    .j-node { position:relative; padding-bottom:clamp(18px,2.5vh,32px); }
+    .j-node:last-child{padding-bottom:0;}
+    .j-node::before { content:''; position:absolute; left:-28px; top:7px; width:12px; height:12px; border-radius:50%; border:1px solid rgba(200,169,110,0.3); background:var(--bg2); z-index:1; }
+    .j-node.hi::before { background:var(--gold); border-color:var(--gold); box-shadow:0 0 10px rgba(200,169,110,0.5); }
+    .j-place { font-family:var(--FD); font-size:clamp(18px,2vw,23px); font-weight:300; color:var(--cream); margin-bottom:3px; line-height:1.2; }
+    .j-detail { font-size:12px; font-weight:300; color:var(--muted); line-height:1.55; }
+    .j-detail .es, .j-detail .en { display:block; }
+
+    .s6.active .s-tag        { animation:fadeUp 0.7s ease 0.1s both; }
+    .s6.active .s-h          { animation:fadeUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.25s both; }
+    .s6.active .j-line-track { animation:lineV 1.5s ease 0.5s both; }
+    .s6.active .j-node:nth-child(1){ animation:nodeIn 0.55s ease 0.65s both; }
+    .s6.active .j-node:nth-child(2){ animation:nodeIn 0.55s ease 0.88s both; }
+    .s6.active .j-node:nth-child(3){ animation:nodeIn 0.55s ease 1.10s both; }
+    .s6.active .j-node:nth-child(4){ animation:nodeIn 0.55s ease 1.32s both; }
+    .s6.active .j-node:nth-child(5){ animation:nodeIn 0.55s ease 1.54s both; }
+
+
+    /* ══════════════════════════════════════════
+       SLIDE 7 — CIERRE
+    ══════════════════════════════════════════ */
+    #cierre-bg {
+      position:absolute; inset:0; z-index:0;
+      background:radial-gradient(ellipse 70% 55% at 50% 90%, rgba(95,58,12,0.38) 0%, transparent 70%), var(--bg);
+    }
+    .s7 { justify-content:center; text-align:center; }
+    .s7 .inner { position:relative; z-index:1; }
+    .cierre-brand { font-family:var(--FD); font-size:13px; font-weight:600; letter-spacing:0.3em; color:var(--gold); text-transform:uppercase; margin-bottom:clamp(20px,3.5vh,40px); }
+    .cierre-phrase { font-family:var(--FD); font-size:clamp(36px,6.5vw,80px); font-weight:300; font-style:italic; color:var(--cream); line-height:1.25; margin-bottom:clamp(16px,2.5vh,28px); }
+    .cierre-sub { font-size:12px; font-weight:300; letter-spacing:0.16em; text-transform:uppercase; color:var(--muted); }
+    .cierre-origin { margin-top:clamp(28px,5vh,56px); font-size:10px; letter-spacing:0.1em; color:rgba(200,169,110,0.2); }
+
+    .s7.active .cierre-brand  { animation:fadeUp 0.8s ease 0.2s both; }
+    .s7.active .cierre-phrase { animation:phraseIn 1.2s cubic-bezier(0.16,1,0.3,1) 0.5s both; }
+    .s7.active .cierre-sub    { animation:fadeUp 0.7s ease 1.1s both; }
+    .s7.active .cierre-origin { animation:bFade 0.8s ease 1.6s both; }
+
+  </style>
+</head>
+<body>
+
+<!-- Cursor -->
+<div id="cursor-glow"></div>
+<div id="cursor-dot"></div>
+
+<div id="app">
+
+  <div id="grain"></div>
+  <div id="vignette"></div>
+
+  <!-- Fixed UI -->
+  <a id="kofy-mark" href="https://kofy.io" target="_blank" rel="noopener">KOFY</a>
+  <div id="lang-toggle" role="group" aria-label="Idioma / Language">
+    <button id="btn-es" class="active" onclick="setLang('es')">ES</button>
+    <button id="btn-en" onclick="setLang('en')">EN</button>
+  </div>
+  <nav id="nav-dots">
+    <button class="nd active" data-s="0"></button>
+    <button class="nd" data-s="1"></button>
+    <button class="nd" data-s="2"></button>
+    <button class="nd" data-s="3"></button>
+    <button class="nd" data-s="4"></button>
+    <button class="nd" data-s="5"></button>
+    <button class="nd" data-s="6"></button>
+  </nav>
+
+
+  <!-- ════════════════════════
+       S1 · HERO
+  ════════════════════════ -->
+  <div class="slide s1 active">
+    <!-- depth layers: bg recedes, stars float, text comes forward -->
+    <div id="hero-bg" data-depth="-0.08"></div>
+    <canvas id="hero-stars" data-depth="0.12"></canvas>
+    <canvas id="steam" data-depth="0.22" aria-hidden="true"></canvas>
+
+    <div class="hero-coords" data-depth="0.55">9°11′N &nbsp;38°25′E</div>
+
+    <div class="hero-content" data-depth="0.35">
+      <div class="hero-label">
+        <span class="es">Origen · La historia de tu café</span>
+        <span class="en">Origin · The story of your coffee</span>
+      </div>
+      <h1 class="hero-country split-chars">ETIOPÍA</h1>
+      <p class="hero-region">Yirgacheffe, Kochere</p>
+      <p class="hero-tagline">
+        <span class="es">Donde el café no fue inventado.<br>Fue descubierto.</span>
+        <span class="en">Where coffee wasn't invented.<br>It was discovered.</span>
+      </p>
+    </div>
+
+    <div class="scroll-cue" data-depth="0.2">
+      <span class="es">Continúa</span>
+      <span class="en">Scroll</span>
+    </div>
+  </div>
+
+
+  <!-- ════════════════════════
+       S2 · FICHA TÉCNICA
+       → swap photo: set background-image on #ficha-bg
+  ════════════════════════ -->
+  <div class="slide s2">
+    <div id="ficha-bg" data-depth="-0.06"></div>
+    <div class="inner" data-depth="0.38">
+      <div class="s-tag">
+        <span class="es">Ficha Técnica</span><span class="en">Technical Data</span>
+      </div>
+      <h2 class="s-h">
+        <span class="es">Etiopía, <em>Yirgacheffe</em></span>
+        <span class="en">Ethiopia, <em>Yirgacheffe</em></span>
+      </h2>
+      <div class="ficha-grid">
+        <div class="f-card"><label><span class="es">País</span><span class="en">Country</span></label><div class="fval">Etiopía</div></div>
+        <div class="f-card"><label><span class="es">Región</span><span class="en">Region</span></label><div class="fval">Yirgacheffe</div></div>
+        <div class="f-card"><label><span class="es">Altitud</span><span class="en">Altitude</span></label><div class="fval">1,850 – 2,200 <small>m.s.n.m.</small></div></div>
+        <div class="f-card"><label><span class="es">Proceso</span><span class="en">Process</span></label><div class="fval">Natural</div></div>
+        <div class="f-card"><label><span class="es">Varietal</span><span class="en">Varietal</span></label><div class="fval">Heirloom <small><span class="es">Etíope</span><span class="en">Ethiopian</span></small></div></div>
+        <div class="f-card"><label><span class="es">Cosecha</span><span class="en">Harvest</span></label><div class="fval">Oct – Dic</div></div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ════════════════════════
+       S3 · LAS PERSONAS
+       → swap photo: set style="background-image:url('...')" on .personas-visual
+       → swap video: replace div with <video autoplay muted loop playsinline>
+  ════════════════════════ -->
+  <div class="slide s3">
+    <!--
+      PHOTO:  <div class="personas-visual" style="background-image:url('media/kochere.jpg')">
+      VIDEO:  <video class="personas-visual" autoplay muted loop playsinline style="object-fit:cover">
+                <source src="media/kochere.mp4" type="video/mp4">
+              </video>
+    -->
+    <div class="personas-visual" data-depth="0.15">
+      <div class="pv-label">
+        <span class="es">Foto próximamente · Kochere</span>
+        <span class="en">Photo coming soon · Kochere</span>
+      </div>
+    </div>
+    <div class="text-side" data-depth="0.48">
+      <div class="s-tag"><span class="es">Las Personas</span><span class="en">The People</span></div>
+      <h2 class="s-h">
+        <span class="es">Más de dos mil <em>familias</em></span>
+        <span class="en">More than two thousand <em>families</em></span>
+      </h2>
+      <p class="s-body">
+        <span class="es">La cooperativa Kochere agrupa a productores que han cultivado café en estas mismas colinas durante generaciones. Sin técnica industrial. Sin prisa. Con el tiempo que el fruto necesita.</span>
+        <span class="en">The Kochere cooperative unites producers who have farmed coffee on these same hillsides for generations. No industrial methods. No rushing. Just the time the fruit requires.</span>
+      </p>
+      <blockquote class="s-quote">
+        <span class="es">"Cada familia conoce cada árbol de su parcela."</span>
+        <span class="en">"Each family knows every tree on their plot."</span>
+      </blockquote>
+    </div>
+  </div>
+
+
+  <!-- ════════════════════════
+       S4 · EL PROCESO
+       → swap background video: set on #proceso-bg via JS or style
+  ════════════════════════ -->
+  <div class="slide s4">
+    <div id="proceso-bg" data-depth="-0.06"></div>
+    <div class="inner" data-depth="0.4">
+      <div class="s-tag"><span class="es">El Proceso</span><span class="en">The Process</span></div>
+      <h2 class="s-h">
+        <span class="es">Semanas bajo el <em>sol etíope</em></span>
+        <span class="en">Weeks under the <em>Ethiopian sun</em></span>
+      </h2>
+      <div class="p-badge">
+        <span class="es">Proceso Natural</span><span class="en">Natural Process</span>
+      </div>
+      <div class="p-steps-wrap">
+        <div class="p-line"></div>
+        <div class="p-steps">
+          <div class="p-step"><div class="p-num">1</div><div><div class="p-step-name"><span class="es">Cosecha</span><span class="en">Harvest</span></div><div class="p-step-desc"><span class="es">Manual, selectiva</span><span class="en">Manual, selective</span></div></div></div>
+          <div class="p-step"><div class="p-num">2</div><div><div class="p-step-name"><span class="es">Selección</span><span class="en">Sorting</span></div><div class="p-step-desc"><span class="es">Solo cerezas maduras</span><span class="en">Ripe cherries only</span></div></div></div>
+          <div class="p-step key"><div class="p-num">3</div><div><div class="p-step-name"><span class="es">Secado Natural</span><span class="en">Natural Drying</span></div><div class="p-step-desc"><span class="es">21–30 días en cama</span><span class="en">21–30 days on beds</span></div></div></div>
+          <div class="p-step"><div class="p-num">4</div><div><div class="p-step-name"><span class="es">Descascarado</span><span class="en">Hulling</span></div><div class="p-step-desc"><span class="es">Pergamino removido</span><span class="en">Parchment removed</span></div></div></div>
+          <div class="p-step"><div class="p-num">5</div><div><div class="p-step-name"><span class="es">Exportación</span><span class="en">Export</span></div><div class="p-step-desc"><span class="es">Pto. Djibouti</span><span class="en">Port of Djibouti</span></div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ════════════════════════
+       S5 · LA TAZA
+  ════════════════════════ -->
+  <div class="slide s5">
+    <div id="taza-bg" data-depth="-0.05"></div>
+
+    <!-- Layered macro images — left half.
+         Swap each .macro-ph for <img src="media/macro-XXX.jpg" alt=""> when photos are ready. -->
+    <div class="macro-stage">
+      <div class="macro-img mi1" data-depth="-0.06">
+        <div class="macro-ph" style="--hue:248">
+          <span class="macro-label">macro · mora azul</span>
+        </div>
+      </div>
+      <div class="macro-img mi2" data-depth="0.14">
+        <div class="macro-ph" style="--hue:52">
+          <span class="macro-label">macro · jazmín</span>
+        </div>
+      </div>
+      <div class="macro-img mi3" data-depth="0.26">
+        <div class="macro-ph" style="--hue:28">
+          <span class="macro-label">macro · bergamota</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="taza-veil"></div>
+
+    <div class="inner" data-depth="0.42">
+      <div class="s-tag"><span class="es">La Taza</span><span class="en">The Cup</span></div>
+      <div class="fn-row">
+        <span class="fn">Jazmín</span><span class="fn-dot">·</span>
+        <span class="fn">Bergamota</span><span class="fn-dot">·</span>
+        <span class="fn">Mora Azul</span><span class="fn-dot">·</span>
+        <span class="fn">Durazno</span>
+      </div>
+      <p class="s-body">
+        <span class="es">Una taza que huele a flores antes de que la toques. Acidez brillante, cuerpo ligero, final largo y frutal. Cada sorbo te lleva al campo.</span>
+        <span class="en">A cup that smells of flowers before you touch it. Bright acidity, light body, a long fruity finish. Every sip takes you to the field.</span>
+      </p>
+      <div class="brew-row">
+        <div class="brew-tag"><span class="bdot"></span>Pour Over</div>
+        <div class="brew-tag"><span class="bdot"></span>Aeropress</div>
+        <div class="brew-tag"><span class="bdot"></span>Chemex</div>
+        <div class="brew-tag"><span class="bdot"></span>Cold Brew</div>
+        <div class="brew-tag"><span class="bdot"></span>Espresso</div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ════════════════════════
+       S6 · EL VIAJE
+  ════════════════════════ -->
+  <div class="slide s6">
+    <div id="viaje-bg" data-depth="-0.07"></div>
+    <div class="inner" data-depth="0.38">
+      <div class="s-tag"><span class="es">El Viaje</span><span class="en">The Journey</span></div>
+      <h2 class="s-h">
+        <span class="es">De <em>Kochere</em> a tu taza</span>
+        <span class="en">From <em>Kochere</em> to your cup</span>
+      </h2>
+      <div class="j-outer">
+        <div class="j-col-left">
+          <div class="j-line-wrap">
+            <div class="j-line-track"></div>
+            <div class="j-node hi">
+              <div class="j-place">Kochere, Etiopía</div>
+              <div class="j-detail"><span class="es">Cosecha a mano. Secado natural, 3–4 semanas.</span><span class="en">Hand-picked. Natural drying, 3–4 weeks.</span></div>
+            </div>
+            <div class="j-node">
+              <div class="j-place"><span class="es">Puerto de Djibouti</span><span class="en">Port of Djibouti</span></div>
+              <div class="j-detail"><span class="es">Control final. Carga en contenedor.</span><span class="en">Final quality check. Container loaded.</span></div>
+            </div>
+            <div class="j-node">
+              <div class="j-place"><span class="es">Mediterráneo</span><span class="en">Mediterranean</span></div>
+              <div class="j-detail"><span class="es">Semanas en el mar. Los granos descansan.</span><span class="en">Weeks at sea. The beans rest.</span></div>
+            </div>
+            <div class="j-node">
+              <div class="j-place">Venezuela</div>
+              <div class="j-detail"><span class="es">Puerto La Guaira. Aduana. Selección Kofy.</span><span class="en">La Guaira port. Customs. Kofy selection.</span></div>
+            </div>
+            <div class="j-node hi">
+              <div class="j-place">Kofy, Caracas</div>
+              <div class="j-detail"><span class="es">Tostado artesanal. Empaque. Y llegó a ti.</span><span class="en">Artisan roasting. Packaging. It reached you.</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="j-col-right"></div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ════════════════════════
+       S7 · CIERRE
+  ════════════════════════ -->
+  <div class="slide s7">
+    <div id="cierre-bg" data-depth="-0.05"></div>
+    <div class="inner" data-depth="0.44">
+      <div class="cierre-brand">KOFY</div>
+      <p class="cierre-phrase">
+        <span class="es">Cada taza es un viaje.</span>
+        <span class="en">Every cup is a journey.</span>
+      </p>
+      <p class="cierre-sub">
+        <span class="es">Caracas · Venezuela · Especialidad</span>
+        <span class="en">Caracas · Venezuela · Specialty Coffee</span>
+      </p>
+      <p class="cierre-origin">origen-etiopia · kofy.io</p>
+    </div>
+  </div>
+
+</div><!-- /#app -->
+
+
+<script>
+  // ═══════════════════════════════════════════
+  // GRAIN
+  // ═══════════════════════════════════════════
+  (function(){
+    const c=document.createElement('canvas'); c.width=c.height=256;
+    const x=c.getContext('2d'), d=x.createImageData(256,256);
+    for(let i=0;i<d.data.length;i+=4){const v=Math.random()*255;d.data[i]=d.data[i+1]=d.data[i+2]=v;d.data[i+3]=11;}
+    x.putImageData(d,0,0);
+    document.getElementById('grain').style.backgroundImage=`url(${c.toDataURL()})`;
+  })();
+
+  // ═══════════════════════════════════════════
+  // STARFIELD
+  // ═══════════════════════════════════════════
+  (function(){
+    const cv=document.getElementById('hero-stars'), cx=cv.getContext('2d'); let stars=[];
+    function resize(){
+      cv.width=cv.offsetWidth; cv.height=cv.offsetHeight;
+      stars=Array.from({length:Math.floor(cv.width*cv.height/4800)},()=>({
+        x:Math.random(),y:Math.random(),r:Math.random()*1.1,
+        base:Math.random()*0.28+0.04,phase:Math.random()*Math.PI*2,sp:0.003+Math.random()*0.005
+      }));
+    }
+    let t=0;
+    function draw(){cx.clearRect(0,0,cv.width,cv.height);t+=0.01;
+      stars.forEach(s=>{const o=s.base+Math.sin(s.phase+t*s.sp*100)*0.07;
+        cx.beginPath();cx.arc(s.x*cv.width,s.y*cv.height,s.r,0,Math.PI*2);
+        cx.fillStyle=`rgba(200,169,110,${Math.max(0,o)})`;cx.fill();});
+      requestAnimationFrame(draw);}
+    resize();draw();window.addEventListener('resize',resize);
+  })();
+
+  // ═══════════════════════════════════════════
+  // STEAM — dense central column, near-white
+  // ═══════════════════════════════════════════
+  (function(){
+    const cv=document.getElementById('steam');
+    const cx=cv.getContext('2d');
+    function resize(){ cv.width=cv.offsetWidth; cv.height=cv.offsetHeight; }
+
+    function Particle(stagger){
+      this.life = stagger ? Math.random()*360 : 0;
+      this.reset();
+    }
+    Particle.prototype.reset=function(){
+      // Tight central column — center 28% of canvas width only
+      this.baseX = cv.width*(0.36 + Math.random()*0.28);
+      this.x     = this.baseX;
+      this.y     = cv.height*(0.84 + Math.random()*0.16);
+      this.vy    = 0.13 + Math.random()*0.17;   // slow — stays on screen longer
+      this.maxL  = 360 + Math.random()*260;      // long-lived
+      this.r     = 8   + Math.random()*12;       // start small, grow a lot
+      this.wave  = Math.random()*Math.PI*2;
+      this.wFreq = 0.003 + Math.random()*0.004;  // gentle, lazy drift
+      this.wAmp  = 2    + Math.random()*5;       // tight column
+    };
+    Particle.prototype.tick=function(){
+      this.life++;
+      this.y  -= this.vy;
+      this.x   = this.baseX + Math.sin(this.life*this.wFreq + this.wave)*this.wAmp;
+      if(this.life>=this.maxL){ this.life=0; this.reset(); }
+    };
+    Particle.prototype.draw=function(){
+      const t   = this.life/this.maxL;
+      const fin = Math.min(t/0.16, 1);
+      const fout= t>0.55 ? 1-(t-0.55)/0.45 : 1;
+      const a   = fin*fout*0.09;          // low per-particle; mass makes it dense
+      const r   = this.r*(1 + t*4.2);    // expands significantly — big diffuse blobs
+      const g=cx.createRadialGradient(this.x,this.y,0, this.x,this.y,r);
+      g.addColorStop(0,   `rgba(255,252,250,${a})`);       // near-white
+      g.addColorStop(0.45,`rgba(250,246,242,${a*0.40})`);
+      g.addColorStop(1,   'rgba(245,242,238,0)');
+      cx.beginPath();
+      cx.arc(this.x,this.y,r,0,Math.PI*2);
+      cx.fillStyle=g;
+      cx.fill();
+    };
+
+    resize();
+    // 70 particles, staggered — fills column immediately on load
+    const pts=Array.from({length:70},()=>new Particle(true));
+    function loop(){
+      cx.clearRect(0,0,cv.width,cv.height);
+      pts.forEach(p=>{ p.tick(); p.draw(); });
+      requestAnimationFrame(loop);
+    }
+    loop();
+    window.addEventListener('resize',resize);
+  })();
+
+  // ═══════════════════════════════════════════
+  // CHAR SPLIT
+  // ═══════════════════════════════════════════
+  document.querySelectorAll('.split-chars').forEach(el=>{
+    const t=el.textContent;
+    el.innerHTML=[...t].map((ch,i)=>`<span class="char" style="--ci:${i}">${ch==' '?'&nbsp;':ch}</span>`).join('');
+  });
+
+  // ═══════════════════════════════════════════
+  // SLIDE ENGINE
+  // ═══════════════════════════════════════════
+  const slides=[...document.querySelectorAll('.slide')];
+  const dots=[...document.querySelectorAll('.nd')];
+  let cur=0, busy=false;
+
+  function goTo(n,dir=1){
+    if(busy||n===cur||n<0||n>=slides.length) return;
+    busy=true; const prev=cur; cur=n;
+
+    const outEl=slides[prev];
+    outEl.style.transition='opacity 0.5s ease, transform 0.5s ease';
+    outEl.style.opacity='0';
+    outEl.style.transform=`translateY(${dir>0?'-32px':'32px'})`;
+    outEl.classList.remove('active');
+
+    const inEl=slides[n];
+    inEl.style.transition='none';
+    inEl.style.opacity='0';
+    inEl.style.transform=`translateY(${dir>0?'32px':'-32px'})`;
+    inEl.classList.remove('active');
+    void inEl.offsetHeight;
+    inEl.classList.add('active');
+
+    requestAnimationFrame(()=>{
+      inEl.style.transition='opacity 0.6s cubic-bezier(0.16,1,0.3,1), transform 0.6s cubic-bezier(0.16,1,0.3,1)';
+      inEl.style.opacity='1'; inEl.style.transform='translateY(0)';
+    });
+
+    dots.forEach((d,i)=>d.classList.toggle('active',i===n));
+    setTimeout(()=>{
+      outEl.style.transition='';outEl.style.transform='';outEl.style.opacity='';
+      inEl.style.transition='';inEl.style.transform='';inEl.style.opacity='';
+      busy=false;
+    },700);
+  }
+
+  const next=()=>goTo(cur+1,1), prev=()=>goTo(cur-1,-1);
+
+  let wt=0;
+  window.addEventListener('wheel',e=>{e.preventDefault();const now=Date.now();if(now-wt<900)return;wt=now;e.deltaY>0?next():prev();},{passive:false});
+  let ty=0;
+  window.addEventListener('touchstart',e=>{ty=e.touches[0].clientY;},{passive:true});
+  window.addEventListener('touchend',e=>{const dy=ty-e.changedTouches[0].clientY;if(Math.abs(dy)>50){dy>0?next():prev();}},{passive:true});
+  window.addEventListener('keydown',e=>{
+    if(e.key==='ArrowDown'||e.key==='ArrowRight') next();
+    if(e.key==='ArrowUp'||e.key==='ArrowLeft') prev();
+  });
+  dots.forEach((d,i)=>d.addEventListener('click',()=>goTo(i,i>cur?1:-1)));
+
+  // ═══════════════════════════════════════════
+  // PARALLAX SYSTEM
+  // ═══════════════════════════════════════════
+  const pxEls=[...document.querySelectorAll('[data-depth]')];
+  let mx=0, my=0;        // target (mouse/gyro)
+  let px=0, py=0;        // current (smoothed)
+
+  // Mouse
+  document.addEventListener('mousemove',e=>{
+    mx=(e.clientX/window.innerWidth  - 0.5) * 2;
+    my=(e.clientY/window.innerHeight - 0.5) * 2;
+  });
+
+  // Gyroscope (mobile tilt)
+  function requestGyro(){
+    if(typeof DeviceOrientationEvent!=='undefined' && typeof DeviceOrientationEvent.requestPermission==='function'){
+      DeviceOrientationEvent.requestPermission().then(s=>{ if(s==='granted') bindGyro(); }).catch(()=>{});
+    } else { bindGyro(); }
+  }
+  function bindGyro(){
+    window.addEventListener('deviceorientation',e=>{
+      mx=Math.max(-1,Math.min(1,(e.gamma||0)/25));
+      my=Math.max(-1,Math.min(1,((e.beta||0)-30)/25));
+    },{passive:true});
+  }
+  // Bind gyro on first touch (iOS requires user gesture for permission)
+  window.addEventListener('touchstart',requestGyro,{once:true});
+
+  // ═══════════════════════════════════════════
+  // CUSTOM CURSOR
+  // ═══════════════════════════════════════════
+  const curDot  = document.getElementById('cursor-dot');
+  const curGlow = document.getElementById('cursor-glow');
+  let   dcx=window.innerWidth/2, dcy=window.innerHeight/2;
+  let   gcx=dcx, gcy=dcy;
+  let   hasMouse=false;
+
+  document.addEventListener('mousemove',e=>{
+    dcx=e.clientX; dcy=e.clientY;
+    if(!hasMouse){
+      hasMouse=true;
+      curDot.style.opacity='1'; curGlow.style.opacity='1';
+    }
+  });
+
+  // Enlarge cursor on hoverable elements
+  const hoverables='a, button, .nd, .brew-tag, .fn';
+  document.querySelectorAll(hoverables).forEach(el=>{
+    el.addEventListener('mouseenter',()=>curDot.classList.add('big'));
+    el.addEventListener('mouseleave',()=>curDot.classList.remove('big'));
+  });
+
+  // ═══════════════════════════════════════════
+  // BURST PARTICLES
+  // ═══════════════════════════════════════════
+  function burst(x,y){
+    const count=10;
+    for(let i=0;i<count;i++){
+      const p=document.createElement('div');
+      p.className='bp';
+      const angle=(i/count)*Math.PI*2 + Math.random()*0.4;
+      const r=22+Math.random()*44;
+      const sz=1.5+Math.random()*3;
+      p.style.cssText=`left:${x}px;top:${y}px;width:${sz}px;height:${sz}px;opacity:${0.5+Math.random()*0.5}`;
+      p.style.setProperty('--dx',Math.cos(angle)*r+'px');
+      p.style.setProperty('--dy',Math.sin(angle)*r+'px');
+      document.body.appendChild(p);
+      setTimeout(()=>p.remove(),780);
+    }
+  }
+  document.addEventListener('click',e=>burst(e.clientX,e.clientY));
+  window.addEventListener('touchend',e=>{
+    const t=e.changedTouches[0];
+    burst(t.clientX,t.clientY);
+  },{passive:true});
+
+  // ═══════════════════════════════════════════
+  // RAF LOOP — parallax + cursor
+  // ═══════════════════════════════════════════
+  ;(function loop(){
+    // Smooth parallax (lerp factor 0.055 = ~18 frames to reach target)
+    px+=(mx-px)*0.055;
+    py+=(my-py)*0.055;
+
+    pxEls.forEach(el=>{
+      const d=parseFloat(el.dataset.depth);
+      el.style.setProperty('--px-x', (px*d*30)+'px');
+      el.style.setProperty('--px-y', (py*d*18)+'px');
+    });
+
+    // Cursor glow (slower lerp for dreamlike lag)
+    gcx+=(dcx-gcx)*0.09;
+    gcy+=(dcy-gcy)*0.09;
+    curDot.style.left  = dcx+'px';
+    curDot.style.top   = dcy+'px';
+    curGlow.style.left = gcx+'px';
+    curGlow.style.top  = gcy+'px';
+
+    requestAnimationFrame(loop);
+  })();
+
+  // ═══════════════════════════════════════════
+  // LANGUAGE
+  // ═══════════════════════════════════════════
+  function setLang(l){
+    document.documentElement.setAttribute('data-lang',l);
+    document.documentElement.setAttribute('lang',l);
+    document.getElementById('btn-es').classList.toggle('active',l==='es');
+    document.getElementById('btn-en').classList.toggle('active',l==='en');
+  }
+  setLang(navigator.language.toLowerCase().startsWith('es')?'es':'en');
+</script>
+
+<script src="kofy-nav.js"></script>
+</body>
+</html>

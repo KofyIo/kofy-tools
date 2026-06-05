@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kofy · The Game</title>
+<style>
+  :root {
+    --bg: #0a0610;
+    --surface: #15101f;
+    --surface-2: #1f1830;
+    --line: #2a2138;
+    --ink: #f3e8d4;
+    --ink-mute: #9e8db8;
+    --gold: #f5c842;
+    --plum: #5b3a8f;
+    --plum-soft: #7a52b8;
+    --green: #7fb069;
+    --red: #d9534f;
+    --cream: #f5e6d3;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { background: var(--bg); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif; line-height: 1.5; min-height: 100vh; }
+  body { padding-bottom: 60px; }
+
+  header.top { position: sticky; top: 0; z-index: 50; background: rgba(10,6,16,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); padding: 14px 20px; }
+  .top-row { display: flex; justify-content: space-between; align-items: center; max-width: 900px; margin: 0 auto; }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand .logo { font-size: 18px; }
+  .brand .name { font-size: 14px; font-weight: 600; color: var(--cream); letter-spacing: 0.04em; }
+  .brand .name .sub { color: var(--ink-mute); font-weight: 400; margin-left: 6px; }
+  .nav { display: flex; gap: 4px; }
+  .nav a { color: var(--ink-mute); text-decoration: none; padding: 6px 10px; font-size: 12px; border-radius: 4px; font-weight: 500; letter-spacing: 0.04em; }
+  .nav a.active { color: var(--gold); background: rgba(245,200,66,0.08); }
+
+  main { max-width: 900px; margin: 0 auto; padding: 20px; }
+
+  /* Member picker */
+  .picker { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
+  .pchip { background: var(--surface); border: 1px solid var(--line); padding: 10px 18px; border-radius: 24px; font-size: 14px; color: var(--ink-mute); cursor: pointer; font-weight: 500; font-family: inherit; }
+  .pchip.active { background: var(--plum); border-color: var(--plum-soft); color: var(--cream); font-weight: 600; }
+  .pchip:hover { color: var(--cream); }
+
+  /* Hero card */
+  .hero { background: linear-gradient(135deg, var(--surface) 0%, var(--surface-2) 100%); border: 1px solid var(--line); border-radius: 12px; padding: 28px; margin-bottom: 24px; position: relative; overflow: hidden; }
+  .hero::before { content: ""; position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: radial-gradient(circle, rgba(245,200,66,0.08), transparent 70%); }
+  .hero-row { display: flex; align-items: center; gap: 20px; position: relative; }
+  .plant { font-size: 64px; line-height: 1; }
+  .hero-info { flex: 1; }
+  .hero-name { font-size: 26px; color: var(--cream); font-weight: 700; letter-spacing: -0.01em; margin-bottom: 4px; }
+  .hero-level { font-size: 12px; color: var(--gold); letter-spacing: 0.12em; text-transform: uppercase; font-weight: 600; }
+  .hero-points { text-align: right; }
+  .hero-pt-num { font-size: 32px; color: var(--cream); font-weight: 800; font-family: ui-monospace, monospace; }
+  .hero-pt-lbl { font-size: 11px; color: var(--ink-mute); letter-spacing: 0.12em; text-transform: uppercase; }
+
+  /* Progress bar */
+  .progress { margin-top: 18px; position: relative; }
+  .progress-bar { background: var(--surface-2); height: 8px; border-radius: 4px; overflow: hidden; }
+  .progress-fill { background: linear-gradient(90deg, var(--gold), var(--plum-soft)); height: 100%; border-radius: 4px; transition: width 0.4s; }
+  .progress-meta { display: flex; justify-content: space-between; margin-top: 6px; font-size: 11px; color: var(--ink-mute); }
+
+  /* Stat grid */
+  h2 { font-size: 13px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); margin: 32px 0 12px; font-weight: 600; }
+  .stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+  .stat { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px 10px; text-align: center; }
+  .stat-icon { font-size: 22px; margin-bottom: 6px; }
+  .stat-num { font-size: 22px; font-weight: 700; color: var(--cream); font-family: ui-monospace, monospace; }
+  .stat-lbl { font-size: 10px; color: var(--ink-mute); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 4px; }
+  @media (max-width: 700px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+
+  .big-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+  .big-stat { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 18px; }
+  .big-stat .num { font-size: 28px; color: var(--cream); font-weight: 700; font-family: ui-monospace, monospace; }
+  .big-stat .lbl { font-size: 11px; color: var(--ink-mute); letter-spacing: 0.12em; text-transform: uppercase; margin-top: 4px; }
+  .big-stat .sub { font-size: 11px; color: var(--plum-soft); margin-top: 8px; }
+  @media (max-width: 600px) { .big-row { grid-template-columns: 1fr; } }
+
+  /* Activity */
+  .activity-list { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .act-row { display: grid; grid-template-columns: 32px 1fr auto; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--line); align-items: center; font-size: 13px; }
+  .act-row:last-child { border-bottom: none; }
+  .act-icon { font-size: 18px; }
+  .act-text { color: var(--ink); }
+  .act-text strong { color: var(--cream); font-family: ui-monospace, monospace; font-weight: 600; }
+  .act-date { color: var(--ink-mute); font-size: 11px; font-family: ui-monospace, monospace; white-space: nowrap; }
+
+  .empty-state { padding: 32px; text-align: center; color: var(--ink-mute); font-size: 13px; }
+
+  .refresh-state { color: var(--ink-mute); font-size: 11px; margin-left: auto; }
+  .refresh-state.live::before { content: "● "; color: var(--green); }
+  .refresh-state.loading::before { content: "◌ "; color: var(--gold); }
+  .refresh-state.error::before { content: "● "; color: var(--red); }
+  .filterbar { display: flex; margin-bottom: 8px; align-items: center; }
+
+  .config-warn { background: rgba(217,83,79,0.1); border: 1px solid var(--red); padding: 16px; border-radius: 6px; margin: 20px; color: var(--cream); font-size: 14px; }
+  .config-warn code { background: var(--surface); padding: 2px 6px; border-radius: 3px; color: var(--gold); font-family: ui-monospace, monospace; font-size: 12px; }
+</style>
+</head>
+<body>
+
+<script>
+const CONFIG = {
+  PROXY_URL: "https://kofy-notion-proxy.delicate-surf-529c.workers.dev",
+  DB_ORDENES:   "3649b62600a0800ea228d8d8dcf2ada4",
+  DB_USOS:      "3649b62600a080108754c2eaadac2455",
+  DB_MIEMBROS:  "3649b62600a080308dc6cf556b0d8c4b",
+  DB_QUINTALES: "3649b62600a080df9a7ac6c932fa9d5b",
+  DB_CLIENTES:  "3649b62600a08020ae9ed625e57044bb",
+};
+
+// ═══════════ Gamificación · ciclo del café ═══════════
+const PLANTAS = [
+  { emoji: "🌰", nivel: "Semilla",       umbral: 0 },
+  { emoji: "🌱", nivel: "Brote",         umbral: 50 },
+  { emoji: "🪴", nivel: "Planta",        umbral: 150 },
+  { emoji: "🌸", nivel: "Flor",          umbral: 350 },
+  { emoji: "🍒", nivel: "Cereza",        umbral: 600 },
+  { emoji: "🫘", nivel: "Grano verde",   umbral: 900 },
+  { emoji: "🔥", nivel: "Grano tostado", umbral: 1300 },
+  { emoji: "☕", nivel: "Bolsa",         umbral: 1800 },
+];
+// Puntos por evento
+const PTS = {
+  CV: 20,   // apartar café verde
+  T:  40,   // tostar
+  E:  20,   // empaquetar
+  L:  20,   // listo p/ envío (QR, caja, etiquetas)
+  EN: 50,   // entregar (gran bono)
+  USO_POR_KG: 1,  // 1 pt por kg de café verde manejado
+};
+</script>
+
+<header class="top">
+  <div class="top-row">
+    <div class="brand">
+      <span class="logo">☕</span>
+      <span class="name">Kofy <span class="sub">· The Game</span></span>
+    </div>
+    <nav class="nav">
+      <a href="orders.html">Órdenes</a>
+      <a href="inventory.html">Inventario</a>
+      <a href="game.html" class="active">The Game</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="filterbar">
+    <span class="refresh-state" id="refresh-state">conectando…</span>
+  </div>
+
+  <div class="picker" id="picker"></div>
+
+  <div id="content" style="display:none;">
+    <div class="hero">
+      <div class="hero-row">
+        <div class="plant" id="hero-plant">🌰</div>
+        <div class="hero-info">
+          <div class="hero-name" id="hero-name">—</div>
+          <div class="hero-level" id="hero-level">—</div>
+        </div>
+        <div class="hero-points">
+          <div class="hero-pt-num" id="hero-points">0</div>
+          <div class="hero-pt-lbl">puntos</div>
+        </div>
+      </div>
+      <div class="progress">
+        <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+        <div class="progress-meta">
+          <span id="progress-current">—</span>
+          <span id="progress-next">—</span>
+        </div>
+      </div>
+    </div>
+
+    <h2>Por etapa · órdenes firmadas</h2>
+    <div class="stats">
+      <div class="stat"><div class="stat-icon">🌱</div><div class="stat-num" id="s-cv">0</div><div class="stat-lbl">Café Verde</div></div>
+      <div class="stat"><div class="stat-icon">🔥</div><div class="stat-num" id="s-t">0</div><div class="stat-lbl">Tostado</div></div>
+      <div class="stat"><div class="stat-icon">📦</div><div class="stat-num" id="s-e">0</div><div class="stat-lbl">Empaquetado</div></div>
+      <div class="stat"><div class="stat-icon">🏷️</div><div class="stat-num" id="s-l">0</div><div class="stat-lbl">Listo</div></div>
+      <div class="stat"><div class="stat-icon">✅</div><div class="stat-num" id="s-en">0</div><div class="stat-lbl">Entregado</div></div>
+    </div>
+
+    <div class="big-row">
+      <div class="big-stat">
+        <div class="num" id="b-usos">0</div>
+        <div class="lbl">Usos registrados</div>
+        <div class="sub">Veces que has apartado café verde</div>
+      </div>
+      <div class="big-stat">
+        <div class="num" id="b-kg">0.0 <span style="color: var(--ink-mute); font-size: 14px;">kg</span></div>
+        <div class="lbl">Café verde manejado</div>
+        <div class="sub">Total acumulado</div>
+      </div>
+    </div>
+
+    <h2>Actividad reciente</h2>
+    <div class="activity-list" id="activity"></div>
+  </div>
+
+  <!-- v2 · Movimientos de hoy · shift handoff vista global -->
+  <h2 style="margin-top: 40px;">
+    <span>Movimientos de hoy</span>
+    <span id="hoy-count" style="font-family: ui-monospace, monospace; font-size: 11px; color: var(--text2); background: var(--surface-2); padding: 3px 10px; border-radius: 10px; margin-left: 10px;">—</span>
+  </h2>
+  <div class="activity-list" id="hoy-list"><div class="empty-state" style="padding: 24px;">cargando…</div></div>
+</main>
+
+<script>
+let STATE = { miembros: [], ordenes: [], usos: [], quintales: [], clientes: [], selectedId: null };
+
+async function notion(endpoint, body, method) {
+  method = method || (body ? "POST" : "GET");
+  const res = await fetch(`${CONFIG.PROXY_URL}${endpoint}`, {
+    method,
+    headers: { "Content-Type": "application/json" },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (!res.ok) throw new Error(`Notion ${res.status}`);
+  return res.json();
+}
+async function queryDb(dbId) { return notion(`/query`, { database_id: dbId }); }
+
+function readProp(page, name) {
+  const p = page.properties[name];
+  if (!p) return null;
+  switch (p.type) {
+    case "title":     return p.title.map(t => t.plain_text).join("");
+    case "rich_text": return p.rich_text.map(t => t.plain_text).join("");
+    case "number":    return p.number;
+    case "select":    return p.select?.name || null;
+    case "date":      return p.date?.start || null;
+    case "checkbox":  return p.checkbox;
+    case "relation":  return p.relation.map(r => r.id);
+    default: return null;
+  }
+}
+
+function setState(s) {
+  const el = document.getElementById("refresh-state");
+  el.className = "refresh-state " + s;
+  el.textContent = s === "live" ? `sincronizado · ${new Date().toLocaleTimeString("es-VE",{hour:"2-digit",minute:"2-digit"})}` :
+                    s === "loading" ? "actualizando…" :
+                    s === "error" ? "error · config" : "—";
+}
+
+async function loadAll() {
+  setState("loading");
+  try {
+    const [mi, ord, us, qu, cli] = await Promise.all([
+      queryDb(CONFIG.DB_MIEMBROS),
+      queryDb(CONFIG.DB_ORDENES),
+      queryDb(CONFIG.DB_USOS),
+      queryDb(CONFIG.DB_QUINTALES),
+      queryDb(CONFIG.DB_CLIENTES),
+    ]);
+    STATE.miembros = mi.results;
+    STATE.ordenes = ord.results;
+    STATE.usos = us.results;
+    STATE.quintales = qu.results;
+    STATE.clientes = cli.results;
+    if (!STATE.selectedId && STATE.miembros.length) {
+      // v2: usar persona del localStorage si existe
+      try {
+        const stored = JSON.parse(localStorage.getItem("kofy_warehouse_persona_v1") || "null");
+        if (stored && STATE.miembros.find(m => m.id === stored.id)) {
+          STATE.selectedId = stored.id;
+        } else {
+          STATE.selectedId = STATE.miembros[0].id;
+        }
+      } catch {
+        STATE.selectedId = STATE.miembros[0].id;
+      }
+    }
+    renderPicker();
+    renderMe();
+    renderHoy();
+    setState("live");
+  } catch (e) {
+    console.error(e);
+    setState("error");
+  }
+}
+
+// v2 · "Movimientos de hoy" para shift handoff
+const STAGES_YO = [
+  { code: "CV", icon: "🌱", name: "Café Verde" },
+  { code: "T",  icon: "🔥", name: "Tostado" },
+  { code: "E",  icon: "📦", name: "Empaquetado" },
+  { code: "L",  icon: "🏷️", name: "Listo p/ envío" },
+  { code: "EN", icon: "✅", name: "Entregado" },
+];
+
+function renderHoy() {
+  const cont = document.getElementById("hoy-list");
+  const today = new Date().toISOString().substring(0, 10);
+  const events = [];
+
+  STATE.ordenes.forEach(o => {
+    const oid = (() => { for (const v of Object.values(o?.properties || {})) { if (v.type === "title") return v.title.map(t => t.plain_text).join(""); } return ""; })();
+    const clientIds = readProp(o, "Cliente") || [];
+    const client = clientIds.length ? STATE.clientes.find(c => c.id === clientIds[0]) : null;
+    const clientName = client ? (() => { for (const v of Object.values(client?.properties || {})) { if (v.type === "title") return v.title.map(t => t.plain_text).join(""); } return ""; })() : "";
+    // Etapas firmadas hoy
+    STAGES_YO.forEach(s => {
+      const fecha = readProp(o, `${s.code} fecha`);
+      if (fecha !== today) return;
+      const firmaIds = readProp(o, `${s.code} firma`) || [];
+      const firma = firmaIds.length ? STATE.miembros.find(m => m.id === firmaIds[0]) : null;
+      const firmaName = firma ? (() => { for (const v of Object.values(firma?.properties || {})) { if (v.type === "title") return v.title.map(t => t.plain_text).join(""); } return ""; })() : "—";
+      events.push({ icon: s.icon, html: `<strong>${firmaName}</strong> firmó <em>${s.name}</em> en <span class="mono" style="color:var(--gold);">${oid}</span>${clientName ? ` · ${clientName}` : ""}` });
+    });
+    // Cancelación hoy
+    if (readProp(o, "Fecha cancelación") === today) {
+      const firmaIds = readProp(o, "Firma cancelación") || [];
+      const firma = firmaIds.length ? STATE.miembros.find(m => m.id === firmaIds[0]) : null;
+      const firmaName = firma ? (() => { for (const v of Object.values(firma?.properties || {})) { if (v.type === "title") return v.title.map(t => t.plain_text).join(""); } return ""; })() : "—";
+      events.push({ icon: "🚫", html: `<strong>${firmaName}</strong> canceló <span class="mono" style="color:var(--red);">${oid}</span>` });
+    }
+    // Reactivación hoy
+    if (readProp(o, "Reactivada · fecha") === today) {
+      const firmaIds = readProp(o, "Reactivada · firma") || [];
+      const firma = firmaIds.length ? STATE.miembros.find(m => m.id === firmaIds[0]) : null;
+      const firmaName = firma ? (() => { for (const v of Object.values(firma?.properties || {})) { if (v.type === "title") return v.title.map(t => t.plain_text).join(""); } return ""; })() : "—";
+      events.push({ icon: "↻", html: `<strong>${firmaName}</strong> reactivó <span class="mono" style="color:var(--green);">${oid}</span>` });
+    }
+  });
+
+  // Usos creados hoy
+  STATE.usos.forEach(u => {
+    if (readProp(u, "Fecha") !== today) return;
+    const kg = readProp(u, "KG usados");
+    const firmaIds = readProp(u, "Firma") || [];
+    const firma = firmaIds.length ? STATE.miembros.find(m => m.id === firmaIds[0]) : null;
+    const firmaName = firma ? (() => { for (const v of Object.values(firma?.properties || {})) { if (v.type === "title") return v.title.map(t => t.plain_text).join(""); } return ""; })() : "—";
+    const ordIds = readProp(u, "Orden") || [];
+    const ord = ordIds.length ? STATE.ordenes.find(o => o.id === ordIds[0]) : null;
+    const oid = ord ? (() => { for (const v of Object.values(ord?.properties || {})) { if (v.type === "title") return v.title.map(t => t.plain_text).join(""); } return ""; })() : "—";
+    const qIds = readProp(u, "Quintal") || [];
+    const q = qIds.length ? STATE.quintales.find(x => x.id === qIds[0]) : null;
+    const qName = q ? (() => { for (const v of Object.values(q?.properties || {})) { if (v.type === "title") return v.title.map(t => t.plain_text).join(""); } return ""; })() : "—";
+    events.push({ icon: "⚖️", html: `<strong>${firmaName}</strong> apartó <em>${kg} kg</em> de <span class="mono" style="color:var(--gold);">${qName}</span> para <span class="mono" style="color:var(--gold);">${oid}</span>` });
+  });
+
+  document.getElementById("hoy-count").textContent = events.length === 0 ? "0" : `${events.length} eventos`;
+  if (events.length === 0) {
+    cont.innerHTML = `<div class="empty-state" style="padding: 28px; text-align: center; color: var(--text2);">🌱 Sin movimientos hoy todavía. Cuando alguien firme una etapa o se aparte café verde, aparece acá.</div>`;
+    return;
+  }
+  cont.innerHTML = events.map(e => `<div class="act-row"><div class="act-icon">${e.icon}</div><div class="act-text">${e.html}</div><div class="act-date">hoy</div></div>`).join("");
+}
+
+function renderPicker() {
+  const c = document.getElementById("picker");
+  c.innerHTML = "";
+  STATE.miembros.forEach(m => {
+    const name = readProp(m, "Nombre") || "—";
+    const chip = document.createElement("button");
+    chip.className = "pchip" + (m.id === STATE.selectedId ? " active" : "");
+    chip.textContent = name;
+    chip.onclick = () => { STATE.selectedId = m.id; renderPicker(); renderMe(); };
+    c.appendChild(chip);
+  });
+}
+
+function renderMe() {
+  if (!STATE.selectedId) return;
+  document.getElementById("content").style.display = "block";
+
+  const me = STATE.miembros.find(m => m.id === STATE.selectedId);
+  const myName = readProp(me, "Nombre") || "—";
+
+  // Contar firmas por etapa
+  const stages = ["CV","T","E","L","EN"];
+  const counts = { CV:0, T:0, E:0, L:0, EN:0 };
+  const acts = [];
+
+  STATE.ordenes.forEach(o => {
+    const orderIdStr = readProp(o,"Order ID") || "—";
+    stages.forEach(s => {
+      if (readProp(o, `${s} ✓`)) {
+        const firmaIds = readProp(o, `${s} firma`) || [];
+        if (firmaIds.includes(STATE.selectedId)) {
+          counts[s]++;
+          const fecha = readProp(o, `${s} fecha`);
+          acts.push({
+            type: "stage", stage: s, orderId: orderIdStr, fecha: fecha,
+            icon: ({CV:"🌱",T:"🔥",E:"📦",L:"🏷️",EN:"✅"})[s],
+            label: ({CV:"Apartó café verde para",T:"Tostó",E:"Empaquetó",L:"Dejó listo",EN:"Entregó"})[s],
+          });
+        }
+      }
+    });
+  });
+
+  // Mis usos
+  let myKg = 0, myUsos = 0;
+  STATE.usos.forEach(u => {
+    const firmaIds = readProp(u, "Firma") || [];
+    if (firmaIds.includes(STATE.selectedId)) {
+      myUsos++;
+      const kg = readProp(u, "KG usados") || 0;
+      myKg += kg;
+      const ordenIds = readProp(u, "Orden") || [];
+      const orden = STATE.ordenes.find(o => o.id === ordenIds[0]);
+      const oid = orden ? readProp(orden,"Order ID") : "—";
+      acts.push({
+        type: "uso", kg, orderId: oid, fecha: readProp(u,"Fecha"),
+        icon: "⚖️", label: "Apartó " + kg + " kg para",
+      });
+    }
+  });
+
+  // Puntos totales
+  const stagePts = counts.CV*PTS.CV + counts.T*PTS.T + counts.E*PTS.E + counts.L*PTS.L + counts.EN*PTS.EN;
+  const usoPts = Math.round(myKg * PTS.USO_POR_KG);
+  const total = stagePts + usoPts;
+
+  // Nivel
+  let level = PLANTAS[0], nextLevel = null;
+  for (let i = 0; i < PLANTAS.length; i++) {
+    if (total >= PLANTAS[i].umbral) {
+      level = PLANTAS[i];
+      nextLevel = PLANTAS[i + 1] || null;
+    }
+  }
+
+  document.getElementById("hero-name").textContent = myName;
+  document.getElementById("hero-plant").textContent = level.emoji;
+  document.getElementById("hero-level").textContent = level.nivel;
+  document.getElementById("hero-points").textContent = total;
+
+  // Progress
+  if (nextLevel) {
+    const range = nextLevel.umbral - level.umbral;
+    const into = total - level.umbral;
+    const pct = Math.min(100, (into / range) * 100);
+    document.getElementById("progress-fill").style.width = pct + "%";
+    document.getElementById("progress-current").textContent = `${level.nivel} · ${total} pts`;
+    document.getElementById("progress-next").textContent = `${nextLevel.umbral - total} pts → ${nextLevel.emoji} ${nextLevel.nivel}`;
+  } else {
+    document.getElementById("progress-fill").style.width = "100%";
+    document.getElementById("progress-current").textContent = `${level.nivel} · ${total} pts`;
+    document.getElementById("progress-next").textContent = "Nivel máximo alcanzado ☕";
+  }
+
+  // Stats por etapa
+  document.getElementById("s-cv").textContent = counts.CV;
+  document.getElementById("s-t").textContent  = counts.T;
+  document.getElementById("s-e").textContent  = counts.E;
+  document.getElementById("s-l").textContent  = counts.L;
+  document.getElementById("s-en").textContent = counts.EN;
+  document.getElementById("b-usos").textContent = myUsos;
+  document.getElementById("b-kg").innerHTML = myKg.toFixed(1) + ' <span style="color: var(--ink-mute); font-size: 14px;">kg</span>';
+
+  // Actividad
+  acts.sort((a,b) => (b.fecha || "").localeCompare(a.fecha || ""));
+  const recent = acts.slice(0, 20);
+  const cont = document.getElementById("activity");
+  if (recent.length === 0) {
+    cont.innerHTML = `<div class="empty-state">Aún sin actividad. Cuando firmes una etapa o registres un uso, aparece aquí.</div>`;
+  } else {
+    cont.innerHTML = recent.map(a => `
+      <div class="act-row">
+        <div class="act-icon">${a.icon}</div>
+        <div class="act-text">${a.label} <strong>${a.orderId}</strong></div>
+        <div class="act-date">${a.fecha ? new Date(a.fecha).toLocaleDateString("es-VE",{day:"2-digit",month:"2-digit",year:"2-digit"}) : "—"}</div>
+      </div>`).join("");
+  }
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+  if (CONFIG.DB_ORDENES.startsWith("PEGAR_")) {
+    document.querySelector("main").innerHTML = `
+      <div class="config-warn">
+        <strong>⚠ Config incompleta.</strong> Edita el bloque <code>CONFIG</code> al inicio y pega los DB IDs de Notion. Guía: <code>warehouse-notion-schema.html</code>.
+      </div>`;
+    return;
+  }
+  loadAll();
+  // refresh suave cada 30s
+  // v2 · Smart refresh: no piso lo que estás tipeando ni un modal abierto
+  function shouldSkipRefresh() {
+    if (document.querySelector(".modal-bg.open")) return true;
+    const f = document.activeElement;
+    if (f && (f.tagName === "INPUT" || f.tagName === "TEXTAREA" || f.tagName === "SELECT")) return true;
+    return false;
+  }
+  setInterval(() => { if (!document.hidden && !shouldSkipRefresh()) loadAll(); }, 30000);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) loadAll(); });
+});
+</script>
+
+</body>
+</html>

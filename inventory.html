@@ -1,0 +1,1277 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<title>Kofy · Inventario</title>
+<style>
+  :root {
+    --bg: #0a0610;
+    --surface: #15101f;
+    --surface-2: #1f1830;
+    --surface-3: #2a2138;
+    --line: #2a2138;
+    --ink: #f3e8d4;
+    --ink-mute: #9e8db8;
+    --gold: #f5c842;
+    --plum: #5b3a8f;
+    --plum-soft: #7a52b8;
+    --green: #7fb069;
+    --yellow: #e8b94e;
+    --red: #d9534f;
+    --cream: #f5e6d3;
+    --shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { background: var(--bg); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif; line-height: 1.5; min-height: 100vh; }
+  body { padding-bottom: 100px; }
+
+  header.top { position: sticky; top: 0; z-index: 50; background: rgba(10,6,16,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); padding: 14px 20px; }
+  .top-row { display: flex; justify-content: space-between; align-items: center; max-width: 1100px; margin: 0 auto; }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand .logo { font-size: 18px; }
+  .brand .name { font-size: 14px; font-weight: 600; color: var(--cream); letter-spacing: 0.04em; }
+  .brand .name .sub { color: var(--ink-mute); font-weight: 400; margin-left: 6px; }
+  .nav { display: flex; gap: 4px; }
+  .nav a { color: var(--ink-mute); text-decoration: none; padding: 6px 10px; font-size: 12px; border-radius: 4px; font-weight: 500; letter-spacing: 0.04em; }
+  .nav a.active { color: var(--gold); background: rgba(245,200,66,0.08); }
+  .nav a:hover { color: var(--cream); }
+
+  main { max-width: 1100px; margin: 0 auto; padding: 20px; }
+
+  /* Summary tiles */
+  .summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+  .tile { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 16px; }
+  .tile .num { font-size: 28px; font-weight: 700; color: var(--cream); font-family: ui-monospace, monospace; letter-spacing: -0.02em; }
+  .tile .lbl { font-size: 11px; color: var(--ink-mute); letter-spacing: 0.12em; text-transform: uppercase; margin-top: 4px; }
+  .tile.alert .num { color: var(--red); }
+  .tile.warn .num { color: var(--yellow); }
+  @media (max-width: 720px) { .summary { grid-template-columns: repeat(2, 1fr); } }
+
+  /* Section heading */
+  h2 { font-size: 13px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); margin: 32px 0 12px; font-weight: 600; }
+
+  /* Origen list */
+  .origen { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; margin-bottom: 10px; overflow: hidden; }
+  .origen-head { padding: 14px 16px; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: background 0.1s; }
+  .origen-head:hover { background: var(--surface-2); }
+  .origen-id { font-family: ui-monospace, monospace; font-size: 13px; color: var(--gold); font-weight: 700; flex: 0 0 130px; }
+  .origen-info { flex: 1; }
+  .origen-name { font-size: 13px; color: var(--cream); font-weight: 500; }
+  .origen-meta { font-size: 11px; color: var(--ink-mute); margin-top: 2px; }
+  .origen-stock { text-align: right; flex: 0 0 130px; }
+  .origen-kg { font-family: ui-monospace, monospace; font-size: 16px; font-weight: 600; color: var(--cream); }
+  .origen-tag { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 10px; margin-top: 4px; letter-spacing: 0.08em; font-weight: 600; }
+  .origen-tag.ok { background: rgba(127,176,105,0.15); color: var(--green); }
+  .origen-tag.warn { background: rgba(232,185,78,0.15); color: var(--yellow); }
+  .origen-tag.alert { background: rgba(217,83,79,0.15); color: var(--red); }
+  .origen-toggle { color: var(--ink-mute); font-size: 14px; transition: transform 0.2s; flex: 0 0 20px; text-align: right; }
+  .origen.open .origen-toggle { transform: rotate(90deg); }
+
+  .quintales { display: none; border-top: 1px solid var(--line); background: var(--surface-2); padding: 8px 16px; }
+  .origen.open .quintales { display: block; }
+  .quintal-row { display: grid; grid-template-columns: 1.5fr 80px 80px 80px auto; gap: 8px; padding: 10px 0; align-items: center; font-size: 12px; border-bottom: 1px solid var(--line); }
+  .quintal-row:last-child { border-bottom: none; }
+  .quintal-id { font-family: ui-monospace, monospace; color: var(--ink); font-weight: 500; }
+  .quintal-num { font-family: ui-monospace, monospace; color: var(--ink-mute); text-align: right; }
+  .quintal-num.rem { color: var(--cream); font-weight: 600; }
+  .quintal-row.agotado { opacity: 0.5; text-decoration: line-through; }
+  .quintal-uso { background: var(--gold); color: var(--bg); border: none; padding: 4px 10px; border-radius: 3px; font-size: 11px; font-weight: 600; cursor: pointer; font-family: inherit; }
+  .quintal-uso:hover { background: #ffd863; }
+  @media (max-width: 720px) {
+    .quintal-row { grid-template-columns: 1fr 70px; gap: 4px; font-size: 11px; }
+    .quintal-row .h-uso { display: none; }
+    .quintal-row .h-tot, .quintal-row .h-used { display: none; }
+    .quintal-row .quintal-num:not(.rem) { display: none; }
+    .quintal-uso { grid-column: span 2; margin-top: 4px; padding: 8px; }
+  }
+  .quintales-foot { display: flex; gap: 8px; padding: 10px 0 4px; border-top: 1px solid var(--line); margin-top: 4px; }
+  .add-quintal { background: transparent; border: 1px dashed var(--plum-soft); color: var(--plum-soft); padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 11px; font-family: inherit; }
+
+  .empty-state { background: var(--surface); border: 1px dashed var(--line); border-radius: 8px; padding: 32px; text-align: center; color: var(--ink-mute); font-size: 13px; }
+  .empty-state strong { color: var(--cream); display: block; margin-bottom: 8px; }
+
+  /* FAB */
+  .fab { position: fixed; bottom: 24px; right: 24px; width: 56px; height: 56px; border-radius: 50%; background: var(--gold); color: var(--bg); border: none; font-size: 28px; cursor: pointer; box-shadow: var(--shadow); z-index: 40; font-weight: 300; }
+
+  /* Modal */
+  .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); z-index: 100; display: none; align-items: center; justify-content: center; padding: 20px; }
+  .modal-bg.open { display: flex; }
+  .modal { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 24px; max-width: 480px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow); }
+  .modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+  .modal-title { font-size: 18px; color: var(--cream); font-weight: 700; }
+  .modal-sub { font-family: ui-monospace, monospace; font-size: 11px; color: var(--gold); margin-top: 4px; }
+  .close { background: transparent; border: none; color: var(--ink-mute); font-size: 22px; cursor: pointer; padding: 4px 8px; }
+
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 11px; color: var(--gold); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px; font-weight: 600; }
+  .field input, .field select, .field textarea { width: 100%; background: var(--surface-2); color: var(--ink); border: 1px solid var(--line); padding: 10px 12px; border-radius: 4px; font-size: 14px; font-family: inherit; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 600px) { .field-row { grid-template-columns: 1fr; } }
+
+  /* Firma chips */
+  .firma-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .firma-chip { background: var(--surface-2); border: 1px solid var(--line); padding: 8px 14px; border-radius: 20px; font-size: 13px; color: var(--ink); cursor: pointer; font-family: inherit; }
+  .firma-chip.selected { background: var(--plum); border-color: var(--plum-soft); color: var(--cream); font-weight: 600; }
+
+  .btn-row { display: flex; gap: 8px; margin-top: 20px; justify-content: flex-end; }
+  .btn { background: var(--plum); color: var(--cream); border: none; padding: 10px 18px; border-radius: 4px; font-size: 13px; cursor: pointer; font-weight: 600; font-family: inherit; letter-spacing: 0.04em; }
+  .btn.primary { background: var(--gold); color: var(--bg); }
+  .btn.ghost { background: transparent; color: var(--ink-mute); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: var(--surface); border: 1px solid var(--line); padding: 12px 20px; border-radius: 6px; box-shadow: var(--shadow); color: var(--ink); font-size: 13px; z-index: 200; opacity: 0; transition: opacity 0.2s; }
+  .toast.show { opacity: 1; }
+  .toast.success { border-color: var(--green); }
+  .toast.error { border-color: var(--red); }
+
+  .refresh-state { color: var(--ink-mute); font-size: 11px; }
+  .refresh-state.live::before { content: "● "; color: var(--green); }
+  .refresh-state.loading::before { content: "◌ "; color: var(--gold); }
+  .refresh-state.error::before { content: "● "; color: var(--red); }
+
+  .filterbar { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+  .filterbar select { background: var(--surface); color: var(--ink); border: 1px solid var(--line); padding: 6px 10px; border-radius: 4px; font-size: 12px; font-family: inherit; }
+  .filterbar .refresh-state { margin-left: auto; }
+
+  .config-warn { background: rgba(217,83,79,0.1); border: 1px solid var(--red); padding: 16px; border-radius: 6px; margin: 20px; color: var(--cream); font-size: 14px; }
+  .config-warn code { background: var(--surface); padding: 2px 6px; border-radius: 3px; color: var(--gold); font-family: ui-monospace, monospace; font-size: 12px; }
+
+  .qty-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 6px; }
+  .qty-grid button { background: var(--surface-2); border: 1px solid var(--line); color: var(--ink); padding: 8px; border-radius: 4px; font-size: 13px; font-family: ui-monospace, monospace; cursor: pointer; }
+  .qty-grid button:hover { background: var(--surface-3); border-color: var(--plum-soft); }
+
+  /* ═══ v2 · Persona ═══ */
+  .picker-bg { position: fixed; inset: 0; z-index: 200; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 28px; gap: 24px; }
+  .picker-bg.hidden { display: none; }
+  .picker-title { font-size: 28px; color: var(--cream); text-align: center; font-weight: 700; letter-spacing: -0.02em; }
+  .picker-sub { color: var(--ink-mute); font-size: 14px; text-align: center; max-width: 320px; }
+  .picker-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; width: 100%; max-width: 360px; }
+  .pchip { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 22px 14px; text-align: center; cursor: pointer; transition: transform 0.1s, border-color 0.15s, background 0.15s; min-height: 110px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; font-family: inherit; color: var(--ink); }
+  .pchip:hover { border-color: var(--gold); background: rgba(245,200,66,0.05); }
+  .pchip:active { transform: scale(0.97); }
+  .pchip .avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--surface-2); border: 2px solid var(--line); display: flex; align-items: center; justify-content: center; font-family: ui-monospace, monospace; font-weight: 700; font-size: 14px; color: var(--gold); }
+  .pchip .nm { font-size: 16px; color: var(--cream); font-weight: 600; }
+  .pchip .role { font-size: 10px; color: var(--ink-mute); letter-spacing: 0.1em; text-transform: uppercase; }
+  .persona-chip { display: flex; align-items: center; gap: 8px; background: rgba(245,200,66,0.1); border: 1px solid rgba(245,200,66,0.3); padding: 6px 12px 6px 6px; border-radius: 20px; cursor: pointer; font-family: inherit; color: var(--ink); font-size: 12px; font-weight: 600; }
+  .persona-chip:hover { background: rgba(245,200,66,0.18); }
+  .persona-chip .dot { width: 22px; height: 22px; border-radius: 50%; background: var(--gold); color: var(--bg); display: flex; align-items: center; justify-content: center; font-family: ui-monospace, monospace; font-weight: 700; font-size: 11px; }
+  .persona-chip .swap { color: var(--ink-mute); font-size: 10px; font-weight: 400; }
+
+  /* Origen deactivate button */
+  .origen-deact { background: transparent; border: 1px solid var(--line); color: var(--ink-mute); padding: 4px 10px; border-radius: 4px; font-size: 10px; cursor: pointer; font-family: inherit; letter-spacing: 0.04em; }
+  .origen-deact:hover { color: var(--red); border-color: var(--red); }
+  .origen-reactivate { background: transparent; border: 1px solid var(--green); color: var(--green); padding: 4px 10px; border-radius: 4px; font-size: 10px; cursor: pointer; font-family: inherit; letter-spacing: 0.04em; }
+  .origen-reactivate:hover { background: rgba(127,176,105,0.1); }
+  .origen.inactive { opacity: 0.55; }
+  .origen.inactive .origen-tag { background: rgba(89,89,112,0.2); color: var(--ink-mute); }
+
+  .filter-pill { display: inline-flex; align-items: center; gap: 6px; background: var(--surface); border: 1px solid var(--line); color: var(--ink); padding: 4px 10px; border-radius: 12px; font-size: 11px; cursor: pointer; font-family: inherit; }
+  .filter-pill.on { background: rgba(245,200,66,0.1); border-color: var(--gold); color: var(--gold); }
+</style>
+</head>
+<body>
+
+<script>
+const CONFIG = {
+  PROXY_URL: "https://kofy-notion-proxy.delicate-surf-529c.workers.dev",
+  DB_ORIGENES:  "3649b62600a080b5a056c4a03d3fbc2b",
+  DB_QUINTALES: "3649b62600a080df9a7ac6c932fa9d5b",
+  DB_USOS:      "3649b62600a080108754c2eaadac2455",
+  DB_ORDENES:   "3649b62600a0800ea228d8d8dcf2ada4",
+  DB_MIEMBROS:  "3649b62600a080308dc6cf556b0d8c4b",
+  DB_EMPAQUE:   "3659b62600a08053a953e4a457d44626",
+  REFRESH_MS: 15000,
+  UMBRAL_BAJO: 10,   // kg — alerta roja
+  UMBRAL_MEDIO: 25,  // kg — alerta amarilla
+};
+// localStorage override only applies if no hardcoded ID is set
+(function loadEmpaqueId() {
+  if (CONFIG.DB_EMPAQUE) return;  // hardcoded wins
+  try {
+    const stored = JSON.parse(localStorage.getItem("kofy_warehouse_db_ids") || "{}");
+    const id = (stored.DB_ID_EMPAQUE || "").trim().replace(/[^a-f0-9]/gi,"").toLowerCase();
+    if (id.length === 32) CONFIG.DB_EMPAQUE = id;
+  } catch {}
+})();
+</script>
+
+<!-- v2 · Persona picker overlay -->
+<div class="picker-bg" id="picker">
+  <div class="picker-title">¿Quién sos?</div>
+  <div class="picker-sub">Tu firma queda registrada en cada acción de esta sesión.</div>
+  <div class="picker-grid" id="picker-grid">
+    <div style="grid-column: span 2; color: var(--ink-mute); text-align: center; font-size: 12px;">cargando equipo…</div>
+  </div>
+</div>
+
+<header class="top">
+  <div class="top-row">
+    <div class="brand">
+      <span class="logo">☕</span>
+      <span class="name">Kofy <span class="sub">· Inventario</span></span>
+    </div>
+    <nav class="nav">
+      <a href="orders.html">Órdenes</a>
+      <a href="inventory.html" class="active">Inventario</a>
+      <a href="game.html">The Game</a>
+    </nav>
+    <button class="persona-chip" id="persona-chip" onclick="changePersona()" style="display:none; margin-left: 10px;">
+      <span class="dot" id="persona-dot">—</span>
+      <span><span id="persona-name">—</span> <span class="swap">cambiar</span></span>
+    </button>
+  </div>
+</header>
+
+<main>
+  <div class="summary">
+    <div class="tile"><div class="num" id="tile-origenes">—</div><div class="lbl">Orígenes activos</div></div>
+    <div class="tile"><div class="num" id="tile-quintales">—</div><div class="lbl">Quintales en uso</div></div>
+    <div class="tile"><div class="num" id="tile-kg">—</div><div class="lbl">KG totales</div></div>
+    <div class="tile alert"><div class="num" id="tile-alertas">—</div><div class="lbl">Orígenes en alerta</div></div>
+  </div>
+
+  <div class="filterbar">
+    <select id="filter-status">
+      <option value="">Todos</option>
+      <option value="alert">🔴 Bajo stock</option>
+      <option value="warn">🟡 Medio</option>
+      <option value="ok">🟢 OK</option>
+    </select>
+    <button class="filter-pill" id="filter-inactive" onclick="toggleShowInactive()">Mostrar inactivos</button>
+    <span class="refresh-state" id="refresh-state">conectando…</span>
+  </div>
+
+  <h2>Orígenes</h2>
+  <div id="origen-list"></div>
+
+  <!-- v2 · Empaque section -->
+  <div id="empaque-section" style="display:none; margin-top: 40px;">
+    <h2 style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+      Empaque
+      <button class="btn" style="padding: 4px 10px; font-size: 11px;" onclick="openNewEmpaque()">+ Nuevo empaque</button>
+      <button class="btn" style="padding: 4px 10px; font-size: 11px; color: var(--red); border-color: rgba(217,83,79,0.4); margin-left: auto;" onclick="wipeAllEmpaque()">🗑 Limpiar todo</button>
+    </h2>
+    <div id="empaque-list"></div>
+  </div>
+  <div id="empaque-hint" style="display:none; margin-top: 40px;">
+    <h2>Empaque</h2>
+    <div style="background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 28px 24px; text-align: center;">
+      <strong style="color: var(--cream); display: block; margin-bottom: 8px; font-size: 15px;">Inventario de empaque · no conectado</strong>
+      <p style="color: var(--ink-mute); font-size: 13px; margin-bottom: 18px; max-width: 420px; margin-left: auto; margin-right: auto;">Pegá el Database ID del DB <code style="color: var(--gold); font-family: ui-monospace, monospace; font-size: 12px;">Empaque</code> de Notion para conectar esta sección. Si es la primera vez, abrí <a href="setup.html" style="color: var(--gold);">setup.html</a> → "DB de Empaque" para crear el schema primero.</p>
+      <div style="display: flex; gap: 8px; max-width: 460px; margin: 0 auto;">
+        <input type="text" id="empaque-quick-id" placeholder="Database ID — 32 caracteres hex"
+               style="flex:1; background: var(--surface-2); color: var(--ink); border: 1px solid var(--line); padding: 10px 12px; border-radius: 4px; font-size: 13px; font-family: ui-monospace, monospace; min-width: 0;"
+               oninput="validateEmpaqueQuickId()">
+        <button class="btn primary" id="btn-connect-empaque" onclick="connectEmpaqueDb()" style="white-space: nowrap;">Conectar</button>
+      </div>
+      <div id="empaque-quick-status" style="font-size: 11px; color: var(--ink-mute); margin-top: 8px; font-family: ui-monospace, monospace;"></div>
+    </div>
+  </div>
+</main>
+
+<!-- v2: FAB de "Registrar uso" eliminado. Deducción de café verde es automática vía FIFO al firmar etapa "Café Verde" en una orden. -->
+
+
+<!-- ═══════════ Modal · Nuevo Origen ═══════════ -->
+<div class="modal-bg" id="modal-origen">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">Nuevo Origen</div>
+        <div class="modal-sub" id="preview-origen-id">—</div>
+      </div>
+      <button class="close" onclick="closeModal('modal-origen')">✕</button>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Iniciales caficultor</label><input type="text" id="or-ini-caf" maxlength="3" placeholder="MG"></div>
+      <div class="field"><label>Iniciales varietal</label><input type="text" id="or-ini-var" maxlength="3" placeholder="MC"></div>
+    </div>
+    <div class="field"><label>Iniciales tostado (opcional)</label><input type="text" id="or-ini-tos" maxlength="3" placeholder="CM"></div>
+    <div class="field-row">
+      <div class="field"><label>Caficultor</label><input type="text" id="or-caf" placeholder="Maria Guerra"></div>
+      <div class="field"><label>Hacienda</label><input type="text" id="or-hac" placeholder="La Comarca"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Varietal</label><input type="text" id="or-var" placeholder="Monteclaro"></div>
+      <div class="field"><label>MSNM</label><input type="number" id="or-msnm" placeholder="1680"></div>
+    </div>
+    <div class="field">
+      <label>Proceso</label>
+      <select id="or-proc"><option>Lavado</option><option>Honey</option><option>Natural</option><option>Anaeróbico</option></select>
+    </div>
+    <div class="btn-row">
+      <button class="btn ghost" onclick="closeModal('modal-origen')">Cancelar</button>
+      <button class="btn primary" id="btn-origen" onclick="createOrigen()">Crear origen</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ Modal · Nuevo Quintal ═══════════ -->
+<div class="modal-bg" id="modal-quintal">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">Nuevo Quintal</div>
+        <div class="modal-sub" id="preview-quintal-id">—</div>
+      </div>
+      <button class="close" onclick="closeModal('modal-quintal')">✕</button>
+    </div>
+    <input type="hidden" id="quintal-origen-id">
+    <div class="field-row">
+      <div class="field"><label>Fecha de compra</label><input type="date" id="qu-fecha"></div>
+      <div class="field"><label>Letra</label>
+        <select id="qu-letra"><option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option></select>
+      </div>
+    </div>
+    <div class="field"><label>KG iniciales</label><input type="number" id="qu-kg" step="0.1" placeholder="46"></div>
+    <div class="btn-row">
+      <button class="btn ghost" onclick="closeModal('modal-quintal')">Cancelar</button>
+      <button class="btn primary" id="btn-quintal" onclick="createQuintal()">Crear quintal</button>
+    </div>
+  </div>
+</div>
+
+<!-- v2 · Modal Stock Audit -->
+<div class="modal-bg" id="modal-audit">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">📋 Auditar stock de origen</div>
+        <div class="modal-sub" id="audit-origen-name">—</div>
+      </div>
+      <button class="close" onclick="closeModal('modal-audit')">✕</button>
+    </div>
+    <input type="hidden" id="audit-origen-id">
+    <div style="background: var(--surface-2); border-left: 3px solid var(--gold); padding: 14px 16px; border-radius: 4px; margin-bottom: 14px;">
+      <div style="font-size: 11px; color: var(--gold); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; font-weight: 600;">Stock calculado actual</div>
+      <div style="font-family: ui-monospace, monospace; font-size: 22px; color: var(--cream); font-weight: 700;"><span id="audit-current">—</span> kg</div>
+      <div style="font-size: 11px; color: var(--ink-mute); margin-top: 4px;">Lo que el sistema cree que hay según los registros.</div>
+    </div>
+    <div class="field">
+      <label>KG real medidos (lo que mediste físicamente)</label>
+      <input type="number" id="audit-real" step="0.1" min="0" inputmode="decimal" placeholder="Ej: 87.5">
+    </div>
+    <div class="field">
+      <label>Razón del ajuste</label>
+      <textarea id="audit-razon" rows="2" placeholder="Ej: merma de tueste mayor a la esperada, derrame, recuento físico, etc." style="width: 100%; background: var(--surface-2); color: var(--ink); border: 1px solid var(--line); padding: 10px 12px; border-radius: 4px; font-size: 14px; font-family: inherit;"></textarea>
+    </div>
+    <div style="font-size: 11px; color: var(--ink-mute); margin: 8px 0;">Firma automática: <strong id="audit-firma" style="color: var(--cream);">—</strong></div>
+    <div id="audit-preview" style="background: var(--surface-2); padding: 10px 14px; border-radius: 4px; font-size: 12px; color: var(--ink); margin-bottom: 14px; display: none;"></div>
+    <div class="btn-row">
+      <button class="btn ghost" onclick="closeModal('modal-audit')">Cancelar</button>
+      <button class="btn primary" id="btn-audit-submit" onclick="submitAudit()">Registrar ajuste</button>
+    </div>
+  </div>
+</div>
+
+<!-- v2 · Modal Empaque -->
+<div class="modal-bg" id="modal-empaque">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title" id="empaque-modal-title">Nuevo empaque</div>
+      </div>
+      <button class="close" onclick="closeModal('modal-empaque')">✕</button>
+    </div>
+    <input type="hidden" id="empaque-edit-id">
+    <div class="field">
+      <label>Tipo de empaque</label>
+      <select id="emp-bind">
+        <option value="">— Seleccionar —</option>
+        <optgroup label="Producción">
+          <option>1 KG · Trilaminated</option>
+        </optgroup>
+        <optgroup label="AN (Aurora Nordics · claro)">
+          <option>AN · 250g</option><option>AN · 500g</option><option>AN · BOX</option><option>AN · SACHET</option>
+        </optgroup>
+        <optgroup label="CM (medio)">
+          <option>CM · 250g</option><option>CM · 500g</option><option>CM · BOX</option><option>CM · SACHET</option>
+        </optgroup>
+        <optgroup label="MT (oscuro)">
+          <option>MT · 250g</option><option>MT · 500g</option><option>MT · BOX</option><option>MT · SACHET</option>
+        </optgroup>
+        <optgroup label="Grado A (paralelo, no-branded)">
+          <option>Grado A · 500g Craft</option>
+        </optgroup>
+        <optgroup label="Genéricos">
+          <option>Etiqueta genérica</option><option>QR sticker</option><option>Otro / sin bind</option>
+        </optgroup>
+      </select>
+      <div style="font-size: 11px; color: var(--ink-mute); margin-top: 4px;">Cada tipo está pre-vinculado a una presentación de venta. El stock se descuenta automáticamente al empaquetar.</div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Stock actual</label>
+        <input type="number" id="emp-stock" placeholder="0">
+      </div>
+      <div class="field">
+        <label>Umbral bajo</label>
+        <input type="number" id="emp-umbral" placeholder="10">
+      </div>
+    </div>
+    <div class="field">
+      <label>Proveedor (opcional)</label>
+      <input type="text" id="emp-proveedor" placeholder="Opcional">
+    </div>
+    <div class="field">
+      <label>Notas</label>
+      <textarea id="emp-notas" rows="2" style="width: 100%; background: var(--surface-2); color: var(--ink); border: 1px solid var(--line); padding: 10px 12px; border-radius: 4px; font-size: 14px; font-family: inherit;"></textarea>
+    </div>
+    <div class="btn-row" id="empaque-btn-row">
+      <button class="btn ghost" onclick="closeModal('modal-empaque')">Cancelar</button>
+      <button class="btn primary" id="btn-empaque-submit" onclick="submitEmpaque()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// Estado
+// ═══════════════════════════════════════════════════════
+let STATE = {
+  origenes: [],
+  quintales: [],
+  usos: [],
+  ordenes: [],
+  miembros: [],
+  empaques: [],
+  expandedOrigen: null,
+  persona: null,
+  showInactive: false,
+  lastAction: 0,
+  hidden: false,
+  _empaqueTitleName: null,
+};
+
+// ═══ v2 · Persona ═══
+const PERSONA_KEY = "kofy_warehouse_persona_v1";
+function pageTitle(page) {
+  for (const v of Object.values(page?.properties || {})) {
+    if (v.type === "title") return v.title.map(t => t.plain_text).join("");
+  }
+  return "";
+}
+function loadPersona() { try { return JSON.parse(localStorage.getItem(PERSONA_KEY) || "null"); } catch { return null; } }
+function savePersona(p) { localStorage.setItem(PERSONA_KEY, JSON.stringify(p)); STATE.persona = p; updatePersonaChip(); }
+function updatePersonaChip() {
+  const p = STATE.persona; if (!p) return;
+  const chip = document.getElementById("persona-chip");
+  chip.style.display = "flex";
+  document.getElementById("persona-dot").textContent = p.ini;
+  document.getElementById("persona-name").textContent = p.name;
+}
+function renderPersonaPicker() {
+  const grid = document.getElementById("picker-grid");
+  if (!STATE.miembros.length) {
+    grid.innerHTML = `<div style="grid-column: span 2; color: var(--ink-mute); text-align: center; font-size: 13px;">No hay miembros en Notion.<br>Abrí <a href="miembros.html" style="color: var(--gold);">miembros.html</a> y sembralos.</div>`;
+    return;
+  }
+  grid.innerHTML = "";
+  STATE.miembros.forEach(m => {
+    const name = pageTitle(m) || readProp(m,"Nombre") || "—";
+    const ini = readProp(m, "Iniciales") || name.substring(0,2).toUpperCase();
+    const rol = readProp(m, "Rol") || "";
+    const chip = document.createElement("button");
+    chip.className = "pchip";
+    chip.innerHTML = `<div class="avatar">${ini}</div><div class="nm">${name}</div><div class="role">${rol}</div>`;
+    chip.onclick = () => {
+      savePersona({ id: m.id, name, ini });
+      document.getElementById("picker").classList.add("hidden");
+    };
+    grid.appendChild(chip);
+  });
+}
+function changePersona() {
+  document.getElementById("picker").classList.remove("hidden");
+  renderPersonaPicker();
+}
+
+// ═══ v2 · Stock audit (ajuste manual de inventario con razón + firma) ═══
+function openAuditOrigen(origenId) {
+  if (!STATE.persona) { toast("Selecciona persona primero", "error"); changePersona(); return; }
+  const o = STATE.origenes.find(x => x.id === origenId);
+  if (!o) return;
+  const oriName = readProp(o, "ID Origen") || pageTitle(o) || "—";
+  const stock = origenStock(origenId);
+  document.getElementById("audit-origen-id").value = origenId;
+  document.getElementById("audit-origen-name").textContent = oriName;
+  document.getElementById("audit-current").textContent = stock.remanente.toFixed(2);
+  document.getElementById("audit-real").value = "";
+  document.getElementById("audit-razon").value = "";
+  document.getElementById("audit-firma").textContent = `${STATE.persona.name} (${STATE.persona.ini})`;
+  document.getElementById("audit-preview").style.display = "none";
+  document.getElementById("audit-real").oninput = updateAuditPreview;
+  openModal("modal-audit");
+}
+
+function updateAuditPreview() {
+  const real = parseFloat(document.getElementById("audit-real").value);
+  const current = parseFloat(document.getElementById("audit-current").textContent) || 0;
+  const preview = document.getElementById("audit-preview");
+  if (isNaN(real)) { preview.style.display = "none"; return; }
+  const delta = current - real;  // positivo = deducción, negativo = adición
+  preview.style.display = "block";
+  if (Math.abs(delta) < 0.01) {
+    preview.innerHTML = `<strong style="color: var(--green);">Sin cambio.</strong> El stock real coincide con el sistema.`;
+  } else if (delta > 0) {
+    preview.innerHTML = `<strong style="color: var(--red);">Ajuste a la baja:</strong> el sistema dice ${current.toFixed(2)} kg pero medís ${real.toFixed(2)}. Se va a crear un Uso de tipo <em>Ajuste audit</em> con ${delta.toFixed(2)} kg (deduce del quintal más viejo activo).`;
+  } else {
+    preview.innerHTML = `<strong style="color: var(--green);">Ajuste a la alza:</strong> el sistema dice ${current.toFixed(2)} kg pero medís ${real.toFixed(2)}. Se va a crear un Uso de tipo <em>Ajuste audit</em> con ${delta.toFixed(2)} kg (suma al quintal más viejo activo).`;
+  }
+}
+
+async function submitAudit() {
+  const btn = document.getElementById("btn-audit-submit");
+  btn.disabled = true;
+  try {
+    const origenId = document.getElementById("audit-origen-id").value;
+    const real = parseFloat(document.getElementById("audit-real").value);
+    const razon = document.getElementById("audit-razon").value.trim();
+    if (isNaN(real) || real < 0) throw new Error("KG real inválido");
+    if (!razon) throw new Error("Falta la razón del ajuste");
+    if (!STATE.persona) throw new Error("Falta persona");
+    const stock = origenStock(origenId);
+    const delta = stock.remanente - real;
+    if (Math.abs(delta) < 0.01) {
+      if (!confirm("El stock real coincide con el sistema (delta = 0). ¿Registrar igual como auditoría confirmatoria?")) { btn.disabled = false; return; }
+    }
+    // Buscar el quintal más viejo activo del origen para hacer el ajuste
+    const quintales = STATE.quintales
+      .filter(q => (readProp(q,"Origen") || []).includes(origenId))
+      .map(q => ({ q, fecha: readProp(q,"Fecha de compra") || "9999-99-99", remanente: quintalRemanente(q.id) }))
+      .filter(x => x.remanente > 0.01 || delta < 0)  // si delta < 0 (adición), cualquier quintal sirve
+      .sort((a,b) => a.fecha.localeCompare(b.fecha));
+    if (quintales.length === 0) throw new Error("Sin quintales para ajustar — agregá uno primero");
+    const target = quintales[0];
+    const oriName = (() => { const o = STATE.origenes.find(x => x.id === origenId); return o ? (readProp(o,"ID Origen") || pageTitle(o)) : "ORIGEN"; })();
+    const today = new Date().toISOString().substring(0,10);
+    const seq = STATE.usos.filter(u => {
+      const id = readProp(u,"Uso ID") || "";
+      return id.startsWith("AUDIT-");
+    }).length + 1;
+    const usoId = `AUDIT-${oriName}-${String(seq).padStart(3,"0")}`;
+    const coreProps = {
+      "Quintal":   { relation: [{ id: target.q.id }] },
+      "KG usados": { number: Math.round(delta * 100) / 100 },
+      "Firma":     { relation: [{ id: STATE.persona.id }] },
+      "Fecha":     { date: { start: today } },
+    };
+    // Attempt 1: full payload (requires "Tipo" + "Notas / Razón" columns in Notion)
+    // Attempt 2: fallback without optional columns — reason goes into the title
+    try {
+      await createPage(CONFIG.DB_USOS, {
+        "Uso ID": { title: [{ text: { content: usoId } }] },
+        ...coreProps,
+        "Tipo":          { select: { name: "Ajuste audit" } },
+        "Notas / Razón": { rich_text: [{ text: { content: razon } }] },
+      });
+    } catch {
+      await createPage(CONFIG.DB_USOS, {
+        "Uso ID": { title: [{ text: { content: `${usoId} · ${razon.substring(0, 80)}` } }] },
+        ...coreProps,
+      });
+    }
+    toast(`✓ Ajuste de ${delta >= 0 ? "-" : "+"}${Math.abs(delta).toFixed(2)} kg registrado en ${oriName}`, "success");
+    closeModal("modal-audit");
+    STATE.lastAction = Date.now();
+    await loadAll();
+  } catch (e) {
+    toast("Error: " + e.message, "error");
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ═══ v2 · Activar / desactivar origen ═══
+async function toggleOrigenActive(origenId, currentlyActive) {
+  const o = STATE.origenes.find(x => x.id === origenId);
+  if (!o) return;
+  const name = readProp(o,"ID Origen") || pageTitle(o);
+  const action = currentlyActive ? "desactivar" : "reactivar";
+  if (!confirm(`¿${action} el origen ${name}?\n\n${currentlyActive ? "Va a desaparecer de los dropdowns y dejar de generar alertas. El historial se preserva." : "Va a volver a aparecer en dropdowns y alertas."}`)) return;
+  try {
+    await updatePage(origenId, { "Activo": { checkbox: !currentlyActive } });
+    toast(`${name} ${currentlyActive ? "desactivado" : "reactivado"}`, "success");
+    STATE.lastAction = Date.now();
+    await loadAll();
+  } catch (e) {
+    toast("Error: " + e.message, "error");
+  }
+}
+function toggleShowInactive() {
+  STATE.showInactive = !STATE.showInactive;
+  renderOrigenes();
+}
+
+// ═══════════════════════════════════════════════════════
+// API
+// ═══════════════════════════════════════════════════════
+async function notion(endpoint, body, method) {
+  method = method || (body ? "POST" : "GET");
+  const res = await fetch(`${CONFIG.PROXY_URL}${endpoint}`, {
+    method,
+    headers: { "Content-Type": "application/json" },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (!res.ok) throw new Error(`Notion ${res.status}: ${await res.text()}`);
+  return res.json();
+}
+async function queryDb(dbId) { return notion(`/query`, { database_id: dbId }); }
+async function createPage(dbId, properties) { return notion(`/pages`, { parent: { database_id: dbId }, properties }); }
+async function updatePage(pageId, properties) { return notion(`/pages/${pageId}`, { properties }, "PATCH"); }
+
+function readProp(page, name) {
+  const p = page.properties[name];
+  if (!p) return null;
+  switch (p.type) {
+    case "title":     return p.title.map(t => t.plain_text).join("");
+    case "rich_text": return p.rich_text.map(t => t.plain_text).join("");
+    case "number":    return p.number;
+    case "select":    return p.select?.name || null;
+    case "date":      return p.date?.start || null;
+    case "checkbox":  return p.checkbox;
+    case "relation":  return p.relation.map(r => r.id);
+    case "formula":   return p.formula.string ?? p.formula.number ?? p.formula.boolean ?? null;
+    case "rollup":    return p.rollup.number ?? p.rollup.array ?? null;
+    default: return null;
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// Calcular remanente por quintal desde Usos
+// ═══════════════════════════════════════════════════════
+function quintalRemanente(quintalId) {
+  const q = STATE.quintales.find(x => x.id === quintalId);
+  if (!q) return 0;
+  const kgInicial = readProp(q, "KG iniciales") || 0;
+  const usos = STATE.usos.filter(u => {
+    const ids = readProp(u, "Quintal") || [];
+    return ids.includes(quintalId);
+  });
+  const usado = usos.reduce((sum, u) => sum + (readProp(u,"KG usados") || 0), 0);
+  return Math.round((kgInicial - usado) * 10) / 10;
+}
+
+function origenStock(origenId) {
+  const quintales = STATE.quintales.filter(q => {
+    const ids = readProp(q, "Origen") || [];
+    return ids.includes(origenId);
+  });
+  let total = 0, remanente = 0, activos = 0;
+  quintales.forEach(q => {
+    const ki = readProp(q,"KG iniciales") || 0;
+    const rem = quintalRemanente(q.id);
+    total += ki;
+    remanente += Math.max(0, rem);
+    if (rem > 0.5) activos++;
+  });
+  return { total, remanente: Math.round(remanente * 10) / 10, activos, quintales };
+}
+
+function stockTag(rem) {
+  if (rem < CONFIG.UMBRAL_BAJO)  return { cls: "alert", txt: "🔴 Bajo" };
+  if (rem < CONFIG.UMBRAL_MEDIO) return { cls: "warn",  txt: "🟡 Medio" };
+  return { cls: "ok", txt: "🟢 OK" };
+}
+
+// ═══════════════════════════════════════════════════════
+// Load
+// ═══════════════════════════════════════════════════════
+async function loadAll() {
+  setState("loading");
+  try {
+    const queries = [
+      queryDb(CONFIG.DB_ORIGENES),
+      queryDb(CONFIG.DB_QUINTALES),
+      queryDb(CONFIG.DB_USOS),
+      queryDb(CONFIG.DB_ORDENES),
+      queryDb(CONFIG.DB_MIEMBROS),
+    ];
+    if (CONFIG.DB_EMPAQUE) queries.push(queryDb(CONFIG.DB_EMPAQUE));
+    const results = await Promise.all(queries);
+    STATE.origenes  = results[0].results;
+    STATE.quintales = results[1].results;
+    STATE.usos      = results[2].results;
+    STATE.ordenes   = results[3].results;
+    STATE.miembros  = results[4].results;
+    STATE.empaques  = results[5] ? results[5].results : [];
+    renderAll();
+    checkStockAlerts();
+    setState("live");
+  } catch (e) {
+    console.error(e);
+    setState("error");
+    toast("Error de conexión. Revisa CONFIG.", "error");
+  }
+}
+
+function checkStockAlerts() {
+  const umbralOrigen = window.KofyComms?.loadSettings()?.stockUmbralOrigenKg ?? CONFIG.UMBRAL_BAJO;
+  STATE.origenes.forEach(o => {
+    if (readProp(o, "Activo") === false) return;
+    const stock = origenStock(o.id);
+    if (stock.remanente > 0 && stock.remanente < umbralOrigen) {
+      window.dispatchEvent(new CustomEvent("kofy:stockLowOrigen", { detail: {
+        origenId:    readProp(o, "ID Origen") || pageTitle(o) || o.id,
+        origenName:  readProp(o, "ID Origen") || pageTitle(o) || "—",
+        kgRemanente: stock.remanente,
+        umbral:      umbralOrigen
+      }}));
+    }
+  });
+  if (CONFIG.DB_EMPAQUE) {
+    STATE.empaques.forEach(e => {
+      if (readProp(e, "Activo") === false) return;
+      const stock  = readProp(e, "Stock actual") || 0;
+      const umbral = readProp(e, "Umbral bajo")  || 0;
+      if (umbral > 0 && stock <= umbral) {
+        window.dispatchEvent(new CustomEvent("kofy:stockLowEmpaque", { detail: {
+          empaqueId: e.id,
+          bind:      pageTitle(e) || "—",
+          stock,
+          umbral
+        }}));
+      }
+    });
+  }
+}
+
+function setState(s) {
+  const el = document.getElementById("refresh-state");
+  el.className = "refresh-state " + s;
+  el.textContent = s === "live" ? `sincronizado · ${new Date().toLocaleTimeString("es-VE",{hour:"2-digit",minute:"2-digit"})}` :
+                    s === "loading" ? "actualizando…" :
+                    s === "error" ? "error · config" : "—";
+}
+
+// ═══════════════════════════════════════════════════════
+// Render
+// ═══════════════════════════════════════════════════════
+function renderAll() {
+  renderSummary();
+  renderOrigenes();
+  renderEmpaque();
+}
+
+// ═══ v2 · Empaque · render + CRUD ═══
+function renderEmpaque() {
+  const sec = document.getElementById("empaque-section");
+  const hint = document.getElementById("empaque-hint");
+  if (!CONFIG.DB_EMPAQUE) {
+    sec.style.display = "none";
+    hint.style.display = "block";
+    return;
+  }
+  sec.style.display = "block";
+  hint.style.display = "none";
+  const list = document.getElementById("empaque-list");
+  const visibles = STATE.showInactive
+    ? STATE.empaques
+    : STATE.empaques.filter(e => readProp(e,"Activo") !== false);
+  if (visibles.length === 0) {
+    list.innerHTML = `<div class="empty-state"><strong>Sin empaques</strong>${STATE.empaques.length === 0 ? "Agregá el primero con + Nuevo empaque." : "Ningún empaque activo. Activá 'Mostrar inactivos' arriba si querés ver los desactivados."}</div>`;
+    return;
+  }
+  const sorted = visibles.slice().sort((a,b) => {
+    const aA = readProp(a,"Activo") !== false;
+    const bA = readProp(b,"Activo") !== false;
+    if (aA !== bA) return aA ? -1 : 1;
+    return (readProp(a,"Stock actual") || 0) - (readProp(b,"Stock actual") || 0);
+  });
+  list.innerHTML = sorted.map(e => {
+    const name = pageTitle(e) || "—";
+    const tipo = readProp(e,"Tipo") || "—";
+    const tamano = readProp(e,"Tamaño") || "—";
+    const stock = readProp(e,"Stock actual") || 0;
+    const umbral = readProp(e,"Umbral bajo") || 0;
+    const active = readProp(e,"Activo") !== false;
+    let tag;
+    if (!active) tag = { cls: "", txt: "INACTIVO" };
+    else if (umbral > 0 && stock <= umbral) tag = { cls: "alert", txt: "🔴 Bajo" };
+    else if (umbral > 0 && stock <= umbral * 2) tag = { cls: "warn", txt: "🟡 Medio" };
+    else tag = { cls: "ok", txt: "🟢 OK" };
+    const sizeText = tamano !== "N/A" ? ` · ${tamano}` : "";
+    return `<div class="origen ${!active ? "inactive" : ""}" style="cursor: pointer;" onclick="openEditEmpaque('${e.id}')">
+      <div class="origen-head">
+        <div class="origen-id" style="flex: 0 0 120px;">${tipo}${sizeText}</div>
+        <div class="origen-info">
+          <div class="origen-name">${name}</div>
+        </div>
+        <div class="origen-stock">
+          <div class="origen-kg">${stock}<span style="color: var(--ink-mute); font-size: 11px; margin-left: 4px;">unid</span></div>
+          <span class="origen-tag ${tag.cls}">${tag.txt}</span>
+        </div>
+        <div class="origen-toggle">›</div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+async function findEmpaqueTitleName() {
+  if (STATE._empaqueTitleName) return STATE._empaqueTitleName;
+  const db = await notion(`/database/${CONFIG.DB_EMPAQUE}`, { properties: {} }, "PATCH");
+  const entry = Object.entries(db.properties).find(([_,p]) => p.type === "title");
+  STATE._empaqueTitleName = entry ? entry[0] : "Nombre / Diseño";
+  return STATE._empaqueTitleName;
+}
+
+// v2 · Parsea un bind en {tipo, tamano} (todo derivable del bind)
+function parseBind(bind) {
+  if (!bind) return { tipo: "Otro", tamano: "N/A" };
+  if (bind === "1 KG · Trilaminated") return { tipo: "Bolsa", tamano: "1 KG" };
+  if (bind === "Grado A · 500g Craft") return { tipo: "Bolsa", tamano: "500g" };
+  if (bind === "Etiqueta genérica") return { tipo: "Etiqueta", tamano: "N/A" };
+  if (bind === "QR sticker") return { tipo: "Sticker", tamano: "N/A" };
+  if (bind === "Otro / sin bind") return { tipo: "Otro", tamano: "N/A" };
+  // "AN · 250g", "CM · BOX", "MT · SACHET", etc.
+  const parts = bind.split(" · ");
+  const tam = parts[1];
+  if (tam === "BOX") return { tipo: "Caja", tamano: "BOX" };
+  if (tam === "SACHET") return { tipo: "Bolsa", tamano: "SACHET" };
+  return { tipo: "Bolsa", tamano: tam || "N/A" };
+}
+
+function validateEmpaqueQuickId() {
+  const raw = document.getElementById("empaque-quick-id").value || "";
+  const norm = raw.trim().replace(/[^a-f0-9]/gi, "").toLowerCase();
+  const st = document.getElementById("empaque-quick-status");
+  const btn = document.getElementById("btn-connect-empaque");
+  if (!norm) { st.textContent = ""; btn.disabled = false; return; }
+  if (norm.length === 32) { st.textContent = "✓ ID válido"; st.style.color = "var(--green)"; btn.disabled = false; }
+  else { st.textContent = `${norm.length}/32 caracteres`; st.style.color = "var(--ink-mute)"; btn.disabled = true; }
+}
+
+function connectEmpaqueDb() {
+  const raw = document.getElementById("empaque-quick-id").value || "";
+  const norm = raw.trim().replace(/[^a-f0-9]/gi, "").toLowerCase();
+  if (norm.length !== 32) { toast("ID inválido — deben ser 32 caracteres hex", "error"); return; }
+  try {
+    const stored = JSON.parse(localStorage.getItem("kofy_warehouse_db_ids") || "{}");
+    stored.DB_ID_EMPAQUE = norm;
+    localStorage.setItem("kofy_warehouse_db_ids", JSON.stringify(stored));
+    CONFIG.DB_EMPAQUE = norm;
+    toast("Conectado. Cargando empaque…", "success");
+    loadAll();
+  } catch (e) {
+    toast("Error al guardar: " + e.message, "error");
+  }
+}
+
+function openNewEmpaque() {
+  document.getElementById("empaque-modal-title").textContent = "Nuevo empaque";
+  document.getElementById("empaque-edit-id").value = "";
+  document.getElementById("emp-stock").value = "";
+  document.getElementById("emp-umbral").value = "10";
+  document.getElementById("emp-bind").value = "";
+  document.getElementById("emp-proveedor").value = "";
+  document.getElementById("emp-notas").value = "";
+  // Limpiar extra buttons en edit mode
+  const row = document.getElementById("empaque-btn-row");
+  row.innerHTML = `<button class="btn ghost" onclick="closeModal('modal-empaque')">Cancelar</button><button class="btn primary" id="btn-empaque-submit" onclick="submitEmpaque()">Guardar</button>`;
+  openModal("modal-empaque");
+}
+
+function openEditEmpaque(empId) {
+  const e = STATE.empaques.find(x => x.id === empId);
+  if (!e) return;
+  const active = readProp(e,"Activo") !== false;
+  document.getElementById("empaque-modal-title").textContent = `Editar empaque`;
+  document.getElementById("empaque-edit-id").value = empId;
+  document.getElementById("emp-stock").value = readProp(e,"Stock actual") || 0;
+  document.getElementById("emp-umbral").value = readProp(e,"Umbral bajo") || 0;
+  document.getElementById("emp-bind").value = readProp(e,"Bind") || pageTitle(e) || "";
+  document.getElementById("emp-proveedor").value = readProp(e,"Proveedor") || "";
+  document.getElementById("emp-notas").value = readProp(e,"Notas") || "";
+  // Reemplazar btn-row con cancel + toggle activo + guardar
+  const row = document.getElementById("empaque-btn-row");
+  row.innerHTML = `
+    <button class="btn ghost" onclick="closeModal('modal-empaque')">Cancelar</button>
+    <button class="btn" style="${active ? "color: var(--red); border-color: var(--red);" : "color: var(--green); border-color: var(--green);"}" onclick="toggleEmpaqueActive('${empId}', ${active})">${active ? "Desactivar" : "↺ Reactivar"}</button>
+    <button class="btn primary" id="btn-empaque-submit" onclick="submitEmpaque()">Guardar cambios</button>`;
+  openModal("modal-empaque");
+}
+
+async function submitEmpaque() {
+  const btn = document.getElementById("btn-empaque-submit");
+  btn.disabled = true;
+  try {
+    const id = document.getElementById("empaque-edit-id").value;
+    const bind = document.getElementById("emp-bind").value;
+    if (!bind) throw new Error("Selecciona un tipo de empaque");
+    // v2 · No duplicar binds (excepto al editar el mismo)
+    const existingWithBind = STATE.empaques.find(e =>
+      readProp(e,"Bind") === bind && e.id !== id && readProp(e,"Activo") !== false
+    );
+    if (existingWithBind) {
+      throw new Error(`Ya existe un empaque activo con bind "${bind}". Editá el existente.`);
+    }
+    // v2 · El bind define nombre, tipo y tamaño automáticamente
+    const { tipo, tamano } = parseBind(bind);
+    const titleName = await findEmpaqueTitleName();
+    const props = {
+      [titleName]:    { title: [{ text: { content: bind } }] },
+      "Tipo":         { select: { name: tipo } },
+      "Tamaño":       { select: { name: tamano } },
+      "Bind":         { select: { name: bind } },
+      "Stock actual": { number: parseFloat(document.getElementById("emp-stock").value) || 0 },
+      "Umbral bajo":  { number: parseFloat(document.getElementById("emp-umbral").value) || 0 },
+      "Proveedor":    { rich_text: [{ text: { content: document.getElementById("emp-proveedor").value } }] },
+      "Notas":        { rich_text: [{ text: { content: document.getElementById("emp-notas").value } }] },
+    };
+    if (id) {
+      await updatePage(id, props);
+      toast(`✓ Empaque actualizado`);
+    } else {
+      props["Activo"] = { checkbox: true };
+      await createPage(CONFIG.DB_EMPAQUE, props);
+      toast(`✓ Empaque creado`);
+    }
+    closeModal("modal-empaque");
+    STATE.lastAction = Date.now();
+    await loadAll();
+  } catch (e) {
+    toast("Error: " + e.message, "error");
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// v3 · Wipe all empaque records (archive all — clean slate)
+async function wipeAllEmpaque() {
+  if (!CONFIG.DB_EMPAQUE) { toast("DB_EMPAQUE no configurado", "error"); return; }
+  const activos = STATE.empaques.filter(e => readProp(e,"Activo") !== false);
+  const total = STATE.empaques.length;
+  if (total === 0) { toast("No hay empaques que limpiar", "error"); return; }
+  const confirm1 = confirm(
+    `⚠️ LIMPIAR TODO EL INVENTARIO DE EMPAQUE\n\n` +
+    `Esto va a ARCHIVAR (eliminar de la vista) ${total} registro${total>1?"s":""} de empaque.\n\n` +
+    `Los órdenes y el inventario de café verde NO se ven afectados.\n\n` +
+    `¿Estás segura de que querés hacer esto?`
+  );
+  if (!confirm1) return;
+  const confirm2 = confirm(`Segunda confirmación: ¿eliminar los ${total} registros de empaque y empezar de cero?`);
+  if (!confirm2) return;
+  try {
+    let count = 0;
+    for (const e of STATE.empaques) {
+      await notion(`/pages/${e.id}`, { archived: true }, "PATCH");
+      await new Promise(r => setTimeout(r, 200));
+      count++;
+    }
+    toast(`✓ ${count} registro${count>1?"s":""} de empaque eliminados`, "success");
+    closeModal("modal-empaque");
+    STATE.lastAction = Date.now();
+    await loadAll();
+  } catch (e) {
+    toast("Error: " + e.message, "error");
+  }
+}
+
+async function toggleEmpaqueActive(empId, currentlyActive) {
+  const action = currentlyActive ? "desactivar" : "reactivar";
+  if (!confirm(`¿${action} este empaque?`)) return;
+  try {
+    await updatePage(empId, { "Activo": { checkbox: !currentlyActive } });
+    toast(`Empaque ${currentlyActive ? "desactivado" : "reactivado"}`);
+    closeModal("modal-empaque");
+    STATE.lastAction = Date.now();
+    await loadAll();
+  } catch (e) {
+    toast("Error: " + e.message, "error");
+  }
+}
+
+function renderSummary() {
+  const activos = STATE.origenes.filter(o => readProp(o,"Activo") !== false);
+  let totalKg = 0, alertas = 0, qActivos = 0;
+  activos.forEach(o => {
+    const s = origenStock(o.id);
+    totalKg += s.remanente;
+    qActivos += s.activos;
+    if (s.remanente < CONFIG.UMBRAL_BAJO) alertas++;
+  });
+  document.getElementById("tile-origenes").textContent = activos.length;
+  document.getElementById("tile-quintales").textContent = qActivos;
+  document.getElementById("tile-kg").textContent = totalKg.toFixed(1);
+  document.getElementById("tile-alertas").textContent = alertas;
+}
+
+function renderOrigenes() {
+  const list = document.getElementById("origen-list");
+  const filter = document.getElementById("filter-status").value;
+  list.innerHTML = "";
+
+  // Toggle inactivos
+  const pill = document.getElementById("filter-inactive");
+  if (pill) pill.classList.toggle("on", STATE.showInactive);
+
+  const baseList = STATE.showInactive
+    ? STATE.origenes
+    : STATE.origenes.filter(o => readProp(o,"Activo") !== false);
+
+  const sorted = baseList
+    .map(o => ({ o, stock: origenStock(o.id), active: readProp(o,"Activo") !== false }))
+    .sort((a,b) => {
+      if (a.active !== b.active) return a.active ? -1 : 1;
+      return a.stock.remanente - b.stock.remanente;
+    });
+
+  const filtered = filter
+    ? sorted.filter(x => x.active && stockTag(x.stock.remanente).cls === filter)
+    : sorted;
+
+  if (filtered.length === 0) {
+    list.innerHTML = `<div class="empty-state"><strong>Sin orígenes</strong>${STATE.origenes.length === 0 ? `Crea el primero desde el botón <em>+ Nuevo origen</em>.` : "Ningún origen coincide con el filtro."}</div>`;
+    const head = document.querySelector("h2");
+    head.innerHTML = `Orígenes <button class="btn" style="margin-left:12px; padding: 4px 10px; font-size: 11px;" onclick="openNewOrigen()">+ Nuevo origen</button>`;
+    return;
+  }
+
+  filtered.forEach(({ o, stock, active }) => list.appendChild(renderOrigenCard(o, stock, active)));
+
+  const head = document.querySelector("h2");
+  head.innerHTML = `Orígenes <button class="btn" style="margin-left:12px; padding: 4px 10px; font-size: 11px;" onclick="openNewOrigen()">+ Nuevo origen</button>`;
+}
+
+function renderOrigenCard(o, stock, active = true) {
+  const idOrigen = readProp(o, "ID Origen") || pageTitle(o) || "—";
+  const caf = readProp(o, "Caficultor") || "—";
+  const hac = readProp(o, "Hacienda") || "—";
+  const varietal = readProp(o, "Varietal") || "";
+  const msnm = readProp(o, "MSNM");
+  const tag = active ? stockTag(stock.remanente) : { cls: "", txt: "INACTIVO" };
+
+  const div = document.createElement("div");
+  div.className = "origen" + (STATE.expandedOrigen === o.id ? " open" : "") + (!active ? " inactive" : "");
+  div.innerHTML = `
+    <div class="origen-head">
+      <div class="origen-id">${idOrigen}</div>
+      <div class="origen-info">
+        <div class="origen-name">${caf} · ${hac}</div>
+        <div class="origen-meta">${varietal}${msnm ? " · " + msnm + " msnm" : ""}</div>
+      </div>
+      <div class="origen-stock">
+        <div class="origen-kg">${stock.remanente.toFixed(1)} <span style="color:var(--ink-mute); font-size: 11px;">/ ${stock.total} kg</span></div>
+        <span class="origen-tag ${tag.cls}">${tag.txt}</span>
+      </div>
+      <div class="origen-toggle">›</div>
+    </div>
+    <div class="quintales"></div>
+  `;
+  div.querySelector(".origen-head").onclick = () => {
+    STATE.expandedOrigen = STATE.expandedOrigen === o.id ? null : o.id;
+    renderOrigenes();
+  };
+  // Quintales body
+  const qBody = div.querySelector(".quintales");
+  const sorted = stock.quintales.slice().sort((a,b) => (readProp(a,"ID Quintal")||"").localeCompare(readProp(b,"ID Quintal")||""));
+  if (sorted.length === 0) {
+    qBody.innerHTML = `<div style="padding: 12px 0; color: var(--ink-mute); font-size: 12px; font-style: italic;">Sin quintales todavía.</div>`;
+  } else {
+    qBody.innerHTML = `
+      <div class="quintal-row" style="opacity: 0.6; border-bottom: 1px solid var(--line); padding-bottom: 6px;">
+        <div style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold);">Quintal</div>
+        <div style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); text-align: right;" class="h-tot">Inicial</div>
+        <div style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); text-align: right;" class="h-used">Usado</div>
+        <div style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); text-align: right;">Remanente</div>
+        <div class="h-uso"></div>
+      </div>`;
+    sorted.forEach(q => {
+      const idQ = readProp(q,"ID Quintal") || "—";
+      const ki = readProp(q,"KG iniciales") || 0;
+      const rem = quintalRemanente(q.id);
+      const usado = Math.round((ki - rem) * 10) / 10;
+      const agotado = rem <= 0.5;
+      qBody.innerHTML += `
+        <div class="quintal-row ${agotado ? "agotado" : ""}">
+          <div class="quintal-id">${idQ}</div>
+          <div class="quintal-num">${ki}</div>
+          <div class="quintal-num">${usado}</div>
+          <div class="quintal-num rem">${rem.toFixed(1)} kg</div>
+          ${agotado ? `<div style="color:var(--ink-mute); font-size: 11px;">agotado</div>` : ""}
+        </div>`;
+    });
+  }
+  qBody.innerHTML += `
+    <div class="quintales-foot" style="flex-wrap: wrap;">
+      <button class="add-quintal" onclick="event.stopPropagation(); openNewQuintal('${o.id}', '${idOrigen}')">+ Agregar quintal</button>
+      <a href="print.html?type=origen&id=${o.id}" target="_blank" class="add-quintal" style="text-decoration: none; border-color: var(--gold); color: var(--gold);" onclick="event.stopPropagation()">🖨 Imprimir hoja</a>
+      ${active ? `<button class="add-quintal" style="border-color: var(--plum-soft); color: var(--plum-soft);" onclick="event.stopPropagation(); openAuditOrigen('${o.id}')">📋 Auditar stock</button>` : ""}
+      ${active
+        ? `<button class="origen-deact" onclick="event.stopPropagation(); toggleOrigenActive('${o.id}', true)">Desactivar origen</button>`
+        : `<button class="origen-reactivate" onclick="event.stopPropagation(); toggleOrigenActive('${o.id}', false)">↺ Reactivar</button>`
+      }
+    </div>`;
+  return div;
+}
+
+// ═══════════════════════════════════════════════════════
+// Dropdowns & firma chips
+// ═══════════════════════════════════════════════════════
+// v2 · openUso / createUso / populateOrdenes / populateQuintalDropdown / setKg
+// ELIMINADOS. Deducción de café verde es automática vía FIFO al firmar etapa CV.
+// ═══════════════════════════════════════════════════════
+
+// Nuevo origen
+function openNewOrigen() {
+  document.getElementById("or-ini-caf").value = "";
+  document.getElementById("or-ini-var").value = "";
+  document.getElementById("or-ini-tos").value = "";
+  document.getElementById("preview-origen-id").textContent = "—";
+  openModal("modal-origen");
+}
+["or-ini-caf","or-ini-var","or-ini-tos"].forEach(id => {
+  document.getElementById(id).addEventListener("input", () => {
+    const a = document.getElementById("or-ini-caf").value.toUpperCase().trim();
+    const b = document.getElementById("or-ini-var").value.toUpperCase().trim();
+    const c = document.getElementById("or-ini-tos").value.toUpperCase().trim();
+    document.getElementById("preview-origen-id").textContent = [a,b,c].filter(Boolean).join("-") || "—";
+  });
+});
+
+async function createOrigen() {
+  const btn = document.getElementById("btn-origen");
+  btn.disabled = true;
+  try {
+    const id = document.getElementById("preview-origen-id").textContent;
+    if (id === "—" || id.length < 4) throw new Error("Faltan iniciales");
+    const props = {
+      "ID Origen": { title: [{ text: { content: id } }] },
+      "Caficultor": { rich_text: [{ text: { content: document.getElementById("or-caf").value } }] },
+      "Hacienda":   { rich_text: [{ text: { content: document.getElementById("or-hac").value } }] },
+      "Varietal":   { rich_text: [{ text: { content: document.getElementById("or-var").value } }] },
+      "Proceso":    { select: { name: document.getElementById("or-proc").value } },
+      "Activo":     { checkbox: true },
+    };
+    const msnm = parseInt(document.getElementById("or-msnm").value);
+    if (msnm) props["MSNM"] = { number: msnm };
+    const tos = document.getElementById("or-ini-tos").value.toUpperCase().trim();
+    if (tos) props["Tostado default"] = { select: { name: tos } };
+    await createPage(CONFIG.DB_ORIGENES, props);
+    toast(`Origen ${id} creado`, "success");
+    closeModal("modal-origen");
+    STATE.lastAction = Date.now();
+    await loadAll();
+  } catch (e) {
+    toast(e.message, "error");
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// Nuevo quintal
+function openNewQuintal(origenId, idOrigen) {
+  document.getElementById("quintal-origen-id").value = origenId;
+  document.getElementById("qu-fecha").value = new Date().toISOString().substring(0,10);
+  document.getElementById("qu-letra").value = "A";
+  document.getElementById("qu-kg").value = "46";
+  updateQuintalPreview(idOrigen);
+  openModal("modal-quintal");
+}
+function updateQuintalPreview(idOrigen) {
+  const f = document.getElementById("qu-fecha").value;
+  const l = document.getElementById("qu-letra").value;
+  const dm = f ? f.substring(8,10) + f.substring(5,7) : "DDMM";
+  document.getElementById("preview-quintal-id").textContent = `${idOrigen}-${dm}-${l}`;
+}
+["qu-fecha","qu-letra"].forEach(id => {
+  document.getElementById(id).addEventListener("change", () => {
+    const origenId = document.getElementById("quintal-origen-id").value;
+    const origen = STATE.origenes.find(o => o.id === origenId);
+    if (origen) updateQuintalPreview(readProp(origen,"ID Origen"));
+  });
+});
+
+async function createQuintal() {
+  const btn = document.getElementById("btn-quintal");
+  btn.disabled = true;
+  try {
+    const origenId = document.getElementById("quintal-origen-id").value;
+    const id = document.getElementById("preview-quintal-id").textContent;
+    const fecha = document.getElementById("qu-fecha").value;
+    const letra = document.getElementById("qu-letra").value;
+    const kg = parseFloat(document.getElementById("qu-kg").value);
+    if (!kg) throw new Error("Falta KG iniciales");
+    await createPage(CONFIG.DB_QUINTALES, {
+      "ID Quintal": { title: [{ text: { content: id } }] },
+      "Origen": { relation: [{ id: origenId }] },
+      "Letra": { select: { name: letra } },
+      "Fecha de compra": { date: { start: fecha } },
+      "KG iniciales": { number: kg },
+    });
+    toast(`Quintal ${id} creado`, "success");
+    closeModal("modal-quintal");
+    STATE.lastAction = Date.now();
+    await loadAll();
+  } catch (e) {
+    toast(e.message, "error");
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// Modales · helpers
+// ═══════════════════════════════════════════════════════
+function openModal(id) { document.getElementById(id).classList.add("open"); }
+function closeModal(id) { document.getElementById(id).classList.remove("open"); }
+
+document.getElementById("filter-status").onchange = renderOrigenes;
+
+function toast(msg, type = "") {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.className = "toast show " + type;
+  setTimeout(() => t.classList.remove("show"), 3000);
+}
+
+// Auto-refresh
+document.addEventListener("visibilitychange", () => {
+  STATE.hidden = document.hidden;
+  if (!document.hidden) loadAll();
+});
+// v2 · Smart refresh: no piso lo que estás tipeando ni un modal abierto
+function shouldSkipRefresh() {
+  if (document.querySelector(".modal-bg.open")) return true;
+  const f = document.activeElement;
+  if (f && (f.tagName === "INPUT" || f.tagName === "TEXTAREA" || f.tagName === "SELECT")) return true;
+  return false;
+}
+setInterval(() => {
+  if (STATE.hidden) return;
+  if (Date.now() - STATE.lastAction < 30000) return;
+  if (shouldSkipRefresh()) return;
+  loadAll();
+}, CONFIG.REFRESH_MS);
+
+// If restored from bfcache, reload so code changes take effect immediately
+window.addEventListener("pageshow", (e) => { if (e.persisted) window.location.reload(); });
+
+window.addEventListener("DOMContentLoaded", async () => {
+  if (CONFIG.DB_ORIGENES.startsWith("PEGAR_")) {
+    document.querySelector("main").innerHTML = `
+      <div class="config-warn">
+        <strong>⚠ Config incompleta.</strong> Edita el bloque <code>CONFIG</code> al inicio de este archivo y pega los DB IDs. Guía: <code>warehouse-notion-schema.html</code>.
+      </div>`;
+    return;
+  }
+  await loadAll();
+  // v2: persona check
+  const stored = loadPersona();
+  if (stored && STATE.miembros.find(m => m.id === stored.id)) {
+    STATE.persona = stored;
+    updatePersonaChip();
+    document.getElementById("picker").classList.add("hidden");
+  } else {
+    renderPersonaPicker();
+  }
+});
+</script>
+<script src="kofy-comms-loader.js"></script>
+</body>
+</html>
