@@ -99,10 +99,10 @@
   const drawer = document.createElement('div');
   drawer.id = 'kn-drawer';
 
-  // Hub link
+  // Hub link — points to the SYSTEMS 2.0 hub (the old kofy-hub.html is retired)
   const hubA = document.createElement('a');
-  hubA.href = 'kofy-hub.html';
-  hubA.className = 'kn-hub' + (current === 'kofy-hub.html' ? ' active' : '');
+  hubA.href = 'https://kofy-website.vercel.app/hub';
+  hubA.className = 'kn-hub';
   hubA.innerHTML = '☕&nbsp; Kofy Hub';
   drawer.appendChild(hubA);
 
